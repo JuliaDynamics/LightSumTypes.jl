@@ -26,7 +26,7 @@ macro struct_sum_type(type, struct_defs)
                         $(variants_defs...)
                       end)
 
-    branching_getprop = generate_branching_variants(variants_types, :(getfield(data_a.data[1], s)))
+    branching_getprop = generate_branching_variants(variants_types, :(return getfield(data_a.data[1], s)))
 
     expr_getprop = :(function Base.getproperty(a::$type, s::Symbol)
                         type_a = (typeof)(a)
@@ -36,10 +36,10 @@ macro struct_sum_type(type, struct_defs)
 
                         data_a = (SumTypes.unwrap)(a)
 
-                        $(branching_getprop)
+                        $(branching_getprop...)
                      end)
 
-    branching_setprop = generate_branching_variants(variants_types, :(setfield!(data_a.data[1], s, v)))
+    branching_setprop = generate_branching_variants(variants_types, :(return setfield!(data_a.data[1], s, v)))
 
     expr_setprop = :(function Base.setproperty!(a::$type, s::Symbol, v)
                         type_a = (typeof)(a)
@@ -50,7 +50,7 @@ macro struct_sum_type(type, struct_defs)
 
                         data_a = (SumTypes.unwrap)(a)
 
-                        $(branching_setprop)
+                        $(branching_setprop...)
                      end)
 
     expr_constructors = []
@@ -78,11 +78,11 @@ macro struct_sum_type(type, struct_defs)
 end
 
 function generate_branching_variants(variants_types, res)
-    first_if = Expr(:if, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res)
+    branchs = [Expr(:if, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res)]
     for i in 2:length(variants_types)
-        push!(first_if.args, Expr(:elseif, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res))
+        push!(branchs, Expr(:elseif, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res))
     end
-    return first_if
+    return branchs
 end
 
 function retrieve_fields_names(fields, remove_only_consts = false)
