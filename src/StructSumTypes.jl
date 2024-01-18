@@ -5,7 +5,7 @@ using MacroTools
 using SumTypes
 export SumTypes
 
-export struct_sum_type
+export @struct_sum_type
 
 macro struct_sum_type(type, struct_defs)
     
