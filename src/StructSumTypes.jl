@@ -11,6 +11,8 @@ macro struct_sum_type(type, struct_defs)
     
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
 
+    isnotmutable = all(!(d.args[1]) for d in struct_defs)
+    
     variants_types = []
     for (i, d) in enumerate(struct_defs)
         t = d.args[2]
@@ -41,17 +43,21 @@ macro struct_sum_type(type, struct_defs)
 
     branching_setprop = generate_branching_variants(variants_types, :(return setfield!(data_a.data[1], s, v)))
 
-    expr_setprop = :(function Base.setproperty!(a::$type, s::Symbol, v)
-                        type_a = (typeof)(a)
+    if !isnotmutable
+        expr_setprop = :(function Base.setproperty!(a::$type, s::Symbol, v)
+                            type_a = (typeof)(a)
 
-                        SumTypes.check_sum_type(type_a)
-                        SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types))})
+                            SumTypes.check_sum_type(type_a)
+                            SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
+                                                       Val{$(Tuple(variants_types))})
 
-                        data_a = (SumTypes.unwrap)(a)
+                            data_a = (SumTypes.unwrap)(a)
 
-                        $(branching_setprop...)
-                     end)
+                            $(branching_setprop...)
+                         end)
+    else
+        expr_setprop = :()
+    end
 
     expr_constructors = []
 
