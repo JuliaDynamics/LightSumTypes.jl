@@ -59,6 +59,19 @@ macro struct_sum_type(type, struct_defs)
         expr_setprop = :()
     end
 
+    branching_typeof = generate_branching_variants(variants_types, :(return StructSumTypes.retrieve_type(data_a)))
+
+    expr_kindof = :(function kindof(a::$type)
+                        type_a = (typeof)(a)
+                        SumTypes.check_sum_type(type_a)
+                        SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
+                                                   Val{$(Tuple(variants_types))})
+
+                        data_a = (SumTypes.unwrap)(a)
+
+                        $(branching_typeof...)
+                     end)
+
     expr_constructors = []
 
     for (d, t) in zip(struct_defs, variants_types)
@@ -77,6 +90,7 @@ macro struct_sum_type(type, struct_defs)
                $(expr_sum_type)
                $(expr_getprop)
                $(expr_setprop)
+               $(expr_kindof)
                $(expr_constructors...)
            end
 
@@ -100,5 +114,7 @@ function retrieve_fields_names(fields, remove_only_consts = false)
     end
     return field_names
 end
+
+retrieve_type(::SumTypes.Variant{T}) where T = T
 
 end
