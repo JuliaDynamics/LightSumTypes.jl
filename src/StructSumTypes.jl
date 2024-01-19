@@ -17,11 +17,11 @@ macro struct_sum_type(type, struct_defs)
     for (i, d) in enumerate(struct_defs)
         t = d.args[2]
         push!(variants_types, t)
-        d_new = MacroTools.postwalk(s -> s == t ? Symbol(:_, s) : s, d)
+        d_new = MacroTools.postwalk(s -> s == t ? hidden_t(s) : s, d)
         struct_defs[i] = d_new
     end
 
-    hidden_struct_types = [Symbol(:_, t) for t in variants_types]
+    hidden_struct_types = [hidden_t(t) for t in variants_types]
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
     expr_sum_type = :(SumTypes.@sum_type $type begin
@@ -79,18 +79,17 @@ macro struct_sum_type(type, struct_defs)
         f_d_n = retrieve_fields_names(f_d, false)
         f_d_n_t = retrieve_fields_names(f_d, true)
         c1 = :(function $t($(f_d_n_t...))
-                   return $t($(Symbol(:_, t))($(f_d_n...)))
+                   return $t($(hidden_t(t, true))($(f_d_n...)))
                end
               )
         c2 = :(function $t($(f_d_n...))
-                   return $t($(Symbol(:_, t))($(f_d_n...)))
+                   return $t($(hidden_t(t, true))($(f_d_n...)))
                end
               )
         push!(expr_constructors, c1)
         push!(expr_constructors, c2)
     end
 
-    println(struct_defs)
     expr = quote 
                $(struct_defs...)
                $(expr_sum_type)
@@ -119,6 +118,19 @@ function retrieve_fields_names(fields, remove_only_consts = false)
         push!(field_names, f)
     end
     return field_names
+end
+
+function hidden_t(t, only_name = false)
+    if t isa Symbol
+        return Symbol(:v, t)
+    else
+        @capture(t, T_{ps__})
+        if only_name
+            return Symbol(:v, T)
+        else
+            return Expr(:curly, Symbol(:v, T), ps...)
+        end
+    end
 end
 
 retrieve_type(::SumTypes.Variant{T}) where T = T
