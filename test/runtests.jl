@@ -1,9 +1,9 @@
 
 using StructSumTypes
 
-@struct_sum_type A begin
-    mutable struct B
-        a::Tuple{Int, Int}
+@struct_sum_type A{X} begin
+    mutable struct B{X}
+        a::Tuple{X, X}
         b::Tuple{Float64, Float64}
         const c::Symbol
     end

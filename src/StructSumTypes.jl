@@ -16,8 +16,14 @@ macro struct_sum_type(type, struct_defs)
     variants_types = []
     for (i, d) in enumerate(struct_defs)
         t = d.args[2]
+        c = @capture(t, t_n_{t_p__})
+        c == false && (t_p = [])
         push!(variants_types, t)
         d_new = MacroTools.postwalk(s -> s == t ? hidden_t(s) : s, d)
+        for p in t_p
+            p_u = gensym(p)
+            d_new = MacroTools.postwalk(s -> s == p ? p_u : s, d_new)
+        end
         struct_defs[i] = d_new
     end
 
@@ -28,28 +34,29 @@ macro struct_sum_type(type, struct_defs)
                         $(variants_defs...)
                       end)
 
-    branching_getprop = generate_branching_variants(variants_types, :(return getfield(data_a.data[1], s)))
+    variants_types_names = namify.(variants_types)
+    branching_getprop = generate_branching_variants(variants_types_names, :(return getfield(data_a.data[1], s)))
 
-    expr_getprop = :(function Base.getproperty(a::$type, s::Symbol)
+    expr_getprop = :(function Base.getproperty(a::$(namify(type)), s::Symbol)
                         type_a = (typeof)(a)
                         SumTypes.check_sum_type(type_a)
                         SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types))})
+                                                   Val{$(Tuple(variants_types_names))})
 
                         data_a = (SumTypes.unwrap)(a)
 
                         $(branching_getprop...)
                      end)
 
-    branching_setprop = generate_branching_variants(variants_types, :(return setfield!(data_a.data[1], s, v)))
+    branching_setprop = generate_branching_variants(variants_types_names, :(return setfield!(data_a.data[1], s, v)))
 
     if !isnotmutable
-        expr_setprop = :(function Base.setproperty!(a::$type, s::Symbol, v)
+        expr_setprop = :(function Base.setproperty!(a::$(namify(type)), s::Symbol, v)
                             type_a = (typeof)(a)
 
                             SumTypes.check_sum_type(type_a)
                             SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
-                                                       Val{$(Tuple(variants_types))})
+                                                       Val{$(Tuple(variants_types_names))})
 
                             data_a = (SumTypes.unwrap)(a)
 
@@ -59,13 +66,13 @@ macro struct_sum_type(type, struct_defs)
         expr_setprop = :()
     end
 
-    branching_typeof = generate_branching_variants(variants_types, :(return StructSumTypes.retrieve_type(data_a)))
+    branching_typeof = generate_branching_variants(variants_types_names, :(return StructSumTypes.retrieve_type(data_a)))
 
-    expr_kindof = :(function kindof(a::$type)
+    expr_kindof = :(function kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
                         SumTypes.check_sum_type(type_a)
                         SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types))})
+                                                   Val{$(Tuple(variants_types_names))})
 
                         data_a = (SumTypes.unwrap)(a)
 
@@ -78,12 +85,17 @@ macro struct_sum_type(type, struct_defs)
         f_d = [x for x in d.args[3].args if !(x isa LineNumberNode)]
         f_d_n = retrieve_fields_names(f_d, false)
         f_d_n_t = retrieve_fields_names(f_d, true)
-        c1 = :(function $t($(f_d_n_t...))
-                   return $t($(hidden_t(t, true))($(f_d_n...)))
-               end
-              )
-        c2 = :(function $t($(f_d_n...))
-                   return $t($(hidden_t(t, true))($(f_d_n...)))
+        c = @capture(t, t_n_{t_p__})
+        if t_p !== nothing
+            c1 = :(function $t($(f_d_n...)) where {$(t_p...)}
+                       return $t($(hidden_t(t, true))($(f_d_n...)))
+                   end
+                  )
+        else
+            c1 = :()
+        end
+        c2 = :(function $(namify(t))($(f_d_n...))
+                   return $(namify(t))($(hidden_t(t, true))($(f_d_n...)))
                end
               )
         push!(expr_constructors, c1)
@@ -97,8 +109,10 @@ macro struct_sum_type(type, struct_defs)
                $(expr_setprop)
                $(expr_kindof)
                $(expr_constructors...)
+               $(namify(type))
            end
 
+    println(expr)
     return esc(expr)
 end
 
