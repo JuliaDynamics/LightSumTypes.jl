@@ -78,13 +78,19 @@ macro struct_sum_type(type, struct_defs)
         f_d = [x for x in d.args[3].args if !(x isa LineNumberNode)]
         f_d_n = retrieve_fields_names(f_d, false)
         f_d_n_t = retrieve_fields_names(f_d, true)
-        c = :(function $t($(f_d_n_t...))
-                  return $t($(Symbol(:_, t))($(f_d_n...)))
-              end
-            )
-        push!(expr_constructors, c)
+        c1 = :(function $t($(f_d_n_t...))
+                   return $t($(Symbol(:_, t))($(f_d_n...)))
+               end
+              )
+        c2 = :(function $t($(f_d_n...))
+                   return $t($(Symbol(:_, t))($(f_d_n...)))
+               end
+              )
+        push!(expr_constructors, c1)
+        push!(expr_constructors, c2)
     end
 
+    println(struct_defs)
     expr = quote 
                $(struct_defs...)
                $(expr_sum_type)

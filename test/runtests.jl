@@ -21,8 +21,10 @@ using StructSumTypes
     end
 end
 
-b = [B(1, 1.0, :b) for i in 1:1000]
-c = C(1, Int32(3), true, :c)
+b = [B((1,1), (1.0, 2.0), :b) for i in 1:1000]
+c1 = C((1,1), Int32(3), true, :c)
+c2 = c = C((1,1), 3, true, :c)
+c1.d == c2.d
 d = D((1,1), Float32(3.2), (1 + 2im, 1+3im), :c)
 
 f(v) = sum(a.x for a in v)
