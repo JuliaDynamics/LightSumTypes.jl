@@ -112,7 +112,6 @@ macro struct_sum_type(type, struct_defs)
                $(namify(type))
            end
 
-    println(expr)
     return esc(expr)
 end
 
