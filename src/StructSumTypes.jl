@@ -79,6 +79,21 @@ macro struct_sum_type(type, struct_defs)
                         $(branching_typeof...)
                      end)
 
+    expr_show = :(function Base.show(io::IO, a::$(namify(type)))
+                      h_a = (SumTypes.unwrap)(a).data[1]
+                      f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
+                      vals = join([x isa String ? "\"$x\"" : x for x in f_vals], ", ")
+                      params = typeof(h_a).parameters
+                      if isempty(params)
+                          print(io, string(kindof(a)), "($vals)")
+                      else
+                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)")
+                      end
+                  end
+                  )
+
+    expr_show_mime = :(Base.show(io::IO, ::MIME"text/plain", a::$(namify(type))) = show(io, a))
+
     expr_constructors = []
 
     for (d, t) in zip(struct_defs, variants_types)
@@ -108,6 +123,8 @@ macro struct_sum_type(type, struct_defs)
                $(expr_getprop)
                $(expr_setprop)
                $(expr_kindof)
+               $(expr_show)
+               $(expr_show_mime)
                $(expr_constructors...)
                $(namify(type))
            end
