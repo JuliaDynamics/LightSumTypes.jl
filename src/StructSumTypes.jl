@@ -14,12 +14,18 @@ macro struct_sum_type(type, struct_defs)
     isnotmutable = all(!(d.args[1]) for d in struct_defs)
     
     variants_types = []
+    hidden_struct_types = []
     for (i, d) in enumerate(struct_defs)
         t = d.args[2]
         c = @capture(t, t_n_{t_p__})
-        c == false && (t_p = [])
+        c == false && ((t_n, t_p) = (t, []))
         push!(variants_types, t)
-        d_new = MacroTools.postwalk(s -> s == t ? hidden_t(s) : s, d)
+        h_t = gensym(t_n)
+        if t_p != []
+            h_t = :($h_t{$(t_p...)})
+        end
+        push!(hidden_struct_types, h_t)
+        d_new = MacroTools.postwalk(s -> s == t ? h_t : s, d)
         for p in t_p
             p_u = gensym(p)
             d_new = MacroTools.postwalk(s -> s == p ? p_u : s, d_new)
@@ -27,7 +33,6 @@ macro struct_sum_type(type, struct_defs)
         struct_defs[i] = d_new
     end
 
-    hidden_struct_types = [hidden_t(t) for t in variants_types]
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
     expr_sum_type = :(SumTypes.@sum_type $type begin
@@ -97,21 +102,21 @@ macro struct_sum_type(type, struct_defs)
 
     expr_constructors = []
 
-    for (d, t) in zip(struct_defs, variants_types)
+    for (d, t, h_t) in zip(struct_defs, variants_types, hidden_struct_types)
         f_d = [x for x in d.args[3].args if !(x isa LineNumberNode)]
         f_d_n = retrieve_fields_names(f_d, false)
         f_d_n_t = retrieve_fields_names(f_d, true)
         c = @capture(t, t_n_{t_p__})
         if t_p !== nothing
             c1 = :(function $t($(f_d_n...)) where {$(t_p...)}
-                       return $t($(hidden_t(t, true))($(f_d_n...)))
+                       return $t($(namify(h_t))($(f_d_n...)))
                    end
                   )
         else
             c1 = :()
         end
         c2 = :(function $(namify(t))($(f_d_n...))
-                   return $(namify(t))($(hidden_t(t, true))($(f_d_n...)))
+                   return $(namify(t))($(namify(h_t))($(f_d_n...)))
                end
               )
         push!(expr_constructors, c1)
@@ -149,19 +154,6 @@ function retrieve_fields_names(fields, remove_only_consts = false)
         push!(field_names, f)
     end
     return field_names
-end
-
-function hidden_t(t, only_name = false)
-    if t isa Symbol
-        return Symbol(:v, t)
-    else
-        @capture(t, T_{ps__})
-        if only_name
-            return Symbol(:v, T)
-        else
-            return Expr(:curly, Symbol(:v, T), ps...)
-        end
-    end
 end
 
 function print_transform(x)
