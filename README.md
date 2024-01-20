@@ -27,7 +27,7 @@ julia> @struct_sum_type A{X} begin
 A
 
 julia> b = B((1,1), (1.0, 1.0), :s)
-B{Int64}((1, 1), (1.0, 1.0), s)
+B{Int64}((1, 1), (1.0, 1.0), :s)
 
 julia> b.a
 (1, 1)

@@ -82,7 +82,7 @@ macro struct_sum_type(type, struct_defs)
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
                       h_a = (SumTypes.unwrap)(a).data[1]
                       f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
-                      vals = join([x isa String ? "\"$x\"" : x for x in f_vals], ", ")
+                      vals = join([StructSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
                       if isempty(params)
                           print(io, string(kindof(a)), "($vals)")
@@ -161,6 +161,12 @@ function hidden_t(t, only_name = false)
             return Expr(:curly, Symbol(:v, T), ps...)
         end
     end
+end
+
+function print_transform(x)
+    x isa String && return "\"$x\""
+    x isa Symbol && return QuoteNode(x)
+    return x
 end
 
 retrieve_type(::SumTypes.Variant{T}) where T = T
