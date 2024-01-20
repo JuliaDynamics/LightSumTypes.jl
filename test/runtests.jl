@@ -1,7 +1,7 @@
 
-using StructSumTypes
+using MixedStructTypes
 
-@struct_sum_type A{X} begin
+@sum_struct_type A{X} begin
     mutable struct B{X}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
