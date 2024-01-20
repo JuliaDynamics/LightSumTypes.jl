@@ -9,7 +9,7 @@ SumTypes = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
 [compat]
 julia = "1"
 MacroTools = "0.5"
-SumTypes = "0.5.3"
+SumTypes = "0.5.4"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
