@@ -85,9 +85,10 @@ macro struct_sum_type(type, struct_defs)
                       vals = join([StructSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
                       if isempty(params)
-                          print(io, string(kindof(a)), "($vals)")
+                          print(io, string(kindof(a)), "($vals)", "::", $(namify(type)))
                       else
-                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)")
+                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)", 
+                                           "::", $(namify(type)))
                       end
                   end
                   )
@@ -126,7 +127,7 @@ macro struct_sum_type(type, struct_defs)
                $(expr_show)
                $(expr_show_mime)
                $(expr_constructors...)
-               $(namify(type))
+               nothing
            end
 
     return esc(expr)

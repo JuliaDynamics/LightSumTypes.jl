@@ -24,10 +24,9 @@ julia> @struct_sum_type A{X} begin
                const c::Symbol
            end
        end
-A
 
 julia> b = B((1,1), (1.0, 1.0), :s)
-B{Int64}((1, 1), (1.0, 1.0), :s)
+B{Int64}((1, 1), (1.0, 1.0), :s)::A
 
 julia> b.a
 (1, 1)
