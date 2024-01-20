@@ -1,11 +1,20 @@
-# StructSumTypes.jl
+# MixedStructTypes.jl
 
-This package implements an interface based on [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) which allows to work with sum types with a structs-like syntax:
+This package allows to pack heterogeneous types in a single type. Two macros implements different
+strategies to create a compact representation of the types:
+
+- `@sum_struct_type`  which uses as a backend [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl);
+
+- `@compact_struct_type` which uses as a backend [LazilyInitializedFields.jl](https://github.com/KristofferC/LazilyInitializedFields.jl);
+
+While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and it allows to mix
+mutable and immutable structs, while the first macro does not.
+
 
 ```julia
-julia> using StructSumTypes
+julia> using MixedStructTypes
 
-julia> @struct_sum_type A{X} begin
+julia> @sum_struct_type A{X} begin
            mutable struct B{X}
                a::Tuple{X, X}
                b::Tuple{Float64, Float64}

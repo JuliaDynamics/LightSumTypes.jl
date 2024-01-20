@@ -1,13 +1,5 @@
 
-module StructSumTypes
-
-using MacroTools
-using SumTypes
-export SumTypes
-
-export @struct_sum_type
-
-macro struct_sum_type(type, struct_defs)
+macro sum_struct_type(type, struct_defs)
     
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
 
@@ -71,7 +63,7 @@ macro struct_sum_type(type, struct_defs)
         expr_setprop = :()
     end
 
-    branching_typeof = generate_branching_variants(variants_types_names, :(return StructSumTypes.retrieve_type(data_a)))
+    branching_typeof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
 
     expr_kindof = :(function kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
@@ -87,7 +79,7 @@ macro struct_sum_type(type, struct_defs)
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
                       h_a = (SumTypes.unwrap)(a).data[1]
                       f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
-                      vals = join([StructSumTypes.print_transform(x) for x in f_vals], ", ")
+                      vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
                       if isempty(params)
                           print(io, string(kindof(a)), "($vals)", "::", $(namify(type)))
@@ -146,16 +138,6 @@ function generate_branching_variants(variants_types, res)
     return branchs
 end
 
-function retrieve_fields_names(fields, remove_only_consts = false)
-    field_names = []
-    for f in fields
-        f.head == :const && (f = f.args[1])
-        !remove_only_consts && f.head == :(::) && (f = f.args[1])
-        push!(field_names, f)
-    end
-    return field_names
-end
-
 function print_transform(x)
     x isa String && return "\"$x\""
     x isa Symbol && return QuoteNode(x)
@@ -163,5 +145,3 @@ function print_transform(x)
 end
 
 retrieve_type(::SumTypes.Variant{T}) where T = T
-
-end

@@ -1,13 +1,15 @@
-name = "StructSumTypes"
+name = "MixedStructTypes"
 uuid = "3d69f371-6fa5-5add-b11c-3293622cad62"
 version = "0.0.0"
 
 [deps]
+LazilyInitializedFields = "0e77f7df-68c5-4e49-93ce-4cd80f5598bf"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
 SumTypes = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
 
 [compat]
 julia = "1"
+LazilyInitializedFields = "1"
 MacroTools = "0.5"
 SumTypes = "0.5.4"
 
