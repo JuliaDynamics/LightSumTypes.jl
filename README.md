@@ -10,11 +10,12 @@ strategies to create a compact representation of the types:
 While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and it allows to mix
 mutable and immutable structs, while the first macro does not.
 
+## Example
 
 ```julia
 julia> using MixedStructTypes
 
-julia> @sum_struct_type A{X} begin
+julia> @sum_struct_type A{X,Y} begin
            mutable struct B{X}
                a::Tuple{X, X}
                b::Tuple{Float64, Float64}
@@ -26,11 +27,11 @@ julia> @sum_struct_type A{X} begin
                e::Bool
                const c::Symbol
            end
-           mutable struct D
+           struct D{Y}
                a::Tuple{Int, Int}
-               f::Float32
+               f::Y
                g::Tuple{Complex, Complex}
-               const c::Symbol
+               c::Symbol
            end
        end
 
@@ -47,5 +48,41 @@ julia> b.a = (3, 3)
 (3, 3)
 
 julia> kindof(b)
+
+       # as you can see, here, all structs are mutable
+       # and all shared fields in different structs have
+       # the same type
 :B
+
+julia> @compact_struct_type E{X,Y} begin
+           mutable struct F{X}
+               a::Tuple{X, X}
+               b::Tuple{Float64, Float64}
+               const c::Symbol
+           end
+           mutable struct G{X}
+               a::Tuple{X, X}
+               d::Int32
+               e::Bool
+               const c::Symbol
+           end
+           mutable struct H{X,Y}
+               a::Tuple{X, X}
+               f::Y
+               g::Tuple{Complex, Complex}
+               const c::Symbol
+           end
+       end
+
+julia> f = F((1,1), (1.0, 1.0), :s)
+E{Int64, LazilyInitializedFields.Uninitialized}(:F, (1, 1), :s, (1.0, 1.0), uninit, uninit, uninit, uninit)
+
+julia> f.a
+(1, 1)
+
+julia> f.c
+:s
+
+julia> f.a = (3, 3)
+(3, 3)
 ```
