@@ -14,21 +14,19 @@ macro compact_struct_type(new_type, struct_defs)
         push!(default_each, a_comps[2][2])
     end
     common_fields = intersect(fields_each...)
-    noncommon_fields = setdiff(union(fields_each...), common_fields)
-    common_fields_n = retrieve_fields_names(common_fields)
-    noncommon_fields_n = retrieve_fields_names(noncommon_fields)
+    all_fields = union(fields_each...)
+    all_fields_n = retrieve_fields_names(all_fields)
+    noncommon_fields = setdiff(all_fields, common_fields)
     if isempty(noncommon_fields)
         islazy = false
     else
         islazy = true
-        noncommon_fields = [f.head == :const ? :(@lazy $(f.args[1])) : (:(@lazy $f)) 
-                            for f in noncommon_fields]
+        all_fields = [transform_field(x, noncommon_fields) for x in all_fields]
     end
 
     gensym_type = gensym(:(type))
     expr_new_type = :(mutable struct $new_type <: $abstract_type
-                        $(common_fields...)
-                        $(noncommon_fields...)
+                        $(all_fields...)
                         $(gensym_type)::Symbol
                       end)
 
@@ -47,7 +45,7 @@ macro compact_struct_type(new_type, struct_defs)
         f_params_kwargs_with_T = a_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
         type = Symbol(string(namify(a_t)))
-        f_inside_args = [common_fields_n..., noncommon_fields_n...]
+        f_inside_args = all_fields_n
         f_inside_args = [f in a_spec_n ? f : (:(MixedStructTypes.uninit)) for f in f_inside_args]
         f_inside_args = [f_inside_args..., Expr(:quote, type)]
         @capture(a_t, a_t_n_{a_t_p__})
@@ -91,7 +89,7 @@ macro compact_struct_type(new_type, struct_defs)
         push!(expr_functions, expr_function_kwargs_with_T)
     end
 
-    expr_kindof = :(kindof(a::$(namify(new_type))) = getfield(a, nfields(typeof(a))))
+    expr_kindof = :(kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
                       f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != MixedStructTypes.uninit]
@@ -155,4 +153,12 @@ function remove_prev_methods(a_t)
                     Base.delete_method(m)
                 end
             end)
+end
+
+function transform_field(x, noncommon_fields)
+    if x in noncommon_fields
+        return x.head == :const ? :(@lazy $(x.args[1])) : (:(@lazy $x)) 
+    else
+        return x
+    end
 end

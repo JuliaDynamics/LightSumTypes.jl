@@ -9,15 +9,15 @@ using MixedStructTypes
     end
     mutable struct C
         a::Tuple{Int, Int}
+        const c::Symbol
         d::Int32
         e::Bool
-        const c::Symbol
     end
     struct D{Y}
         a::Tuple{Int, Int}
+        c::Symbol
         f::Y
         g::Tuple{Complex, Complex}
-        c::Symbol
     end
 end
 
@@ -42,15 +42,15 @@ kindof(b)
     end
     mutable struct G{X}
         a::Tuple{X, X}
+        const c::Symbol
         d::Int32
         e::Bool
-        const c::Symbol
     end
     mutable struct H{X,Y}
         a::Tuple{X, X}
+        const c::Symbol
         f::Y
         g::Tuple{Complex, Complex}
-        const c::Symbol
     end
 end
 
@@ -63,3 +63,4 @@ f.c
 f.a = (3, 3)
 
 kindof(f)
+
