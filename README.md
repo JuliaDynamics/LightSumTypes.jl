@@ -12,12 +12,15 @@ While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory 
 mutable and immutable structs where fields belonging to different structs can also have different types, 
 while the first macro does not.
 
+Even if there is only a unique type defined by these macros, you can access a symbol containing the 
+conceptual type of an instance with the function `kindof`.
+
 ## Example
 
 ```julia
 julia> using MixedStructTypes
 
-julia> @sum_struct_type @kwdef A{X,Y} begin
+julia> @sum_struct_type @kwdef A{X} begin
            mutable struct B{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -29,10 +32,10 @@ julia> @sum_struct_type @kwdef A{X,Y} begin
                d::Int32 = Int32(2)
                e::Bool = false
            end
-           struct D{Y}
+           struct D
                a::Tuple{Int, Int} = (1,1)
                c::Symbol = :s
-               f::Y = Int[]
+               f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
            end
        end
@@ -55,7 +58,7 @@ julia> kindof(b)
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
-       @compact_struct_type @kwdef E{X,Y} begin
+       @compact_struct_type @kwdef E{X} begin
            mutable struct F{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -67,10 +70,10 @@ julia> # as you can see, here, all structs are mutable
                d::Int32 = Int32(2)
                e::Bool = false
            end
-           mutable struct H{X,Y}
+           mutable struct H{X}
                a::Tuple{X, X} = (1,1)
                const c::Symbol = :s
-               f::Y = Int[]
+               f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
            end
        end
@@ -89,5 +92,27 @@ julia> f.a = (3, 3)
 
 julia> kindof(f)
 :F
+```
+
+Let's see briefly how the two macros compare performance-wise:
+
+```julia
+julia> vec_a = A{Int}[rand((B,C,D))() for _ in 1:10^6];
+
+julia> vec_e = E{Int}[rand((F,G,H))() for _ in 1:10^6];
+
+julia> Base.summarysize(vec_a)
+43731460
+
+julia> Base.summarysize(vec_e)
+90029733
+
+julia> using BenchmarkTools
+
+julia> @btime sum(x.a[1] for x in $vec_a);
+  5.760 ms (0 allocations: 0 bytes)
+
+julia> @btime sum(x.a[1] for x in $vec_e);
+  3.330 ms (0 allocations: 0 bytes)
 ```
 
