@@ -1,6 +1,6 @@
 name = "MixedStructTypes"
 uuid = "3d69f371-6fa5-5add-b11c-3293622cad62"
-version = "0.0.0"
+version = "0.1.0"
 
 [deps]
 LazilyInitializedFields = "0e77f7df-68c5-4e49-93ce-4cd80f5598bf"
