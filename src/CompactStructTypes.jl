@@ -141,9 +141,11 @@ function decompose_struct_no_base(struct_repr, split_default=true)
     if split_default
         new_fields_with_defs = [[], []]
         for f in new_fields
-            if !@capture(f, t_ = k_)
-                @capture(f, t_)
-                k = "#328723329"
+            if !@capture(f, const t_ = k_)
+                if !@capture(f, t_ = k_)
+                    @capture(f, t_)
+                    k = "#328723329"
+                end
             end
             push!(new_fields_with_defs[1], t)
             push!(new_fields_with_defs[2], k)

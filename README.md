@@ -17,23 +17,23 @@ while the first macro does not.
 ```julia
 julia> using MixedStructTypes
 
-julia> @sum_struct_type A{X,Y} begin
+julia> @sum_struct_type @kwdef A{X,Y} begin
            mutable struct B{X}
-               a::Tuple{X, X}
-               b::Tuple{Float64, Float64}
-               const c::Symbol
+               a::Tuple{X, X} = (1,1)
+               b::Tuple{Float64, Float64} = (1.0, 1.0)
+               const c::Symbol = :s
            end
            mutable struct C
-               a::Tuple{Int, Int}
-               const c::Symbol
-               d::Int32
-               e::Bool
+               a::Tuple{Int, Int} = (1,1)
+               const c::Symbol = :q
+               d::Int32 = Int32(2)
+               e::Bool = false
            end
            struct D{Y}
-               a::Tuple{Int, Int}
-               c::Symbol
-               f::Y
-               g::Tuple{Complex, Complex}
+               a::Tuple{Int, Int} = (1,1)
+               c::Symbol = :s
+               f::Y = Int[]
+               g::Tuple{Complex, Complex} = (im, im)
            end
        end
 
@@ -55,23 +55,23 @@ julia> kindof(b)
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
-       @compact_struct_type E{X,Y} begin
+       @compact_struct_type @kwdef E{X,Y} begin
            mutable struct F{X}
-               a::Tuple{X, X}
-               b::Tuple{Float64, Float64}
-               const c::Symbol
+               a::Tuple{X, X} = (1,1)
+               b::Tuple{Float64, Float64} = (1.0, 1.0)
+               const c::Symbol = :s
            end
            mutable struct G{X}
-               a::Tuple{X, X}
-               const c::Symbol
-               d::Int32
-               e::Bool
+               a::Tuple{X, X} = (1,1)
+               const c::Symbol = :q
+               d::Int32 = Int32(2)
+               e::Bool = false
            end
            mutable struct H{X,Y}
-               a::Tuple{X, X}
-               const c::Symbol
-               f::Y
-               g::Tuple{Complex, Complex}
+               a::Tuple{X, X} = (1,1)
+               const c::Symbol = :s
+               f::Y = Int[]
+               g::Tuple{Complex, Complex} = (im, im)
            end
        end
 
