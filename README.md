@@ -48,13 +48,12 @@ julia> b.a = (3, 3)
 (3, 3)
 
 julia> kindof(b)
-
-       # as you can see, here, all structs are mutable
-       # and all shared fields in different structs have
-       # the same type
 :B
 
-julia> @compact_struct_type E{X,Y} begin
+julia> # as you can see, here, all structs are mutable
+       # and all shared fields in different structs have
+       # the same type
+       @compact_struct_type E{X,Y} begin
            mutable struct F{X}
                a::Tuple{X, X}
                b::Tuple{Float64, Float64}
@@ -75,7 +74,7 @@ julia> @compact_struct_type E{X,Y} begin
        end
 
 julia> f = F((1,1), (1.0, 1.0), :s)
-E{Int64, LazilyInitializedFields.Uninitialized}(:F, (1, 1), :s, (1.0, 1.0), uninit, uninit, uninit, uninit)
+F{Int64}((1, 1), :s, (1.0, 1.0))::E
 
 julia> f.a
 (1, 1)
@@ -85,4 +84,7 @@ julia> f.c
 
 julia> f.a = (3, 3)
 (3, 3)
+
+julia> kindof(f)
+:F
 ```
