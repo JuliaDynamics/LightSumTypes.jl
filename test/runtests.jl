@@ -103,7 +103,7 @@ end
     end
 end
 
-@compact_struct_type Animal2{T,N,J} begin
+@compact_struct_type @kwdef Animal2{T,N,J} begin
     mutable struct Wolf2{T,N}
         energy::T = 0.5
         ground_speed::N

@@ -1,5 +1,13 @@
 
-macro compact_struct_type(new_type, struct_defs)
+macro compact_struct_type(new_type, struct_defs = nothing)
+
+    if struct_defs === nothing
+        is_kwdef = true
+        new_type, struct_defs = new_type.args[end-1:end]
+    else
+        is_kwdef = false
+    end
+
     if new_type isa Expr && new_type.head == :(<:)
         new_type, abstract_type = new_type.args
     else
@@ -56,11 +64,15 @@ macro compact_struct_type(new_type, struct_defs)
         end
         new_type_p = [t in a_t_p ? t : (:(MixedStructTypes.LazilyInitializedFields.Uninitialized)) 
                       for t in new_type_p]
-        expr_function_kwargs = :(
-            function $(namify(a_t))($f_params_kwargs)
-                return $(namify(new_type))($(f_inside_args...))
-            end
-            )
+        if is_kwdef
+            expr_function_kwargs = :(
+                function $(namify(a_t))($f_params_kwargs)
+                    return $(namify(new_type))($(f_inside_args...))
+                end
+                )
+        else
+            expr_function_kwargs = :()
+        end
         expr_function_args = :(
             function $(namify(a_t))($(f_params_args...))
                 return $(namify(new_type))($(f_inside_args...))
@@ -72,11 +84,15 @@ macro compact_struct_type(new_type, struct_defs)
                     return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                 end
                 )
-            expr_function_kwargs_with_T = :(
-                function $(namify(a_t))($f_params_kwargs_with_T) where {$(a_t_p...)}
-                    return $new_type_n{$(new_type_p...)}($(f_inside_args...))
-                end
-                )
+            if is_kwdef
+                expr_function_kwargs_with_T = :(
+                    function $(namify(a_t))($f_params_kwargs_with_T) where {$(a_t_p...)}
+                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    end
+                    )
+            else
+                expr_function_kwargs_with_T = :()
+            end
         else
             expr_function_args_with_T = :()
             expr_function_kwargs_with_T = :()
