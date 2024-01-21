@@ -39,7 +39,7 @@ macro sum_struct_type(type, struct_defs = nothing)
         push!(default_each, a_comps[2][2])
     end
 
-    struct_defs = [:(@kwdef $d) for d in struct_defs]
+    struct_defs = [:($Base.@kwdef $d) for d in struct_defs]
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
