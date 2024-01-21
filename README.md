@@ -1,14 +1,16 @@
 # MixedStructTypes.jl
 
-This package allows to pack heterogeneous types in a single type. Two macros implements different
-strategies to create a compact representation of the types:
+This package allows to pack multiple heterogeneous types in a single type. 
+
+Two macros implements different strategies to create a compact representation of the types:
 
 - `@sum_struct_type`  which uses as a backend [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl);
 
 - `@compact_struct_type` which uses as a backend [LazilyInitializedFields.jl](https://github.com/KristofferC/LazilyInitializedFields.jl);
 
 While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and allows to mix
-mutable and immutable structs where fields belonging to different structs can also have different types, while the first macro does not.
+mutable and immutable structs where fields belonging to different structs can also have different types, 
+while the first macro does not.
 
 ## Example
 
@@ -88,3 +90,4 @@ julia> f.a = (3, 3)
 julia> kindof(f)
 :F
 ```
+
