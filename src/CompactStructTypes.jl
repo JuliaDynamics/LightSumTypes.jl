@@ -35,7 +35,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     gensym_type = gensym(:(type))
     expr_new_type = :(mutable struct $new_type <: $abstract_type
                         $(all_fields...)
-                        $(gensym_type)::Symbol
+                        const $(gensym_type)::Symbol
                       end)
 
     expr_new_type = islazy ? :(@lazy $expr_new_type) : expr_new_type
