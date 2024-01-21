@@ -1,5 +1,12 @@
 
-macro sum_struct_type(type, struct_defs)
+macro sum_struct_type(type, struct_defs = nothing)
+
+    if struct_defs === nothing
+        is_kwdef = true
+        type, struct_defs = type.args[end-1:end]
+    else
+        is_kwdef = false
+    end
     
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
 
@@ -24,6 +31,15 @@ macro sum_struct_type(type, struct_defs)
         end
         struct_defs[i] = d_new
     end
+
+    fields_each, default_each = [], []
+    for a_spec in struct_defs
+        a_comps = decompose_struct_no_base(a_spec)
+        push!(fields_each, a_comps[2][1])
+        push!(default_each, a_comps[2][2])
+    end
+
+    struct_defs = [:(@kwdef $d) for d in struct_defs]
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
@@ -94,25 +110,44 @@ macro sum_struct_type(type, struct_defs)
 
     expr_constructors = []
 
-    for (d, t, h_t) in zip(struct_defs, variants_types, hidden_struct_types)
-        f_d = [x for x in d.args[3].args if !(x isa LineNumberNode)]
-        f_d_n = retrieve_fields_names(f_d, false)
-        f_d_n_t = retrieve_fields_names(f_d, true)
+    for (fs, fd, t, h_t) in zip(fields_each, default_each, variants_types, hidden_struct_types)
+        f_d_n = retrieve_fields_names(fs, false)
+        f_d_n_t = retrieve_fields_names(fs, true)
         c = @capture(t, t_n_{t_p__})
+        a_spec_n_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
+                          for (n, d) in zip(f_d_n, fd)]
+        f_params_kwargs = Expr(:parameters, a_spec_n_d...)
         if t_p !== nothing
             c1 = :(function $t($(f_d_n...)) where {$(t_p...)}
                        return $t($(namify(h_t))($(f_d_n...)))
                    end
                   )
+            c4 = :()
+            if is_kwdef
+                c4 = :(function $t($(f_params_kwargs)) where {$(t_p...)}
+                           return $t($(namify(h_t))($(f_d_n...)))
+                       end
+                      )
+            end
         else
             c1 = :()
+            c4 = :()
         end
         c2 = :(function $(namify(t))($(f_d_n...))
                    return $(namify(t))($(namify(h_t))($(f_d_n...)))
                end
               )
+        c3 = :()
+        if is_kwdef
+            c3 = :(function $(namify(t))($(f_params_kwargs))
+                       return $(namify(t))($(namify(h_t))($(f_d_n...)))
+                   end
+                  )
+        end
         push!(expr_constructors, c1)
         push!(expr_constructors, c2)
+        push!(expr_constructors, c3)
+        push!(expr_constructors, c4)
     end
 
     expr = quote 

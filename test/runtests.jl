@@ -22,14 +22,14 @@ using MixedStructTypes
     end
 end
 
-@sum_struct_type Animal{T,N,J} begin
+@sum_struct_type @kwdef Animal{T,N,J} begin
     mutable struct Wolf{T,N}
-        energy::T
+        energy::T = 0.5
         ground_speed::N
         const fur_color::Symbol
     end
     mutable struct Hawk{T,N,J}
-        energy::T
+        energy::T = 0.1
         ground_speed::N
         flight_speed::J
     end
@@ -59,16 +59,22 @@ end
     @test kindof(b) == :B
 
     hawk_1 = Hawk(1.0, 2.0, 3)
+    hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
     wolf_1 = Wolf(2.0, 3.0, :black)
+    wolf_2 = Wolf(; ground_speed = 2.0, fur_color = :white)
 
     @test hawk_1.energy == 1.0
+    @test hawk_2.energy == 0.1
     @test wolf_1.energy == 2.0
+    @test wolf_2.energy == 0.5
     @test hawk_1.flight_speed == 3
+    @test hawk_2.flight_speed == 2
     @test wolf_1.fur_color == :black
+    @test wolf_2.fur_color == :white
     @test_throws "" hawk_1.fur_color
     @test_throws "" wolf_1.flight_speed
-    @test kindof(hawk_1) == :Hawk
-    @test kindof(wolf_1) == :Wolf 
+    @test kindof(hawk_1) == kindof(hawk_2) == :Hawk
+    @test kindof(wolf_1) == kindof(wolf_2) == :Wolf 
 
     b = SimpleA(1)
     c = SimpleB(2)
