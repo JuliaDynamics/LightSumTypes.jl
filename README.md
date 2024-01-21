@@ -7,8 +7,8 @@ strategies to create a compact representation of the types:
 
 - `@compact_struct_type` which uses as a backend [LazilyInitializedFields.jl](https://github.com/KristofferC/LazilyInitializedFields.jl);
 
-While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and allows to mix
-mutable and immutable structs where fields belonging to different structs can also have different types, while the first macro does not.
+While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and it allows to mix
+mutable and immutable structs, while the first macro does not.
 
 ## Example
 
@@ -23,15 +23,15 @@ julia> @sum_struct_type A{X,Y} begin
            end
            mutable struct C
                a::Tuple{Int, Int}
+               const c::Symbol
                d::Int32
                e::Bool
-               const c::Symbol
            end
            struct D{Y}
                a::Tuple{Int, Int}
+               c::Symbol
                f::Y
                g::Tuple{Complex, Complex}
-               c::Symbol
            end
        end
 
@@ -61,20 +61,20 @@ julia> # as you can see, here, all structs are mutable
            end
            mutable struct G{X}
                a::Tuple{X, X}
+               const c::Symbol
                d::Int32
                e::Bool
-               const c::Symbol
            end
            mutable struct H{X,Y}
                a::Tuple{X, X}
+               const c::Symbol
                f::Y
                g::Tuple{Complex, Complex}
-               const c::Symbol
            end
        end
 
 julia> f = F((1,1), (1.0, 1.0), :s)
-F{Int64}((1, 1), :s, (1.0, 1.0))::E
+F{Int64}((1, 1), (1.0, 1.0), :s)::E
 
 julia> f.a
 (1, 1)
