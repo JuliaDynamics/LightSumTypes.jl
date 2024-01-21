@@ -1,4 +1,5 @@
 
+using Test
 using MixedStructTypes
 
 @sum_struct_type A{X,Y} begin
@@ -9,31 +10,32 @@ using MixedStructTypes
     end
     mutable struct C
         a::Tuple{Int, Int}
-        const c::Symbol
         d::Int32
         e::Bool
+        const c::Symbol
     end
     struct D{Y}
         a::Tuple{Int, Int}
-        c::Symbol
         f::Y
         g::Tuple{Complex, Complex}
+        c::Symbol
     end
 end
 
-b = B((1,1), (1.0, 1.0), :s)
+@testset "@sum_struct_type" begin
 
-b.a
+    b = B((1,1), (1.0, 1.0), :s)
 
-b.c
+    @test b.a == (1,1)
+    @test b.b == (1.0, 1.0)
+    @test b.c == :s
 
-b.a = (3, 3)
+    b.a = (3, 3)
+    @test b.a == (3, 3)
 
-kindof(b)
+    @test kindof(b) == :B
+end
 
-# as you can see, here, all structs are mutable
-# and all shared fields in different structs have
-# the same type
 @compact_struct_type E{X,Y} begin
     mutable struct F{X}
         a::Tuple{X, X}
@@ -42,25 +44,28 @@ kindof(b)
     end
     mutable struct G{X}
         a::Tuple{X, X}
-        const c::Symbol
         d::Int32
         e::Bool
+        const c::Symbol
     end
     mutable struct H{X,Y}
         a::Tuple{X, X}
-        const c::Symbol
         f::Y
         g::Tuple{Complex, Complex}
+        const c::Symbol
     end
 end
 
-f = F((1,1), (1.0, 1.0), :s)
+@testset "@compact_struct_type" begin
 
-f.a
+    f = F((1,1), (1.0, 1.0), :s)
 
-f.c
+    @test f.a == (1,1)
+    @test f.b == (1.0, 1.0)
+    @test f.c == :s
 
-f.a = (3, 3)
+    f.a = (3, 3)
+    @test f.a == (3, 3)
 
-kindof(f)
-
+    @test kindof(f) == :F
+end
