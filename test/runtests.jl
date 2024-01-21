@@ -61,3 +61,5 @@ f.a
 f.c
 
 f.a = (3, 3)
+
+kindof(f)

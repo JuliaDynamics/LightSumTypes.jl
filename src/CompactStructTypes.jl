@@ -25,10 +25,11 @@ macro compact_struct_type(new_type, struct_defs)
                             for f in noncommon_fields]
     end
 
+    gensym_type = gensym(:(type))
     expr_new_type = :(mutable struct $new_type <: $abstract_type
-                        $(gensym(:(type)))::Symbol
                         $(common_fields...)
                         $(noncommon_fields...)
+                        $(gensym_type)::Symbol
                       end)
 
     expr_new_type = islazy ? :(@lazy $expr_new_type) : expr_new_type
@@ -48,7 +49,7 @@ macro compact_struct_type(new_type, struct_defs)
         type = Symbol(string(namify(a_t)))
         f_inside_args = [common_fields_n..., noncommon_fields_n...]
         f_inside_args = [f in a_spec_n ? f : (:(MixedStructTypes.uninit)) for f in f_inside_args]
-        f_inside_args = [Expr(:quote, type), f_inside_args...]
+        f_inside_args = [f_inside_args..., Expr(:quote, type)]
         @capture(a_t, a_t_n_{a_t_p__})
         a_t_p === nothing && (a_t_p = [])
         @capture(new_type, new_type_n_{new_type_p__})
@@ -89,9 +90,27 @@ macro compact_struct_type(new_type, struct_defs)
         push!(expr_functions, expr_function_args_with_T)
         push!(expr_functions, expr_function_kwargs_with_T)
     end
+
+    expr_kindof = :(kindof(a::$(namify(new_type))) = getfield(a, nfields(typeof(a))))
+
+    expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
+                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != MixedStructTypes.uninit]
+                      vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
+                      params = [x for x in typeof(a).parameters if x != MixedStructTypes.LazilyInitializedFields.Uninitialized] 
+                      if isempty(params)
+                          print(io, string(kindof(a)), "($vals)", "::", $(namify(new_type)))
+                      else
+                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)", 
+                                           "::", $(namify(new_type)))
+                      end
+                  end
+                  )
+
     expr = quote 
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
+            $(expr_kindof)
+            $(expr_show)
             nothing
            end
     return esc(expr)

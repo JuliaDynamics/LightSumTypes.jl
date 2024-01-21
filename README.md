@@ -74,7 +74,7 @@ julia> # as you can see, here, all structs are mutable
        end
 
 julia> f = F((1,1), (1.0, 1.0), :s)
-E{Int64, LazilyInitializedFields.Uninitialized}(:F, (1, 1), :s, (1.0, 1.0), uninit, uninit, uninit, uninit)
+F{Int64}((1, 1), :s, (1.0, 1.0))::E
 
 julia> f.a
 (1, 1)
@@ -84,4 +84,7 @@ julia> f.c
 
 julia> f.a = (3, 3)
 (3, 3)
+
+julia> kindof(f)
+:F
 ```
