@@ -4,13 +4,11 @@ version = "0.1.0"
 
 [deps]
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
-PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 SumTypes = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
 
 [compat]
 julia = "1"
 MacroTools = "0.5"
-PrecompileTools = "1"
 SumTypes = "0.5.4"
 
 [extras]

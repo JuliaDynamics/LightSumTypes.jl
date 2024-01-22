@@ -12,6 +12,5 @@ export @compact_struct_type
 
 include("SumStructTypes.jl")
 include("CompactStructTypes.jl")
-#include("precompile.jl")
 
 end

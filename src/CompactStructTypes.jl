@@ -44,6 +44,8 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     gensym_type = gensym(:(type))
 
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
+
+    expr_comp_types = [Expr(:struct, is_mutable, t, :(begin end)) for t in types_each]
     expr_new_type = Expr(:struct, is_mutable, :($new_type <: $abstract_type),
                          :(begin 
                             $(all_fields...)
@@ -75,45 +77,42 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         end
         new_type_p = [t in a_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
-        if is_kwdef
-            expr_function_kwargs = :(
-                function $(namify(a_t))($f_params_kwargs)
+        if isempty(new_type_p)
+            expr_function_args = :(
+                function $(namify(a_t))($(f_params_args...))
                     return $(namify(new_type))($(f_inside_args...))
                 end
                 )
-        else
-            expr_function_kwargs = :()
-        end
-        expr_function_args = :(
-            function $(namify(a_t))($(f_params_args...))
-                return $(namify(new_type))($(f_inside_args...))
+            if is_kwdef
+                expr_function_kwargs = :(
+                    function $(namify(a_t))($f_params_kwargs)
+                        return $(namify(new_type))($(f_inside_args...))
+                    end
+                    )
+            else
+                expr_function_kwargs = :()
             end
-            )
-        if !isempty(new_type_p)
-            expr_function_args_with_T = :(
+        else
+            expr_function_args = :(
                 function $(namify(a_t))($(f_params_args_with_T...)) where {$(a_t_p...)}
                     return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                 end
                 )
             if is_kwdef
-                expr_function_kwargs_with_T = :(
+                expr_function_kwargs = :(
                     function $(namify(a_t))($f_params_kwargs_with_T) where {$(a_t_p...)}
                         return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                     end
                     )
             else
-                expr_function_kwargs_with_T = :()
+                expr_function_kwargs = :()
             end
-        else
-            expr_function_args_with_T = :()
-            expr_function_kwargs_with_T = :()
         end
+
         remove_prev_functions = remove_prev_methods(a_t)
         push!(expr_functions, remove_prev_functions)
         push!(expr_functions, expr_function_kwargs)
         push!(expr_functions, expr_function_args)
-        push!(expr_functions, expr_function_args_with_T)
-        push!(expr_functions, expr_function_kwargs_with_T)
     end
 
     expr_kindof = :(kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
@@ -152,6 +151,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     end
 
     expr = quote 
+            $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
             $(expr_kindof)
