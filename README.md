@@ -26,13 +26,13 @@ julia> @sum_struct_type @kwdef A{X} begin
                const c::Symbol = :s
            end
            mutable struct C
-               a::Tuple{Int, Int} = (1,1)
+               a::Tuple{Int, Int} = (2,2)
                const c::Symbol = :q
                d::Int32 = Int32(2)
                e::Bool = false
            end
            struct D
-               a::Tuple{Int, Int} = (1,1)
+               a::Tuple{Int, Int} = (3,3)
                c::Symbol = :s
                f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
@@ -101,17 +101,17 @@ julia> vec_a = A{Int}[rand((B,C,D))() for _ in 1:10^6];
 julia> vec_e = E{Int}[rand((F,G,H))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_a)
-43731460
+41463268
 
 julia> Base.summarysize(vec_e)
-90029733
+93289413
 
 julia> using BenchmarkTools
 
 julia> @btime sum(x.a[1] for x in $vec_a);
-  5.760 ms (0 allocations: 0 bytes)
+  5.585 ms (0 allocations: 0 bytes)
 
 julia> @btime sum(x.a[1] for x in $vec_e);
-  3.330 ms (0 allocations: 0 bytes)
+  2.938 ms (0 allocations: 0 bytes)
 ```
 
