@@ -1,6 +1,7 @@
 
 module MixedStructTypes
 
+using ExprTools
 using MacroTools
 using SumTypes
 

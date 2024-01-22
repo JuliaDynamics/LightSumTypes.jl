@@ -46,6 +46,7 @@ macro sum_struct_type(type, struct_defs = nothing)
     expr_sum_type = :(SumTypes.@sum_type $type begin
                         $(variants_defs...)
                       end)
+    expr_sum_type = macroexpand(__module__, expr_sum_type)
 
     variants_types_names = namify.(variants_types)
     branching_getprop = generate_branching_variants(variants_types_names, :(return getfield(data_a.data[1], s)))
@@ -150,6 +151,10 @@ macro sum_struct_type(type, struct_defs = nothing)
         push!(expr_constructors, c4)
     end
 
+    expr_sum_type = MacroTools.postwalk(e -> e isa Expr ? 
+                                        remove_redefinitions(e, namify(type), variants_types_names, fields_each) : e, 
+                                        expr_sum_type)
+
     expr = quote 
                $(struct_defs...)
                $(expr_sum_type)
@@ -177,6 +182,28 @@ function print_transform(x)
     x isa String && return "\"$x\""
     x isa Symbol && return QuoteNode(x)
     return x
+end
+
+function remove_redefinitions(e, t, vs, fs)
+
+    redef = [:($(Base).show), :(($Base).getproperty)]
+    f = ExprTools.splitdef(e, throw=false)
+    f === nothing && return e
+
+    if :name in keys(f) && f[:name] in redef
+        if any(x -> x isa Expr && x.head == :(::) && x.args[2] == t, f[:args])
+            return :()
+        end
+    elseif :name in keys(f)&& f[:name] in vs
+        idx = findfirst(v -> f[:name] == v, vs)
+        if length(f[:args]) == 1 && length(fs[idx]) == 1
+            arg = f[:args][1]
+            if arg isa Symbol
+                return :()
+            end
+        end
+    end
+    return e
 end
 
 retrieve_type(::SumTypes.Variant{T}) where T = T
