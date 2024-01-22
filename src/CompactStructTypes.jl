@@ -1,4 +1,8 @@
 
+
+struct Uninitialized end
+const uninit = Uninitialized()
+
 macro compact_struct_type(new_type, struct_defs = nothing)
 
     if struct_defs === nothing
@@ -14,6 +18,15 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         new_type, abstract_type = new_type, :(Any)
     end
     agent_specs = decompose_struct_base(struct_defs)
+
+    is_mutable = []
+    for x in agent_specs
+        push!(is_mutable, x.args[1])
+    end
+    if !allequal(is_mutable)
+        return error("the compact_struct_type macro does not accept mixing mutable and immutable structs.")
+    end
+    is_mutable = all(x -> x == true, is_mutable)
     types_each, fields_each, default_each = [], [], []
     for a_spec in agent_specs
         a_comps = decompose_struct_no_base(a_spec)
@@ -25,20 +38,19 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     all_fields = union(fields_each...)
     all_fields_n = retrieve_fields_names(all_fields)
     noncommon_fields = setdiff(all_fields, common_fields)
-    if isempty(noncommon_fields)
-        islazy = false
-    else
-        islazy = true
+    if !isempty(noncommon_fields)
         all_fields = [transform_field(x, noncommon_fields) for x in all_fields]
     end
 
     gensym_type = gensym(:(type))
-    expr_new_type = :(mutable struct $new_type <: $abstract_type
-                        $(all_fields...)
-                        const $(gensym_type)::Symbol
-                      end)
 
-    expr_new_type = islazy ? :(@lazy $expr_new_type) : expr_new_type
+    field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
+    expr_new_type = Expr(:struct, is_mutable, :($new_type <: $abstract_type),
+                         :(begin 
+                            $(all_fields...)
+                            $field_type
+                          end))
+
     expr_functions = []
     for (a_t, a_f, a_d) in zip(types_each, fields_each, default_each)
         a_spec_n = retrieve_fields_names(a_f)
@@ -62,7 +74,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         if new_type_p === nothing 
             new_type_n, new_type_p = new_type, []
         end
-        new_type_p = [t in a_t_p ? t : (:(MixedStructTypes.LazilyInitializedFields.Uninitialized)) 
+        new_type_p = [t in a_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
         if is_kwdef
             expr_function_kwargs = :(
@@ -110,7 +122,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
                       f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != MixedStructTypes.uninit]
                       vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
-                      params = [x for x in typeof(a).parameters if x != MixedStructTypes.LazilyInitializedFields.Uninitialized] 
+                      params = [x for x in typeof(a).parameters if x != MixedStructTypes.Uninitialized] 
                       if isempty(params)
                           print(io, string(kindof(a)), "($vals)", "::", $(namify(new_type)))
                       else
@@ -120,10 +132,32 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                   end
                   )
 
+    expr_getprop = :(function Base.getproperty(a::$(namify(new_type)), s::Symbol)
+                        f = getfield(a, s)
+                        if f isa MixedStructTypes.Uninitialized
+                            return error("type $(kindof(a)) has no field $s")
+                        end
+                        return f
+                     end)
+
+    if is_mutable
+        expr_setprop = :(function Base.setproperty!(a::$(namify(new_type)), s::Symbol, v)
+                            f = getfield(a, s)
+                            if f isa MixedStructTypes.Uninitialized
+                                return error("type $(kindof(a)) has no field $s")
+                            end
+                            setfield!(a, s, v)
+                         end)
+    else
+        expr_setprop = :()
+    end
+
     expr = quote 
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
             $(expr_kindof)
+            $(expr_getprop)
+            $(expr_setprop)
             $(expr_show)
             nothing
            end
@@ -174,9 +208,30 @@ function remove_prev_methods(a_t)
 end
 
 function transform_field(x, noncommon_fields)
-    if x in noncommon_fields
-        return x.head == :const ? :(@lazy $(x.args[1])) : (:(@lazy $x)) 
+    x isa Symbol && return x
+    const_x = x.head == :const
+    if const_x
+        x_args = x.args[1]
     else
-        return x
+        x_args = x
     end
+    if x_args isa Symbol
+        return x
+    else
+        if x in noncommon_fields
+            name, T = x_args.args
+            f = :($name::Union{MixedStructTypes.Uninitialized, $T})
+            if const_x
+                f = Expr(:const, f)
+            end
+            return f
+        else
+            return x
+        end
+    end
+end
+
+function lazy_field(expr)
+    name, T = expr.args
+    :(name::Union{MixedStructTypes.Uninitialized, $T})
 end

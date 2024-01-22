@@ -2,15 +2,14 @@
 
 This package allows to pack multiple heterogeneous types in a single type. 
 
-Two macros implements different strategies to create a compact representation of the types:
+Two macros implements different strategies to create a compact representation of the types: `@sum_struct_type`
+and `@compact_struct_type`.
 
-- `@sum_struct_type`  which uses as a backend [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl);
+Both works very similarly but there are some differences:
 
-- `@compact_struct_type` which uses as a backend [LazilyInitializedFields.jl](https://github.com/KristofferC/LazilyInitializedFields.jl);
+- `@compact_struct_type` is a bit faster;
 
-While `@compact_struct_type` is a bit faster, `@sum_struct_type` is more memory efficient and allows to mix
-mutable and immutable structs where fields belonging to different structs can also have different types, 
-while the first macro does not.
+- `@sum_struct_type` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
 
 Even if there is only a unique type defined by these macros, you can access a symbol containing the 
 conceptual type of an instance with the function `kindof`.
