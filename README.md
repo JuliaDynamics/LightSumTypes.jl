@@ -16,7 +16,7 @@ Both works very similarly but there are some differences:
 ```julia
 julia> using MixedStructTypes
 
-julia> @sum_struct_type @kwdef A{X,Y} begin
+julia> @sum_struct_type @kwdef A{X} begin
            mutable struct B{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -28,10 +28,10 @@ julia> @sum_struct_type @kwdef A{X,Y} begin
                d::Int32 = Int32(2)
                e::Bool = false
            end
-           struct D{Y}
+           struct D
                a::Tuple{Int, Int} = (1,1)
                c::Symbol = :s
-               f::Y = Int[]
+               f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
            end
        end
@@ -54,7 +54,7 @@ julia> kindof(b)
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
-       @compact_struct_type @kwdef E{X,Y} begin
+       @compact_struct_type @kwdef E{X} begin
            mutable struct F{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -66,10 +66,10 @@ julia> # as you can see, here, all structs are mutable
                d::Int32 = Int32(2)
                e::Bool = false
            end
-           mutable struct H{X,Y}
+           mutable struct H{X}
                a::Tuple{X, X} = (1,1)
                const c::Symbol = :s
-               f::Y = Int[]
+               f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
            end
        end
