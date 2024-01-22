@@ -11,6 +11,9 @@ Both works very similarly but there are some differences:
 
 - `@sum_struct_type` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
 
+Even if there is only a unique type defined by these macros, you can access a symbol containing the 
+conceptual type of an instance with the function `kindof`.
+
 ## Example
 
 ```julia
@@ -88,5 +91,27 @@ julia> f.a = (3, 3)
 
 julia> kindof(f)
 :F
+```
+
+Let's see briefly how the two macros compare performance-wise:
+
+```julia
+julia> vec_a = A{Int}[rand((B,C,D))() for _ in 1:10^6];
+
+julia> vec_e = E{Int}[rand((F,G,H))() for _ in 1:10^6];
+
+julia> Base.summarysize(vec_a)
+43731460
+
+julia> Base.summarysize(vec_e)
+90029733
+
+julia> using BenchmarkTools
+
+julia> @btime sum(x.a[1] for x in $vec_a);
+  5.760 ms (0 allocations: 0 bytes)
+
+julia> @btime sum(x.a[1] for x in $vec_e);
+  3.330 ms (0 allocations: 0 bytes)
 ```
 
