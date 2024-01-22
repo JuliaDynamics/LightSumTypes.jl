@@ -23,8 +23,8 @@ using PrecompileTools
             end
        	end
 
-		f = F((1,1), (1.0, 1.0), :s)
-		f.a
-		f.a = (3, 3)
+	f = F((1,1), (1.0, 1.0), :s)
+	f.a
+	f.a = (3, 3)
     end
 end
