@@ -19,7 +19,9 @@ conceptual type of an instance with the function `kindof`.
 ```julia
 julia> using MixedStructTypes
 
-julia> @sum_struct_type @kwdef A{X} begin
+julia> abstract type AbstractA{X} end
+
+julia> @sum_struct_type @kwdef A{X} <: AbstractA{X} begin
            mutable struct B{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -54,10 +56,12 @@ julia> b.a = (3, 3)
 julia> kindof(b)
 :B
 
+julia> abstract type AbstractE{X} end 
+
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
-       @compact_struct_type @kwdef E{X} begin
+       @compact_struct_type @kwdef E{X} <: AbstractE{X} begin
            mutable struct F{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
