@@ -1,5 +1,4 @@
 
-
 struct Uninitialized end
 const uninit = Uninitialized()
 
@@ -229,9 +228,4 @@ function transform_field(x, noncommon_fields)
             return x
         end
     end
-end
-
-function lazy_field(expr)
-    name, T = expr.args
-    :(name::Union{MixedStructTypes.Uninitialized, $T})
 end
