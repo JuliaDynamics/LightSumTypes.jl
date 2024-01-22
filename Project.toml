@@ -3,14 +3,14 @@ uuid = "3d69f371-6fa5-5add-b11c-3293622cad62"
 version = "0.1.0"
 
 [deps]
-LazilyInitializedFields = "0e77f7df-68c5-4e49-93ce-4cd80f5598bf"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 SumTypes = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
 
 [compat]
 julia = "1"
-LazilyInitializedFields = "1"
 MacroTools = "0.5"
+PrecompileTools = "1"
 SumTypes = "0.5.4"
 
 [extras]
