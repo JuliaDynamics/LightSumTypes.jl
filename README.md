@@ -64,13 +64,13 @@ julia> # as you can see, here, all structs are mutable
                const c::Symbol = :s
            end
            mutable struct G{X}
-               a::Tuple{X, X} = (1,1)
+               a::Tuple{X, X} = (2,2)
                const c::Symbol = :q
                d::Int32 = Int32(2)
                e::Bool = false
            end
            mutable struct H{X}
-               a::Tuple{X, X} = (1,1)
+               a::Tuple{X, X} = (3,3)
                const c::Symbol = :s
                f::Char = 'p'
                g::Tuple{Complex, Complex} = (im, im)
