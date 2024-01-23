@@ -84,8 +84,8 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     expr_kindof = :(function kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
-                        SumTypes.check_sum_type(type_a)
-                        SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
+                        MixedStructTypes.SumTypes.check_sum_type(type_a)
+                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
                                                    Val{$(Tuple(variants_types_names))})
 
                         data_a = (MixedStructTypes.SumTypes.unwrap)(a)
