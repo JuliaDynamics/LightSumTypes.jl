@@ -150,6 +150,14 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         expr_setprop = :()
     end
 
+    fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each)]
+    branching_propnames = generate_branching_types(namify.(types_each), fields_each_symbol)
+    expr_propnames = :(function Base.propertynames(a::$(namify(new_type)))
+                           kind = kindof(a)
+                           $(branching_propnames...)
+                           $(fields_each_symbol[end])
+                       end)
+        
     expr = quote 
             $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
@@ -157,6 +165,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             $(expr_kindof)
             $(expr_getprop)
             $(expr_setprop)
+            $(expr_propnames)
             $(expr_show)
             nothing
            end
@@ -197,7 +206,18 @@ function retrieve_fields_names(fields, only_consts = false)
     end
     return field_names
 end
-    
+
+function generate_branching_types(variants_types, res)
+    if !(res isa Vector)
+        res = repeat([res], length(variants_types))
+    end
+    branchs = [Expr(:if, :(kind === $(Expr(:quote, variants_types[1]))), res[1])]
+    for i in 2:length(variants_types)-1
+        push!(branchs, Expr(:elseif, :(kind === $(Expr(:quote, variants_types[i]))), res[i]))
+    end
+    return branchs
+end
+
 function remove_prev_methods(a_t)
     return :(if @isdefined $(namify(a_t))
                 for m in methods($(namify(a_t)))
