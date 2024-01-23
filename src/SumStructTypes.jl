@@ -80,7 +80,7 @@ macro sum_struct_type(type, struct_defs = nothing)
         expr_setprop = :()
     end
 
-    branching_typeof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
+    branching_kindof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
 
     expr_kindof = :(function kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
@@ -90,8 +90,21 @@ macro sum_struct_type(type, struct_defs = nothing)
 
                         data_a = (MixedStructTypes.SumTypes.unwrap)(a)
 
-                        $(branching_typeof...)
+                        $(branching_kindof...)
                      end)
+
+    fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each, false)]
+    branching_propnames = generate_branching_variants(variants_types_names, fields_each_symbol)
+
+    expr_propnames = :(function Base.propertynames(a::$(namify(type)))
+                           type_a = (typeof)(a)
+                           MixedStructTypes.SumTypes.check_sum_type(type_a)
+                           MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
+                                                                       Val{$(Tuple(variants_types_names))})
+
+                           data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+                           $(branching_propnames...)
+                       end)
 
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
                       h_a = (MixedStructTypes.SumTypes.unwrap)(a).data[1]
@@ -161,6 +174,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                $(expr_getprop)
                $(expr_setprop)
                $(expr_kindof)
+               $(expr_propnames)
                $(expr_show)
                $(expr_show_mime)
                $(expr_constructors...)
@@ -171,9 +185,12 @@ macro sum_struct_type(type, struct_defs = nothing)
 end
 
 function generate_branching_variants(variants_types, res)
-    branchs = [Expr(:if, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res)]
+    if !(res isa Vector)
+        res = repeat([res], length(variants_types))
+    end
+    branchs = [Expr(:if, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res[1])]
     for i in 2:length(variants_types)
-        push!(branchs, Expr(:elseif, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res))
+        push!(branchs, Expr(:elseif, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res[i]))
     end
     return branchs
 end
