@@ -190,7 +190,7 @@ function generate_branching_variants(variants_types, res)
     end
     branchs = [Expr(:if, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res[1])]
     for i in 2:length(variants_types)
-        push!(branchs, Expr(:elseif, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res[i]))
+        push!(branchs, Expr(:elseif, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res[i]))
     end
     return branchs
 end
