@@ -43,7 +43,7 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
-    expr_sum_type = :(SumTypes.@sum_type $type begin
+    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $type begin
                         $(variants_defs...)
                       end)
     expr_sum_type = macroexpand(__module__, expr_sum_type)
@@ -53,11 +53,11 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     expr_getprop = :(function Base.getproperty(a::$(namify(type)), s::Symbol)
                         type_a = (typeof)(a)
-                        SumTypes.check_sum_type(type_a)
-                        SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
+                        MixedStructTypes.SumTypes.check_sum_type(type_a)
+                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
                                                    Val{$(Tuple(variants_types_names))})
 
-                        data_a = (SumTypes.unwrap)(a)
+                        data_a = (MixedStructTypes.SumTypes.unwrap)(a)
 
                         $(branching_getprop...)
                      end)
@@ -68,11 +68,11 @@ macro sum_struct_type(type, struct_defs = nothing)
         expr_setprop = :(function Base.setproperty!(a::$(namify(type)), s::Symbol, v)
                             type_a = (typeof)(a)
 
-                            SumTypes.check_sum_type(type_a)
-                            SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
+                            MixedStructTypes.SumTypes.check_sum_type(type_a)
+                            MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
                                                        Val{$(Tuple(variants_types_names))})
 
-                            data_a = (SumTypes.unwrap)(a)
+                            data_a = (MixedStructTypes.SumTypes.unwrap)(a)
 
                             $(branching_setprop...)
                          end)
@@ -84,17 +84,17 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     expr_kindof = :(function kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
-                        SumTypes.check_sum_type(type_a)
-                        SumTypes.assert_exhaustive(Val{(SumTypes.tags)(type_a)}, 
+                        MixedStructTypes.SumTypes.check_sum_type(type_a)
+                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
                                                    Val{$(Tuple(variants_types_names))})
 
-                        data_a = (SumTypes.unwrap)(a)
+                        data_a = (MixedStructTypes.SumTypes.unwrap)(a)
 
                         $(branching_typeof...)
                      end)
 
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
-                      h_a = (SumTypes.unwrap)(a).data[1]
+                      h_a = (MixedStructTypes.SumTypes.unwrap)(a).data[1]
                       f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
                       vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
@@ -171,9 +171,9 @@ macro sum_struct_type(type, struct_defs = nothing)
 end
 
 function generate_branching_variants(variants_types, res)
-    branchs = [Expr(:if, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res)]
+    branchs = [Expr(:if, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res)]
     for i in 2:length(variants_types)
-        push!(branchs, Expr(:elseif, :(data_a isa (SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res))
+        push!(branchs, Expr(:elseif, :(data_a isa (MixedStructTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res))
     end
     return branchs
 end
@@ -206,4 +206,4 @@ function remove_redefinitions(e, t, vs, fs)
     return e
 end
 
-retrieve_type(::SumTypes.Variant{T}) where T = T
+retrieve_type(::MixedStructTypes.SumTypes.Variant{T}) where T = T
