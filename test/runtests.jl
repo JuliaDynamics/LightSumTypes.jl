@@ -57,6 +57,7 @@ end
     @test b.a == (3, 3)
 
     @test kindof(b) == :B
+    @test propertynames(b) == (:a, :b, :c)
 
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
