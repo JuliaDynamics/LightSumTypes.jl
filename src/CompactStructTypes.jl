@@ -115,7 +115,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         push!(expr_functions, expr_function_args)
     end
 
-
     expr_kindof = :(StructSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
