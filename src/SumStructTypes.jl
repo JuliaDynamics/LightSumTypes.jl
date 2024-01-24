@@ -173,6 +173,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                $(expr_sum_type)
                $(expr_getprop)
                $(expr_setprop)
+               export kindof
                $(expr_kindof)
                $(expr_propnames)
                $(expr_show)
