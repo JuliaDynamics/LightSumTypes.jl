@@ -157,6 +157,12 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                            $(branching_propnames...)
                            $(fields_each_symbol[end])
                        end)
+
+    expr_copy = :(function Base.copy(a::$(namify(new_type)))
+                      A = typeof(a)
+                      return A((getfield(a, x) for x in fieldnames(A))...)
+                  end)
+
         
     expr = quote 
             $(expr_comp_types...)
@@ -166,6 +172,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             $(expr_getprop)
             $(expr_setprop)
             $(expr_propnames)
+            $(expr_copy)
             $(expr_show)
             nothing
            end

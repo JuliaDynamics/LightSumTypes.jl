@@ -106,6 +106,25 @@ macro sum_struct_type(type, struct_defs = nothing)
                            $(branching_propnames...)
                        end)
 
+    return_copy = :(
+        begin
+            data_a_t = typeof(data_a)
+            data_ins = data_a.data[1]
+            data_ins_t = typeof(data_ins)
+            return type_a(data_a_t((data_ins_t((getfield(data_ins, x) for x in fieldnames(data_ins_t))...),)))
+        end
+        )
+    branching_copy = generate_branching_variants(variants_types_names, return_copy)
+    expr_copy = :(function Base.copy(a::$(namify(type)))::typeof(a)
+                      type_a = (typeof)(a)
+                      MixedStructTypes.SumTypes.check_sum_type(type_a)
+                      MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
+                                                                       Val{$(Tuple(variants_types_names))})
+
+                      data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+                      $(branching_copy...)
+                  end)
+
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
                       h_a = (MixedStructTypes.SumTypes.unwrap)(a).data[1]
                       f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
@@ -175,6 +194,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                $(expr_setprop)
                $(expr_kindof)
                $(expr_propnames)
+               $(expr_copy)
                $(expr_show)
                $(expr_show_mime)
                $(expr_constructors...)
@@ -224,3 +244,6 @@ function remove_redefinitions(e, t, vs, fs)
 end
 
 retrieve_type(::MixedStructTypes.SumTypes.Variant{T}) where T = T
+retrieve_hidden_type(::MixedStructTypes.SumTypes.Variant{T,F,HT} where {T,F}) where HT = eltype(HT)
+
+
