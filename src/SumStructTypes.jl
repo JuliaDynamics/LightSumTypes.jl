@@ -82,7 +82,7 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     branching_kindof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
 
-    expr_kindof = :(function kindof(a::$(namify(type)))
+    expr_kindof = :(function MixedStructTypes.kindof(a::$(namify(type)))
                         type_a = (typeof)(a)
                         MixedStructTypes.SumTypes.check_sum_type(type_a)
                         MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
