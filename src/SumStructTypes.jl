@@ -110,7 +110,7 @@ macro sum_struct_type(type, struct_defs = nothing)
         begin
             data_a_t = typeof(data_a)
             data_ins = data_a.data[1]
-            return $v((getfield(data_ins, x) for x in MixedStructTypes.retrieve_hidden_type(fieldnames(data_ins_t)))...)
+            return $v((getfield(data_ins, x) for x in (fieldnames(MixedStructTypes.retrieve_hidden_type(data_a)))...)
         end
         ) for v in variants_types_names]
     branching_copy = generate_branching_variants(variants_types_names, return_copy)
