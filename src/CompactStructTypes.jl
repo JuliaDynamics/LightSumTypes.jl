@@ -162,6 +162,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
+            export kindof
             $(expr_kindof)
             $(expr_getprop)
             $(expr_setprop)
