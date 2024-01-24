@@ -163,7 +163,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
             $(expr_kindof)
-            export MixedStructTypes: kindof
             $(expr_getprop)
             $(expr_setprop)
             $(expr_propnames)
