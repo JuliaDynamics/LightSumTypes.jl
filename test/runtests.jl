@@ -91,7 +91,7 @@ end
 end
 
 @static if VERSION > v"1.9"
-    @testset "copy tests @struct_sum_type"
+    @testset "copy tests @struct_sum_type" begin
         b = B((1,1), (1.0, 1.0), :s)
         copy_b = copy(b)
         @test copy_b.a == b.a
