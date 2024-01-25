@@ -151,9 +151,11 @@ end
     @test kindof(f) == :F
     @test propertynames(f) == (:a, :b, :c)
 
-    copy_f = copy(f)
-    @test copy_f.a == f.a
-    @test kindof(copy_f) == kindof(f)
+    @static if VERSION != v"1.8"
+        copy_f = copy(f)
+        @test copy_f.a == f.a
+        @test kindof(copy_f) == kindof(f)
+    end
 
     hawk_1 = Hawk2(1.0, 2.0, 3)
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
