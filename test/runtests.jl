@@ -58,11 +58,7 @@ end
 
     @test kindof(b) == :B
     @test propertynames(b) == (:a, :b, :c)
-
-    copy_b = copy(b)
-    @test copy_b.a == b.a
-    @test kindof(copy_b) == kindof(b)
-
+    
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
     wolf_1 = Wolf{Float64, Float64}(2.0, 3.0, :black)
@@ -92,6 +88,15 @@ end
     @test kindof(c) == :SimpleB
     @test Simple <: AbstractSimple
     @test b isa Simple && c isa Simple  
+end
+
+@static if VERSION >= v"1.10"
+    @testset "copy tests @struct_sum_type" begin
+        b = B((1,1), (1.0, 1.0), :s)
+        copy_b = copy(b)
+        @test copy_b.a == b.a
+        @test kindof(copy_b) == kindof(b)
+    end
 end
 
 @compact_struct_type E{X,Y} begin
