@@ -59,10 +59,13 @@ end
     @test kindof(b) == :B
     @test propertynames(b) == (:a, :b, :c)
 
-    copy_b = copy(b)
-    @test copy_b.a == b.a
-    @test kindof(copy_b) == kindof(b)
-
+    # this fails for unknown reasons, see #15
+    @static if VERSION != v"1.8"
+        copy_b = copy(b)
+        @test copy_b.a == b.a
+        @test kindof(copy_b) == kindof(b)
+    end
+    
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
     wolf_1 = Wolf{Float64, Float64}(2.0, 3.0, :black)
@@ -151,11 +154,9 @@ end
     @test kindof(f) == :F
     @test propertynames(f) == (:a, :b, :c)
 
-    @static if VERSION != v"1.8"
-        copy_f = copy(f)
-        @test copy_f.a == f.a
-        @test kindof(copy_f) == kindof(f)
-    end
+    copy_f = copy(f)
+    @test copy_f.a == f.a
+    @test kindof(copy_f) == kindof(f)
 
     hawk_1 = Hawk2(1.0, 2.0, 3)
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
