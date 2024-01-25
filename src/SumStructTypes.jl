@@ -216,12 +216,12 @@ end
 
 function remove_redefinitions(e, t, vs, fs)
 
-    redef = [:($(Base).show), :(($Base).getproperty)]
+    redef = [:($(Base).show), :(($Base).getproperty), :(($Base).propertynames)]
     f = ExprTools.splitdef(e, throw=false)
     f === nothing && return e
 
     if :name in keys(f) && f[:name] in redef
-        if any(x -> x isa Expr && x.head == :(::) && x.args[2] == t, f[:args])
+        if any(x -> x isa Expr && x.head == :(::) && (x.args[1] == t || x.args[2] == t), f[:args])
             return :()
         end
     elseif :name in keys(f)&& f[:name] in vs
