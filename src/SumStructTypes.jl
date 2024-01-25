@@ -93,6 +93,19 @@ macro sum_struct_type(type, struct_defs = nothing)
                         $(branching_kindof...)
                      end)
 
+    branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
+
+    expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(type)))
+                        type_a = (typeof)(a)
+                        MixedStructTypes.SumTypes.check_sum_type(type_a)
+                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
+                                                   Val{$(Tuple(variants_types_names))})
+
+                        data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+
+                        $(branching_constructor...)
+                     end)
+
     fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each, false)]
     branching_propnames = generate_branching_variants(variants_types_names, fields_each_symbol)
 
@@ -188,6 +201,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                $(expr_kindof)
                $(expr_propnames)
                $(expr_copy)
+               $(expr_constructor)
                $(expr_show)
                $(expr_show_mime)
                $(expr_constructors...)

@@ -57,6 +57,7 @@ end
     @test b.a == (3, 3)
 
     @test kindof(b) == :B
+    @test MixedStructTypes.constructor(b) == B
     @test propertynames(b) == (:a, :b, :c)
     
     hawk_1 = Hawk(1.0, 2.0, 3)
@@ -154,6 +155,7 @@ end
     @test f.a == (3, 3)
 
     @test kindof(f) == :F
+    @test MixedStructTypes.constructor(f) == F
     @test propertynames(f) == (:a, :b, :c)
 
     copy_f = copy(f)

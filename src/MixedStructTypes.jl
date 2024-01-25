@@ -10,7 +10,7 @@ export @compact_struct_type
 export kindof
 
 function kindof end
-function copy_spec end
+function constructor end
 
 include("SumStructTypes.jl")
 include("CompactStructTypes.jl")

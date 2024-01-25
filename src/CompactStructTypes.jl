@@ -117,6 +117,14 @@ macro compact_struct_type(new_type, struct_defs = nothing)
 
     expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
+    branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
+
+    expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(new_type)))
+                        kind = kindof(a)
+
+                        $(branching_constructor...)
+                     end)
+
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
                       f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != MixedStructTypes.uninit]
                       vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
@@ -173,6 +181,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             $(expr_setprop)
             $(expr_propnames)
             $(expr_copy)
+            $(expr_constructor)
             $(expr_show)
             nothing
            end
