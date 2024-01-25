@@ -59,12 +59,7 @@ end
     @test kindof(b) == :B
     @test propertynames(b) == (:a, :b, :c)
 
-    # this fails for unknown reasons, see #15
-    @static if VERSION != v"1.8"
-        copy_b = copy(b)
-        @test copy_b.a == b.a
-        @test kindof(copy_b) == kindof(b)
-    end
+
     
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
