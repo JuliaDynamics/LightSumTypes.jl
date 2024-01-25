@@ -90,7 +90,7 @@ end
     @test b isa Simple && c isa Simple  
 end
 
-@static if VERSION > v"1.9"
+@static if VERSION >= v"1.10"
     @testset "copy tests @struct_sum_type" begin
         b = B((1,1), (1.0, 1.0), :s)
         copy_b = copy(b)
