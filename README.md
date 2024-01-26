@@ -2,10 +2,10 @@
 
 This package allows to pack multiple heterogeneous types in a single type. 
 
-Two macros implements different strategies to create a compact representation of the types: `@sum_struct_type`
+Two macros implement different strategies to create a compact representation of the types: `@sum_struct_type`
 and `@compact_struct_type`.
 
-Both works very similarly but there are some differences:
+Both work very similarly but there are some differences:
 
 - `@compact_struct_type` is a bit faster;
 
