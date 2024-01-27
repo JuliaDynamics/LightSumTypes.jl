@@ -119,7 +119,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                            $(branching_propnames...)
                        end)
 
-    return_copy = [:(return $v((getproperty(a, x) for x in propertynames(a))...)) for v in variants_types_names]
+    return_copy = [:(return $v(map(x -> getproperty(a, x), propertynames(a))...)) for v in variants_types_names]
     branching_copy = generate_branching_variants(variants_types_names, return_copy)
     expr_copy = :(function Base.copy(a::$(namify(type)))::typeof(a)
                       type_a = (typeof)(a)
