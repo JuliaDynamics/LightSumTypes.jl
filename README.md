@@ -1,5 +1,8 @@
 # MixedStructTypes.jl
 
+[![CI](https://github.com/JuliaDynamics/MixedStructTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/MixedStructTypes.jl/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl)
+
 This package allows to pack multiple heterogeneous types in a single type. 
 
 Two macros implement different strategies to create a compact representation of the types: `@sum_struct_type`
