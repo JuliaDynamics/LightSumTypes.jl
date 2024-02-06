@@ -48,10 +48,13 @@ end
 @testset "@sum_struct_type" begin
 
     b = B((1,1), (1.0, 1.0), :s)
-
+    c = C((1,1), 1, 1, :c)
+    
     @test b.a == (1,1)
     @test b.b == (1.0, 1.0)
     @test b.c == :s
+    @test c.d === Int32(1)
+    @test c.e === true
 
     b.a = (3, 3)
     @test b.a == (3, 3)
@@ -146,11 +149,14 @@ end
 @testset "@compact_struct_type" begin
 
     f = F((1,1), (1.0, 1.0), :s)
+    g = G((1,1), 1, 1, :c)
 
     @test f.a == (1,1)
     @test f.b == (1.0, 1.0)
     @test f.c == :s
-
+    @test g.d === Int32(1)
+    @test g.e === true
+    
     f.a = (3, 3)
     @test f.a == (3, 3)
 
