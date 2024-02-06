@@ -51,14 +51,18 @@ macro sum_struct_type(type, struct_defs = nothing)
     variants_types_names = namify.(variants_types)
     branching_getprop = generate_branching_variants(variants_types_names, :(return getfield(data_a.data[1], s)))
 
-    expr_getprop = :(function Base.getproperty(a::$(namify(type)), s::Symbol)
+    extract_data = :(begin
                         type_a = (typeof)(a)
                         MixedStructTypes.SumTypes.check_sum_type(type_a)
-                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types_names))})
-
+                        MixedStructTypes.SumTypes.assert_exhaustive(
+                                                        Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
+                                                        Val{$(Tuple(variants_types_names))}
+                                                        )
                         data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+                     end)
 
+    expr_getprop = :(function Base.getproperty(a::$(namify(type)), s::Symbol)
+                        $(extract_data)
                         $(branching_getprop...)
                      end)
 
@@ -66,14 +70,7 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     if !isnotmutable
         expr_setprop = :(function Base.setproperty!(a::$(namify(type)), s::Symbol, v)
-                            type_a = (typeof)(a)
-
-                            MixedStructTypes.SumTypes.check_sum_type(type_a)
-                            MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                       Val{$(Tuple(variants_types_names))})
-
-                            data_a = (MixedStructTypes.SumTypes.unwrap)(a)
-
+                            $(extract_data)
                             $(branching_setprop...)
                          end)
     else
@@ -83,51 +80,29 @@ macro sum_struct_type(type, struct_defs = nothing)
     branching_kindof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
 
     expr_kindof = :(function MixedStructTypes.kindof(a::$(namify(type)))
-                        type_a = (typeof)(a)
-                        MixedStructTypes.SumTypes.check_sum_type(type_a)
-                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types_names))})
-
-                        data_a = (MixedStructTypes.SumTypes.unwrap)(a)
-
+                        $(extract_data)
                         $(branching_kindof...)
-                     end)
+                    end)
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
 
     expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(type)))
-                        type_a = (typeof)(a)
-                        MixedStructTypes.SumTypes.check_sum_type(type_a)
-                        MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                   Val{$(Tuple(variants_types_names))})
-
-                        data_a = (MixedStructTypes.SumTypes.unwrap)(a)
-
-                        $(branching_constructor...)
-                     end)
+                            $(extract_data)
+                            $(branching_constructor...)
+                         end)
 
     fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each, false)]
     branching_propnames = generate_branching_variants(variants_types_names, fields_each_symbol)
 
     expr_propnames = :(function Base.propertynames(a::$(namify(type)))
-                           type_a = (typeof)(a)
-                           MixedStructTypes.SumTypes.check_sum_type(type_a)
-                           MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                                       Val{$(Tuple(variants_types_names))})
-
-                           data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+                           $(extract_data)
                            $(branching_propnames...)
                        end)
 
     return_copy = [:(return $v(map(x -> getproperty(a, x), propertynames(a))...)) for v in variants_types_names]
     branching_copy = generate_branching_variants(variants_types_names, return_copy)
     expr_copy = :(function Base.copy(a::$(namify(type)))::typeof(a)
-                      type_a = (typeof)(a)
-                      MixedStructTypes.SumTypes.check_sum_type(type_a)
-                      MixedStructTypes.SumTypes.assert_exhaustive(Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
-                                                                       Val{$(Tuple(variants_types_names))})
-
-                      data_a = (MixedStructTypes.SumTypes.unwrap)(a)
+                      $(extract_data)
                       $(branching_copy...)
                   end)
 
