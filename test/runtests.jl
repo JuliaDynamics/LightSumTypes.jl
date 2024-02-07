@@ -2,7 +2,7 @@
 using Test
 using MixedStructTypes
 
-@sum_struct_type A{X,Y} begin
+@sum_struct_type @kwdef A{X,Y} begin
     mutable struct B{X}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -48,10 +48,14 @@ end
 @testset "@sum_struct_type" begin
 
     b = B((1,1), (1.0, 1.0), :s)
-
+    c1 = C((1,1), 1, 1, :c)
+    c2 = C(; a = (1,1), d = 1, e = 1, c = :c)
+    
     @test b.a == (1,1)
     @test b.b == (1.0, 1.0)
     @test b.c == :s
+    @test c1.d === c2.d === Int32(1)
+    @test c1.e === c2.e === true
 
     b.a = (3, 3)
     @test b.a == (3, 3)
@@ -100,7 +104,7 @@ end
     end
 end
 
-@compact_struct_type E{X,Y} begin
+@compact_struct_type @kwdef E{X,Y} begin
     mutable struct F{X}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -146,11 +150,15 @@ end
 @testset "@compact_struct_type" begin
 
     f = F((1,1), (1.0, 1.0), :s)
+    g1 = G((1,1), 1, 1, :c)
+    g2 = G(; a = (1,1), d = 1, e = 1, c = :c)
 
     @test f.a == (1,1)
     @test f.b == (1.0, 1.0)
     @test f.c == :s
-
+    @test g1.d === g2.d === Int32(1)
+    @test g1.e === g2.e === true
+    
     f.a = (3, 3)
     @test f.a == (3, 3)
 
@@ -193,3 +201,4 @@ end
     @test Simple2 <: AbstractSimple2
     @test b isa Simple2 && c isa Simple2   
 end
+

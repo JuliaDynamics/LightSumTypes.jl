@@ -61,8 +61,14 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         f_params_kwargs = Expr(:parameters, f_params_kwargs...)        
         f_params_args = struct_spec_n
         f_params_args_with_T = retrieve_fields_names(struct_f, true)
+        @capture(new_type, new_type_n_{new_type_p__})
+        if new_type_p === nothing 
+            new_type_n, new_type_p = new_type, []
+        end
+        f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? x.args[1] : x 
+                                for x in f_params_args_with_T]
         struct_spec_n2_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
-                      for (n, d) in zip(retrieve_fields_names(struct_f, true), struct_d)]
+                      for (n, d) in zip(f_params_args_with_T, struct_d)]
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
         type = Symbol(string(namify(struct_t)))
@@ -71,10 +77,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         f_inside_args = [f_inside_args..., Expr(:quote, type)]
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
-        @capture(new_type, new_type_n_{new_type_p__})
-        if new_type_p === nothing 
-            new_type_n, new_type_p = new_type, []
-        end
         new_type_p = [t in struct_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
         if isempty(new_type_p)
@@ -171,7 +173,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                       return A((getfield(a, x) for x in fieldnames(A))...)
                   end)
 
-        
     expr = quote 
             $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
@@ -266,3 +267,6 @@ function transform_field(x, noncommon_fields)
     end
 end
 
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x) where T = convert(T, x)
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::T) where T = convert(T, x)
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::MixedStructTypes.Uninitialized) where T = x
