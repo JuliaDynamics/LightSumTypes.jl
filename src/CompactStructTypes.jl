@@ -267,4 +267,6 @@ function transform_field(x, noncommon_fields)
     end
 end
 
-Base.convert(::Type{Union{MixedStructTypes.Uninitialized, T}}, x) where T = convert(T, x)
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x) where T = convert(T, x)
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::T) where T = convert(T, x)
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::MixedStructTypes.Uninitialized) where T = x
