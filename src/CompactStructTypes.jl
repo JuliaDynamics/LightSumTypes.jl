@@ -61,8 +61,14 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         f_params_kwargs = Expr(:parameters, f_params_kwargs...)        
         f_params_args = struct_spec_n
         f_params_args_with_T = retrieve_fields_names(struct_f, true)
+        @capture(new_type, new_type_n_{new_type_p__})
+        if new_type_p === nothing 
+            new_type_n, new_type_p = new_type, []
+        end
+        f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? x.args[1] : x 
+                                for x in f_params_args_with_T]
         struct_spec_n2_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
-                      for (n, d) in zip(retrieve_fields_names(struct_f, true), struct_d)]
+                      for (n, d) in zip(f_params_args_with_T, struct_d)]
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
         type = Symbol(string(namify(struct_t)))
@@ -71,43 +77,44 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         f_inside_args = [f_inside_args..., Expr(:quote, type)]
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
-        @capture(new_type, new_type_n_{new_type_p__})
-        if new_type_p === nothing 
-            new_type_n, new_type_p = new_type, []
-        end
         new_type_p = [t in struct_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
-        expr_function_args = :(function $(namify(struct_t))($(struct_spec_n...))
-                                   return $(namify(new_type))($(f_inside_args...))
-                               end)
-        if is_kwdef
-            expr_function_kwargs = :(function $(namify(struct_t))($f_params_kwargs)
-                                         return $(namify(new_type))($(f_inside_args...))
-                                     end)
+        if isempty(new_type_p)
+            expr_function_args = :(
+                function $(namify(struct_t))($(f_params_args...))
+                    return $(namify(new_type))($(f_inside_args...))
+                end
+                )
+            if is_kwdef
+                expr_function_kwargs = :(
+                    function $(namify(struct_t))($f_params_kwargs)
+                        return $(namify(new_type))($(f_inside_args...))
+                    end
+                    )
+            else
+                expr_function_kwargs = :()
+            end
         else
-            expr_function_kwargs = :()
-        end
-        if !isempty(new_type_p)
-            expr_function_args2 = :(
-                function $(struct_t)($(f_params_args_with_T...)) where {$(struct_t_p...)}
+            expr_function_args = :(
+                function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
                     return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                 end
                 )
             if is_kwdef
-                expr_function_kwargs2 = :(
-                    function $(struct_t)($f_params_kwargs_with_T) where {$(struct_t_p...)}
+                expr_function_kwargs = :(
+                    function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
                         return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                     end
                     )
             else
-                expr_function_kwargs2 = :()
+                expr_function_kwargs = :()
             end
         end
 
+        remove_prev_functions = remove_prev_methods(struct_t)
+        push!(expr_functions, remove_prev_functions)
         push!(expr_functions, expr_function_kwargs)
         push!(expr_functions, expr_function_args)
-        push!(expr_functions, expr_function_kwargs2)
-        push!(expr_functions, expr_function_args2)
     end
 
     expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
@@ -166,7 +173,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                       return A((getfield(a, x) for x in fieldnames(A))...)
                   end)
 
-        
     expr = quote 
             $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
@@ -229,6 +235,14 @@ function generate_branching_types(variants_types, res)
     return branchs
 end
 
+function remove_prev_methods(struct_t)
+    return :(if @isdefined $(namify(struct_t))
+                for m in methods($(namify(struct_t)))
+                    Base.delete_method(m)
+                end
+            end)
+end
+
 function transform_field(x, noncommon_fields)
     x isa Symbol && return x
     const_x = x.head == :const
@@ -253,3 +267,4 @@ function transform_field(x, noncommon_fields)
     end
 end
 
+Base.convert(::Type{Union{MixedStructTypes.Uninitialized, T}}, x) where T = convert(T, x)
