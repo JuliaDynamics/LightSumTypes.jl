@@ -66,8 +66,10 @@ end
     
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
-    wolf_1 = Wolf{Float64, Float64}(2.0, 3.0, :black)
+    wolf_1 = Wolf(2.0, 3.0, :black)
     wolf_2 = Wolf(; ground_speed = 2.0, fur_color = :white)
+    wolf_3 = Wolf{Float64, Float64}(2.0, 3.0, :black)
+    wolf_4 = Wolf{Float64, Float64}(; ground_speed = 2.0, fur_color = :white)
 
     @test hawk_1.energy == 1.0
     @test hawk_2.energy == 0.1
@@ -174,6 +176,8 @@ end
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
     wolf_1 = Wolf2(2.0, 3.0, :black)
     wolf_2 = Wolf2(; ground_speed = 2.0, fur_color = :white)
+    wolf_3 = Wolf2{Float64, Float64}(2.0, 3.0, :black)
+    wolf_4 = Wolf2{Float64, Float64}(; ground_speed = 2.0, fur_color = :white)
 
     @test hawk_1.energy == 1.0
     @test hawk_2.energy == 0.1
