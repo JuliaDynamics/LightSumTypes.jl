@@ -133,13 +133,13 @@ macro sum_struct_type(type, struct_defs = nothing)
         f_params_kwargs = Expr(:parameters, a_spec_n_d...)
         if t_p !== nothing
             c1 = :(function $t($(f_d_n...)) where {$(t_p...)}
-                       return $t($(namify(h_t))($(f_d_n...)))
+                       return $t($h_t($(f_d_n...)))
                    end
                   )
             c4 = :()
             if is_kwdef
                 c4 = :(function $t($(f_params_kwargs)) where {$(t_p...)}
-                           return $t($(namify(h_t))($(f_d_n...)))
+                           return $t($h_t($(f_d_n...)))
                        end
                       )
             end
@@ -158,6 +158,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                    end
                   )
         end
+
         push!(expr_constructors, c1)
         push!(expr_constructors, c2)
         push!(expr_constructors, c3)
