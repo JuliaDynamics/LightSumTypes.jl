@@ -38,7 +38,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     all_fields_n = retrieve_fields_names(all_fields)
     noncommon_fields = setdiff(all_fields, common_fields)
     if !isempty(noncommon_fields)
-        all_fields = [transform_field(x, noncommon_fields) for x in all_fields]
+        all_fields_transf = [transform_field(x, noncommon_fields) for x in all_fields]
     end
 
     gensym_type = gensym(:(type))
@@ -48,7 +48,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
     expr_new_type = Expr(:struct, is_mutable, :($new_type <: $abstract_type),
                          :(begin 
-                            $(all_fields...)
+                            $(all_fields_transf...)
                             $field_type
                           end))
 
@@ -73,12 +73,16 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
         type = Symbol(string(namify(struct_t)))
         f_inside_args = all_fields_n
-        f_inside_args = [f in struct_spec_n ? f : (:(MixedStructTypes.uninit)) for f in f_inside_args]
+
+        conv_maybe = [x isa Symbol ? :() : x.args[2] for x in retrieve_fields_names(all_fields, true)]
+        f_inside_args = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
         f_inside_args = [f_inside_args..., Expr(:quote, type)]
+
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
         new_type_p = [t in struct_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
+
         if isempty(new_type_p)
             expr_function_args = :(
                 function $(namify(struct_t))($(f_params_args...))
@@ -222,6 +226,26 @@ function decompose_struct_no_base(struct_repr, split_default=true)
     return new_type, new_fields
 end
 
+function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
+    f_inside_args_new = []
+    i = 1
+    for f in f_inside_args
+        if f in struct_spec_n
+            t = conv_maybe[i]
+            if !any(p -> inexpr(t, p), new_type_p) && t != :()
+                new_f = :(Base.convert($t, $f))
+            else
+                new_f = f
+            end
+        else
+            new_f = :(MixedStructTypes.uninit)
+        end
+        i += 1
+        push!(f_inside_args_new, new_f)
+    end
+    return f_inside_args_new
+end
+
 function retrieve_fields_names(fields, only_consts = false)
     field_names = []
     for f in fields
@@ -270,7 +294,3 @@ function transform_field(x, noncommon_fields)
         end
     end
 end
-
-Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x) where T = convert(T, x)
-Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::T) where T = convert(T, x)
-Base.convert(::Type{Union{MixedStructTypes.Uninitialized,T}}, x::MixedStructTypes.Uninitialized) where T = x
