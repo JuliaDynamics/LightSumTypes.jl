@@ -65,7 +65,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         if new_type_p === nothing 
             new_type_n, new_type_p = new_type, []
         end
-        f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? x.args[1] : x 
+        f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? (x isa Symbol ? x : x.args[1]) : x 
                                 for x in f_params_args_with_T]
         struct_spec_n2_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
                       for (n, d) in zip(f_params_args_with_T, struct_d)]
@@ -225,9 +225,13 @@ end
 function retrieve_fields_names(fields, only_consts = false)
     field_names = []
     for f in fields
-        f.head == :const && (f = f.args[1])
-        !only_consts && f.head == :(::) && (f = f.args[1])
-        push!(field_names, f)
+        if f isa Symbol
+            push!(field_names, f)
+        else
+            f.head == :const && (f = f.args[1])
+            !only_consts && (f = namify(f))
+            push!(field_names, f)
+        end
     end
     return field_names
 end

@@ -38,10 +38,12 @@ end
 abstract type AbstractSimple end
 @sum_struct_type Simple <: AbstractSimple begin
     struct SimpleA
-        x::Int
+        x
+        z::Int
     end
     struct SimpleB
-        y::Int
+        y
+        q::String
     end
 end
 
@@ -96,13 +98,15 @@ end
     @test kindof(hawk_1) == kindof(hawk_2) == :Hawk
     @test kindof(wolf_1) == kindof(wolf_2) == :Wolf 
 
-    b = SimpleA(1)
-    c = SimpleB(2)
+    b = SimpleA(1, 3)
+    c = SimpleB(2, "a")
 
-    @test b.x == 1
-    @test c.y == 2
+    @test b.x == 1 && b.z == 3
+    @test c.y == 2 && c.q == "a"
     @test_throws "" b.y
+    @test_throws "" b.q
     @test_throws "" c.x
+    @test_throws "" c.z
     @test kindof(b) == :SimpleA
     @test kindof(c) == :SimpleB
     @test Simple <: AbstractSimple
@@ -164,10 +168,12 @@ end
 abstract type AbstractSimple2 end
 @compact_struct_type Simple2 <: AbstractSimple2 begin
     struct SimpleA2
-        x::Int
+        x
+        z::Int
     end
     struct SimpleB2
-        y::Int
+        y
+        q::String
     end
 end
 
@@ -227,13 +233,15 @@ end
     @test kindof(wolf_1) == kindof(wolf_2) == :Wolf2 
 
 
-    b = SimpleA2(1)
-    c = SimpleB2(2)
+    b = SimpleA2(1, 3)
+    c = SimpleB2(2, "a")
 
-    @test b.x == 1
-    @test c.y == 2
+    @test b.x == 1 && b.z == 3
+    @test c.y == 2 && c.q == "a"
     @test_throws "" b.y
+    @test_throws "" b.q
     @test_throws "" c.x
+    @test_throws "" c.z
     @test kindof(b) == :SimpleA2
     @test kindof(c) == :SimpleB2
     @test Simple2 <: AbstractSimple2
