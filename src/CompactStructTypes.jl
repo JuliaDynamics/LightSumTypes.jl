@@ -45,7 +45,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
 
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
-    expr_comp_types = [Expr(:struct, is_mutable, t, :(begin end)) for t in types_each]
+    expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
     expr_new_type = Expr(:struct, is_mutable, :($new_type <: $abstract_type),
                          :(begin 
                             $(all_fields...)
@@ -96,14 +96,24 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             end
         else
             expr_function_args = :(
-                function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
-                    return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                begin
+                    function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
+                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    end
+                    function $(struct_t)($(f_params_args_with_T...)) where {$(struct_t_p...)}
+                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    end
                 end
                 )
             if is_kwdef
                 expr_function_kwargs = :(
-                    function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
-                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    begin
+                        function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
+                            return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                        end
+                        function $(struct_t)($f_params_kwargs_with_T) where {$(struct_t_p...)}
+                            return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                        end
                     end
                     )
             else
@@ -111,8 +121,6 @@ macro compact_struct_type(new_type, struct_defs = nothing)
             end
         end
 
-        remove_prev_functions = remove_prev_methods(struct_t)
-        push!(expr_functions, remove_prev_functions)
         push!(expr_functions, expr_function_kwargs)
         push!(expr_functions, expr_function_args)
     end
@@ -233,14 +241,6 @@ function generate_branching_types(variants_types, res)
         push!(branchs, Expr(:elseif, :(kind === $(Expr(:quote, variants_types[i]))), res[i]))
     end
     return branchs
-end
-
-function remove_prev_methods(struct_t)
-    return :(if @isdefined $(namify(struct_t))
-                for m in methods($(namify(struct_t)))
-                    Base.delete_method(m)
-                end
-            end)
 end
 
 function transform_field(x, noncommon_fields)
