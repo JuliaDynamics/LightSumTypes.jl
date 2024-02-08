@@ -76,7 +76,9 @@ macro compact_struct_type(new_type, struct_defs = nothing)
 
         conv_maybe = [x isa Symbol ? :() : x.args[2] for x in retrieve_fields_names(all_fields, true)]
         f_inside_args = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
+        f_inside_args2 = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=true)
         f_inside_args = [f_inside_args..., Expr(:quote, type)]
+        f_inside_args2 = [f_inside_args2..., Expr(:quote, type)]
 
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
@@ -104,8 +106,8 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                     function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
                         return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                     end
-                    function $(struct_t)($(f_params_args_with_T...)) where {$(struct_t_p...)}
-                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    function $(struct_t)($(f_params_args...)) where {$(struct_t_p...)}
+                        return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
                     end
                 end
                 )
@@ -115,8 +117,8 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                         function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
                             return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                         end
-                        function $(struct_t)($f_params_kwargs_with_T) where {$(struct_t_p...)}
-                            return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                        function $(struct_t)($f_params_kwargs) where {$(struct_t_p...)}
+                            return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
                         end
                     end
                     )
@@ -226,13 +228,13 @@ function decompose_struct_no_base(struct_repr, split_default=true)
     return new_type, new_fields
 end
 
-function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
+function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=false)
     f_inside_args_new = []
     i = 1
     for f in f_inside_args
         if f in struct_spec_n
             t = conv_maybe[i]
-            if !any(p -> inexpr(t, p), new_type_p) && t != :()
+            if (with_params || !any(p -> inexpr(t, p), new_type_p)) && t != :()
                 new_f = :(Base.convert($t, $f))
             else
                 new_f = f
