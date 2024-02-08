@@ -45,6 +45,18 @@ abstract type AbstractSimple end
     end
 end
 
+@sum_struct_type TestOrder1 begin
+    struct TestOrder11
+        x::String
+        y::Float64
+    end
+    struct TestOrder12
+        y::Float64
+        z::Vector{Int}
+        x::String
+    end
+end
+
 @testset "@sum_struct_type" begin
 
     b = B((1,1), (1.0, 1.0), :s)
@@ -94,7 +106,17 @@ end
     @test kindof(b) == :SimpleA
     @test kindof(c) == :SimpleB
     @test Simple <: AbstractSimple
-    @test b isa Simple && c isa Simple  
+    @test b isa Simple && c isa Simple 
+
+    o1 = TestOrder11("a", 2.0)
+    o2 = TestOrder12(3.0, [1], "b") 
+
+    @test propertynames(o1) == (:x, :y)
+    @test propertynames(o2) == (:y, :z, :x)
+    @test o1.x == "a" && o2.x == "b"
+    @test o1.y == 2.0 && o2.y == 3.0
+    @test o2.z == [1]
+    @test_throws "" o1.z
 end
 
 @static if VERSION >= v"1.10"
@@ -146,6 +168,18 @@ abstract type AbstractSimple2 end
     end
     struct SimpleB2
         y::Int
+    end
+end
+
+@compact_struct_type TestOrder2 begin
+    struct TestOrder21
+        x::String
+        y::Float64
+    end
+    struct TestOrder22
+        y::Float64
+        z::Vector{Int}
+        x::String
     end
 end
 
@@ -203,6 +237,16 @@ end
     @test kindof(b) == :SimpleA2
     @test kindof(c) == :SimpleB2
     @test Simple2 <: AbstractSimple2
-    @test b isa Simple2 && c isa Simple2   
+    @test b isa Simple2 && c isa Simple2 
+
+    o1 = TestOrder21("a", 2.0)
+    o2 = TestOrder22(3.0, [1], "b")  
+
+    @test propertynames(o1) == (:x, :y)
+    @test propertynames(o2) == (:y, :z, :x)
+    @test o1.x == "a" && o2.x == "b"
+    @test o1.y == 2.0 && o2.y == 3.0
+    @test o2.z == [1]
+    @test_throws "" o1.z
 end
 
