@@ -56,6 +56,27 @@ end
     end
 end
 
+@compact_structs AA{T} begin
+    @kwdef mutable struct BB{T}
+        id::Int
+        a::T = 1
+        b::Int
+        c::Symbol
+    end
+    @kwdef mutable struct CC
+        id::Int
+        b::Int = 2
+        c::Symbol
+        d::Vector{Int}
+    end
+    @kwdef mutable struct DD{T}
+        id::Int
+        c::Symbol = :k
+        d::Vector{Int}
+        a::T
+    end
+end
+
 @testset "@compact_structs" begin
 
     f = F((1,1), (1.0, 1.0), :s)
@@ -124,4 +145,19 @@ end
     @test o1.y == 2.0 && o2.y == 3.0
     @test o2.z == [1]
     @test_throws "" o1.z
+
+
+    b1 = BB(1, 2, 1, :s)
+    c1 = CC(1, 1, :s, Int[])
+    d1 = DD(1, :s, [1], 1.0)
+    b2 = BB(; id = 1, b = 1, c = :s)
+    c2 = CC(; id = 1, c = :s, d = [1,2])
+    d2 = DD(; id = 1, d = [1], a = true)
+    b3 = BB{Float64}(1, 2, 1, :s)
+    d3 = DD{Float64}(1, :s, [1], 1.0)
+    b4 = BB{Int}(; id = 1, b = 1, c = :s)
+    d4 = DD{Int}(; id = 1, d = [1], a = true)
+
+    @test b3.a === 2.0 && d3.a === 1.0
+    @test b4.a === 1 && d4.a === 1
 end
