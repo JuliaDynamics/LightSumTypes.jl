@@ -3,7 +3,7 @@ struct Uninitialized end
 const uninit = Uninitialized()
 
 """
-    @compact_structs(type_definition, struct_definitions)
+    @compact_structs(type_definition, structs_definitions)
 """
 macro compact_structs(new_type, struct_defs)
 
