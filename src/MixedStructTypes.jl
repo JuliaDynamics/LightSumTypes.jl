@@ -5,14 +5,14 @@ using ExprTools
 using MacroTools
 using SumTypes
 
-export @sum_struct_type
-export @compact_struct_type
+export @sum_structs
+export @compact_structs
 export kindof
 
 function kindof end
 function constructor end
 
-include("SumStructTypes.jl")
-include("CompactStructTypes.jl")
+include("SumStructs.jl")
+include("CompactStructs.jl")
 
 end

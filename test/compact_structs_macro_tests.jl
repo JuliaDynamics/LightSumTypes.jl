@@ -1,16 +1,17 @@
-@compact_struct_type @kwdef E{X,Y} begin
-    mutable struct F{X}
+
+@compact_structs E{X,Y} begin
+    @kwdef mutable struct F{X}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
         const c::Symbol
     end
-    mutable struct G{X}
+    @kwdef mutable struct G{X}
         a::Tuple{X, X}
         d::Int32
         e::Bool
         const c::Symbol
     end
-    mutable struct H{X,Y}
+    @kwdef mutable struct H{X,Y}
         a::Tuple{X, X}
         f::Y
         g::Tuple{Complex, Complex}
@@ -18,13 +19,13 @@
     end
 end
 
-@compact_struct_type @kwdef Animal2{T,N,J} begin
-    mutable struct Wolf2{T,N}
+@compact_structs Animal2{T,N,J} begin
+    @kwdef mutable struct Wolf2{T,N}
         energy::T = 0.5
         ground_speed::N
         const fur_color::Symbol
     end
-    mutable struct Hawk2{T,N,J}
+    @kwdef mutable struct Hawk2{T,N,J}
         energy::T = 0.1
         ground_speed::N
         flight_speed::J
@@ -32,7 +33,7 @@ end
 end
 
 abstract type AbstractSimple2 end
-@compact_struct_type Simple2 <: AbstractSimple2 begin
+@compact_structs Simple2 <: AbstractSimple2 begin
     struct SimpleA2
         x
         z::Int
@@ -43,7 +44,7 @@ abstract type AbstractSimple2 end
     end
 end
 
-@compact_struct_type TestOrder2 begin
+@compact_structs TestOrder2 begin
     struct TestOrder21
         x::String
         y::Float64
@@ -55,7 +56,7 @@ end
     end
 end
 
-@testset "@compact_struct_type" begin
+@testset "@compact_structs" begin
 
     f = F((1,1), (1.0, 1.0), :s)
     g1 = G((1,1), 1, 1, :c)

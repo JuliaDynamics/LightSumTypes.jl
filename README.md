@@ -6,13 +6,13 @@
 This package allows to pack multiple heterogeneous types in a single type. 
 
 Two macros implement different strategies to create a compact representation of 
-the types: `@struct_compact_type` and `@struct_sum_type`.
+the types: `@compact_structs` and `@sum_structs`.
 
 Both work very similarly but there are some differences:
 
-- `@struct_compact_type` is a bit faster;
+- `@compact_structs` is a bit faster;
 
-- `@struct_sum_type` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
+- `@sum_structs` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
 
 Even if there is only a unique type defined by these macros, you can access a symbol containing the 
 conceptual type of an instance with the function `kindof`.
@@ -24,7 +24,7 @@ julia> using MixedStructTypes
 
 julia> abstract type AbstractA{X} end
 
-julia> @struct_sum_type A{X} <: AbstractA{X} begin
+julia> @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -65,7 +65,7 @@ julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
 
-julia> @struct_compact_type E{X} <: AbstractE{X} begin
+julia> @compact_structs E{X} <: AbstractE{X} begin
            @kwdef mutable struct F{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
@@ -122,4 +122,3 @@ julia> @btime sum(x.a[1] for x in $vec_a);
 julia> @btime sum(x.a[1] for x in $vec_e);
   2.938 ms (0 allocations: 0 bytes)
 ```
-

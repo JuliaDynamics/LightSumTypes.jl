@@ -2,14 +2,10 @@
 struct Uninitialized end
 const uninit = Uninitialized()
 
-macro compact_struct_type(new_type, struct_defs = nothing)
-
-    if struct_defs === nothing
-        is_kwdef = true
-        new_type, struct_defs = new_type.args[end-1:end]
-    else
-        is_kwdef = false
-    end
+"""
+    @compact_structs(type_definition, struct_definitions)
+"""
+macro compact_structs(new_type, struct_defs)
 
     if new_type isa Expr && new_type.head == :(<:)
         new_type, abstract_type = new_type.args
@@ -17,6 +13,21 @@ macro compact_struct_type(new_type, struct_defs = nothing)
         new_type, abstract_type = new_type, :(Any)
     end
     structs_specs = decompose_struct_base(struct_defs)
+
+    structs_specs_new = []
+    is_kws = []
+    for x in structs_specs
+        v1 = @capture(x, @kwdef d_)
+        v1 == false && (v2 = @capture(x, Base.@kwdef d_))
+        if d == nothing 
+            push!(structs_specs_new, x)
+            push!(is_kws, false)
+        else
+            push!(structs_specs_new, d)
+            push!(is_kws, true)
+        end
+    end
+    structs_specs = structs_specs_new
 
     is_mutable = []
     for x in structs_specs
@@ -53,7 +64,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                           end))
 
     expr_functions = []
-    for (struct_t, struct_f, struct_d) in zip(types_each, fields_each, default_each)
+    for (struct_t, struct_f, struct_d, is_kw) in zip(types_each, fields_each, default_each, is_kws)
         struct_spec_n = retrieve_fields_names(struct_f)
         struct_spec_n_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
                       for (n, d) in zip(struct_spec_n, struct_d)]
@@ -91,7 +102,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                     return $(namify(new_type))($(f_inside_args...))
                 end
                 )
-            if is_kwdef
+            if is_kw
                 expr_function_kwargs = :(
                     function $(namify(struct_t))($f_params_kwargs)
                         return $(namify(new_type))($(f_inside_args...))
@@ -111,7 +122,7 @@ macro compact_struct_type(new_type, struct_defs = nothing)
                     end
                 end
                 )
-            if is_kwdef
+            if is_kw
                 expr_function_kwargs = :(
                     begin
                         function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
