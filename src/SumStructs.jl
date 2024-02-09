@@ -1,6 +1,6 @@
 
 """
-    @sum_structs(type, struct_definitions)
+    @sum_structs(type_definition, structs_definitions)
 """
 macro sum_structs(type, struct_defs)
     
