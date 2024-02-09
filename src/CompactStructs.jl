@@ -86,60 +86,60 @@ macro compact_structs(new_type, struct_defs)
         f_inside_args = all_fields_n
 
         conv_maybe = [x isa Symbol ? :() : x.args[2] for x in retrieve_fields_names(all_fields, true)]
-        f_inside_args = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
-        f_inside_args2 = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=true)
-        f_inside_args = [f_inside_args..., Expr(:quote, type)]
-        f_inside_args2 = [f_inside_args2..., Expr(:quote, type)]
+        f_inside_args_no_t = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
+        f_inside_args2_no_t = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=true)
+        f_inside_args = [f_inside_args_no_t..., Expr(:quote, type)]
+        f_inside_args2 = [f_inside_args2_no_t..., Expr(:quote, type)]
 
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
         new_type_p = [t in struct_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
 
+        expr_function_kwargs = :()
+        expr_function_kwargs2 = :()
+        expr_function_args = :()
+        expr_function_args2 = :()
+
         if isempty(new_type_p)
             expr_function_args = :(
                 function $(namify(struct_t))($(f_params_args...))
                     return $(namify(new_type))($(f_inside_args...))
-                end
-                )
+                end)
             if is_kw
                 expr_function_kwargs = :(
                     function $(namify(struct_t))($f_params_kwargs)
                         return $(namify(new_type))($(f_inside_args...))
-                    end
-                    )
-            else
-                expr_function_kwargs = :()
+                    end)
             end
         else
             expr_function_args = :(
-                begin
                     function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
                         return $new_type_n{$(new_type_p...)}($(f_inside_args...))
-                    end
-                    function $(struct_t)($(f_params_args...)) where {$(struct_t_p...)}
-                        return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
-                    end
-                end
-                )
+                    end)
+            if !isempty(struct_t_p)
+                expr_function_args2 = :(function $(struct_t)($(f_params_args...)) where {$(struct_t_p...)}
+                                            return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
+                                        end)
+            end
             if is_kw
                 expr_function_kwargs = :(
-                    begin
-                        function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
-                            return $new_type_n{$(new_type_p...)}($(f_inside_args...))
-                        end
+                    function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
+                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    end)
+                if !isempty(struct_t_p)
+                    expr_function_kwargs2 = :(
                         function $(struct_t)($f_params_kwargs) where {$(struct_t_p...)}
                             return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
-                        end
-                    end
-                    )
-            else
-                expr_function_kwargs = :()
+                        end)
+                end
             end
         end
 
         push!(expr_functions, expr_function_kwargs)
         push!(expr_functions, expr_function_args)
+        push!(expr_functions, expr_function_kwargs2)
+        push!(expr_functions, expr_function_args2)
     end
 
     expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
@@ -242,6 +242,7 @@ end
 function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=false)
     f_inside_args_new = []
     i = 1
+
     for f in f_inside_args
         if f in struct_spec_n
             t = conv_maybe[i]
