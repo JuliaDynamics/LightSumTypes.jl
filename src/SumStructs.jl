@@ -1,14 +1,25 @@
 
-macro sum_struct_type(type, struct_defs = nothing)
-
-    if struct_defs === nothing
-        is_kwdef = true
-        type, struct_defs = type.args[end-1:end]
-    else
-        is_kwdef = false
-    end
+"""
+    @sum_structs(type, struct_definitions)
+"""
+macro sum_structs(type, struct_defs)
     
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
+
+    struct_defs_new = []
+    is_kws = []
+    for x in struct_defs
+        v1 = @capture(x, @kwdef d_)
+        v1 == false && (v2 = @capture(x, Base.@kwdef d_))
+        if d == nothing 
+            push!(struct_defs_new, x)
+            push!(is_kws, false)
+        else
+            push!(struct_defs_new, d)
+            push!(is_kws, true)
+        end
+    end
+    struct_defs = struct_defs_new
 
     isnotmutable = all(!(d.args[1]) for d in struct_defs)
     
@@ -124,7 +135,7 @@ macro sum_struct_type(type, struct_defs = nothing)
 
     expr_constructors = []
 
-    for (fs, fd, t, h_t) in zip(fields_each, default_each, variants_types, hidden_struct_types)
+    for (fs, fd, t, h_t, is_kw) in zip(fields_each, default_each, variants_types, hidden_struct_types, is_kws)
         f_d_n = retrieve_fields_names(fs, false)
         f_d_n_t = retrieve_fields_names(fs, true)
         c = @capture(t, t_n_{t_p__})
@@ -137,7 +148,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                    end
                   )
             c4 = :()
-            if is_kwdef
+            if is_kw
                 c4 = :(function $t($(f_params_kwargs)) where {$(t_p...)}
                            return $t($h_t($(f_d_n...)))
                        end
@@ -152,7 +163,7 @@ macro sum_struct_type(type, struct_defs = nothing)
                end
               )
         c3 = :()
-        if is_kwdef
+        if is_kw
             c3 = :(function $(namify(t))($(f_params_kwargs))
                        return $(namify(t))($(namify(h_t))($(f_d_n...)))
                    end

@@ -1,16 +1,17 @@
-@sum_struct_type @kwdef A{X,Y} begin
-    mutable struct B{X}
+
+@sum_structs A{X,Y} begin
+    @kwdef mutable struct B{X}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
         const c::Symbol
     end
-    mutable struct C
+    @kwdef mutable struct C
         a::Tuple{Int, Int}
         d::Int32
         e::Bool
         const c::Symbol
     end
-    struct D{Y}
+    @kwdef struct D{Y}
         a::Tuple{Int, Int}
         f::Y
         g::Tuple{Complex, Complex}
@@ -18,13 +19,13 @@
     end
 end
 
-@sum_struct_type @kwdef Animal{T,N,J} begin
-    mutable struct Wolf{T,N}
+@sum_structs Animal{T,N,J} begin
+    @kwdef mutable struct Wolf{T,N}
         energy::T = 0.5
         ground_speed::N
         const fur_color::Symbol
     end
-    mutable struct Hawk{T,N,J}
+    @kwdef mutable struct Hawk{T,N,J}
         energy::T = 0.1
         ground_speed::N
         flight_speed::J
@@ -32,7 +33,7 @@ end
 end
 
 abstract type AbstractSimple end
-@sum_struct_type Simple <: AbstractSimple begin
+@sum_structs Simple <: AbstractSimple begin
     struct SimpleA
         x
         z::Int
@@ -43,7 +44,7 @@ abstract type AbstractSimple end
     end
 end
 
-@sum_struct_type TestOrder1 begin
+@sum_structs TestOrder1 begin
     struct TestOrder11
         x::String
         y::Float64
@@ -55,7 +56,7 @@ end
     end
 end
 
-@testset "@sum_struct_type" begin
+@testset "@sum_structs" begin
 
     b = B((1,1), (1.0, 1.0), :s)
     c1 = C((1,1), 1, 1, :c)
