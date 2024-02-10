@@ -144,4 +144,4 @@ julia> @btime sum(x.a[1] for x in $vec_e);
   2.911 ms (0 allocations: 0 bytes)
 ```
 
-As you can see, `@compact_structs` is almost 10 times faster than using a `Union`, even if it requires double the memory. Instead, as expected, `@sum_structs` is less time efficient (but it is already more than 4 times faster) but it uses nearly the same memory of a `Union`.
+In this case, `@compact_structs` is almost 10 times faster than a `Union`, even if it requires double the memory. Whereas `@sum_structs` is less time efficient than `@compact_structs` as expected but it uses nearly the same memory of a `Union`.
