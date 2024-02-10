@@ -119,17 +119,17 @@ julia> @kwdef mutable struct P{X}
 
 julia> vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
 
-julia> vec_a = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+julia> vec_sum = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 
-julia> vec_e = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
+julia> vec_compact = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_union)
 33995448
 
-julia> Base.summarysize(vec_a)
+julia> Base.summarysize(vec_sum)
 34925776
 
-julia> Base.summarysize(vec_e)
+julia> Base.summarysize(vec_compact)
 75643452
 
 julia> using BenchmarkTools
@@ -137,10 +137,10 @@ julia> using BenchmarkTools
 julia> @btime sum(x.a[1] for x in $vec_union);
   26.268 ms (999780 allocations: 15.26 MiB)
 
-julia> @btime sum(x.a[1] for x in $vec_a);
+julia> @btime sum(x.a[1] for x in $vec_sum);
   6.301 ms (0 allocations: 0 bytes)
 
-julia> @btime sum(x.a[1] for x in $vec_e);
+julia> @btime sum(x.a[1] for x in $vec_compact);
   2.911 ms (0 allocations: 0 bytes)
 ```
 
