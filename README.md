@@ -3,8 +3,8 @@
 [![CI](https://github.com/JuliaDynamics/MixedStructTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/MixedStructTypes.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl)
 
-This package allows to pack multiple heterogeneous types in a single one. This helps to write type-stable code by avoiding Union-splitting, which have performance 
-drawbacks when more than three types are unionized.
+This package allows to pack multiple heterogeneous types in a single one. This helps to write type-stable code by avoiding Union-splitting, which have big performance 
+drawbacks when many types are unionized.
 
 Two macros implement different strategies to create a compact representation of 
 the types: `@compact_structs` and `@sum_structs`.
