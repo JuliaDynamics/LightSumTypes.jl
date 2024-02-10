@@ -1,4 +1,8 @@
 
+@sum_structs SingleT2 begin
+    struct ST2 end
+end
+
 @sum_structs A{X,Y} begin
     @kwdef mutable struct B{X}
         a::Tuple{X, X}
@@ -57,6 +61,9 @@ end
 end
 
 @testset "@sum_structs" begin
+
+    st = ST2()
+    @test propertynames(st) == ()
 
     b = B((1,1), (1.0, 1.0), :s)
     c1 = C((1,1), 1, 1, :c)

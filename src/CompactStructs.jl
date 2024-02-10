@@ -50,6 +50,8 @@ macro compact_structs(new_type, struct_defs)
     noncommon_fields = setdiff(all_fields, common_fields)
     if !isempty(noncommon_fields)
         all_fields_transf = [transform_field(x, noncommon_fields) for x in all_fields]
+    else
+        all_fields_transf = []
     end
 
     gensym_type = gensym(:(type))

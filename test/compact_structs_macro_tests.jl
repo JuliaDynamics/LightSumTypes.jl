@@ -1,4 +1,8 @@
 
+@compact_structs SingleT1 begin
+    struct ST1 end
+end
+
 @compact_structs E{X,Y} begin
     @kwdef mutable struct F{X}
         a::Tuple{X, X}
@@ -78,6 +82,9 @@ end
 end
 
 @testset "@compact_structs" begin
+    
+    st = ST1()
+    @test propertynames(st) == ()
 
     f = F((1,1), (1.0, 1.0), :s)
     g1 = G((1,1), 1, 1, :c)
