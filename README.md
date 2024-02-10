@@ -29,30 +29,25 @@ julia> @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
-               const c::Symbol = :s
            end
            @kwdef mutable struct C
                a::Tuple{Int, Int} = (2,2)
-               const c::Symbol = :q
                d::Int32 = Int32(2)
-               e::Bool = false
            end
-           @kwdef struct D
+           @kwdef mutable struct D
                a::Tuple{Int, Int} = (3,3)
-               c::Symbol = :s
-               f::Char = 'p'
-               g::Tuple{Complex, Complex} = (im, im)
+               const c::Symbol = :s
+           end
+           @kwdef struct E{X}
+               a::Tuple{X, X} = (3,3)
            end
        end
 
-julia> b = B((1,1), (1.0, 1.0), :s)
-B{Int64}((1, 1), (1.0, 1.0), :s)::A
+julia> b = B((1,1), (1.0, 1.0))
+B{Int64}((1, 1), (1.0, 1.0))::A
 
 julia> b.a
 (1, 1)
-
-julia> b.c
-:s
 
 julia> b.a = (3, 3)
 (3, 3)
@@ -60,66 +55,93 @@ julia> b.a = (3, 3)
 julia> kindof(b)
 :B
 
-julia> abstract type AbstractE{X} end 
+julia> abstract type AbstractF{X} end 
 
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
 
-julia> @compact_structs E{X} <: AbstractE{X} begin
-           @kwdef mutable struct F{X}
+julia> @compact_structs F{X} <: AbstractF{X} begin
+           @kwdef mutable struct G{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
-               const c::Symbol = :s
-           end
-           @kwdef mutable struct G{X}
-               a::Tuple{X, X} = (2,2)
-               const c::Symbol = :q
-               d::Int32 = Int32(2)
-               e::Bool = false
            end
            @kwdef mutable struct H{X}
+               a::Tuple{X, X} = (2,2)
+               d::Int32 = Int32(2)
+           end
+           @kwdef mutable struct I{X}
                a::Tuple{X, X} = (3,3)
                const c::Symbol = :s
-               f::Char = 'p'
-               g::Tuple{Complex, Complex} = (im, im)
+           end
+           @kwdef mutable struct L{X}
+               a::Tuple{X, X} = (3,3)
            end
        end
 
-julia> f = F((1,1), (1.0, 1.0), :s)
-F{Int64}((1, 1), (1.0, 1.0), :s)::E
+julia> g = G((1,1), (1.0, 1.0))
+G{Int64}((1, 1), (1.0, 1.0))::F
 
-julia> f.a
+julia> g.a
 (1, 1)
 
-julia> f.c
-:s
-
-julia> f.a = (3, 3)
+julia> g.a = (3, 3)
 (3, 3)
 
-julia> kindof(f)
-:F
+julia> kindof(g)
+:G
 ```
 
-Let's see briefly how the two macros compare performance-wise:
+## Benchmark
+
+Let's see briefly how the two macros compare performance-wise in respect to a `Union`:
 
 ```julia
-julia> vec_a = A{Int}[rand((B,C,D))() for _ in 1:10^6];
+julia> @kwdef mutable struct M{X}
+           a::Tuple{X, X} = (1,1)
+           b::Tuple{Float64, Float64} = (1.0, 1.0)
+       end
 
-julia> vec_e = E{Int}[rand((F,G,H))() for _ in 1:10^6];
+julia> @kwdef mutable struct N{X}
+           a::Tuple{X, X} = (2,2)
+           d::Int32 = Int32(2)
+       end
+
+julia> @kwdef mutable struct O{X}
+           a::Tuple{X, X} = (3,3)
+           const c::Symbol = :s
+       end
+
+julia> @kwdef mutable struct P{X}
+           a::Tuple{X, X} = (3,3)
+           const c::Symbol = :s
+       end
+
+julia> vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
+
+julia> vec_a = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+
+julia> vec_e = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
+
+julia> Base.summarysize(vec_union)
+33995448
 
 julia> Base.summarysize(vec_a)
-41463268
+34925776
 
 julia> Base.summarysize(vec_e)
-93289413
+75643452
 
 julia> using BenchmarkTools
 
+julia> @btime sum(x.a[1] for x in $vec_union);
+  26.268 ms (999780 allocations: 15.26 MiB)
+
 julia> @btime sum(x.a[1] for x in $vec_a);
-  5.585 ms (0 allocations: 0 bytes)
+  6.301 ms (0 allocations: 0 bytes)
 
 julia> @btime sum(x.a[1] for x in $vec_e);
-  2.938 ms (0 allocations: 0 bytes)
+  2.911 ms (0 allocations: 0 bytes)
 ```
+
+As you can see, `@compact_structs` is almost 10 times faster than using a `Union`, even if it requires double the memory. Instead, as expected, `@sum_structs` is less time efficient (but it is already more than 4 times faster) but it uses nearly the same memory of a `Union`.
