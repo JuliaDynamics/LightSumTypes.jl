@@ -239,5 +239,3 @@ end
 
 retrieve_type(::MixedStructTypes.SumTypes.Variant{T}) where T = T
 retrieve_hidden_type(::MixedStructTypes.SumTypes.Variant{T,F,HT} where {T,F}) where HT = eltype(HT)
-
-
