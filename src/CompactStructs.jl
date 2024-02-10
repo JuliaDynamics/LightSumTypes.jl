@@ -48,14 +48,9 @@ macro compact_structs(new_type, struct_defs)
     all_fields = union(fields_each...)
     all_fields_n = retrieve_fields_names(all_fields)
     noncommon_fields = setdiff(all_fields, common_fields)
-    if !isempty(noncommon_fields)
-        all_fields_transf = [transform_field(x, noncommon_fields) for x in all_fields]
-    else
-        all_fields_transf = []
-    end
+    all_fields_transf = [transform_field(x, noncommon_fields) for x in all_fields]
 
     gensym_type = gensym(:(type))
-
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
