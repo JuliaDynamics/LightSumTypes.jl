@@ -149,7 +149,8 @@ macro sum_structs(type, struct_defs)
         a_spec_n_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
                           for (n, d) in zip(f_params_args, fd)]
         f_params_kwargs = Expr(:parameters, a_spec_n_d...)
-        @capture(type, new_type_n_{new_type_p__})
+        new_typ = type isa Expr && type.head == :(<:) ? type.args[1] : type
+        @capture(new_typ, new_type_n_{new_type_p__})
         if new_type_p === nothing 
             new_type_n, new_type_p = type, []
         end
