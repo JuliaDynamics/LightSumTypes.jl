@@ -3,8 +3,8 @@
     struct ST1 end
 end
 
-@compact_structs E{X,Y} begin
-    @kwdef mutable struct F{X}
+@compact_structs E{X<:Real,Y<:Real} begin
+    @kwdef mutable struct F{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
         const c::Symbol
@@ -15,7 +15,7 @@ end
         e::Bool
         const c::Symbol
     end
-    @kwdef mutable struct H{X,Y}
+    @kwdef mutable struct H{X,Y<:Real}
         a::Tuple{X, X}
         f::Y
         g::Tuple{Complex, Complex}
@@ -89,6 +89,10 @@ end
     f = F((1,1), (1.0, 1.0), :s)
     g1 = G((1,1), 1, 1, :c)
     g2 = G(; a = (1,1), d = 1, e = 1, c = :c)
+
+    @test_throws "" F((1.0,1.0), (1.0, 1.0), :s)
+    @test_throws "" G((1,1), im, (im, im), :d)
+    @test_throws "" G((im,im), 1, (im, im), :d)
 
     @test f.a == (1,1)
     @test f.b == (1.0, 1.0)

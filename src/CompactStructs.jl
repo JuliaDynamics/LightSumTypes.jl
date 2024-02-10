@@ -1,4 +1,5 @@
 
+
 struct Uninitialized end
 const uninit = Uninitialized()
 
@@ -54,7 +55,10 @@ macro compact_structs(new_type, struct_defs)
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
-    expr_new_type = Expr(:struct, is_mutable, :($new_type <: $abstract_type),
+    type_name = new_type isa Symbol ? new_type : new_type.args[1]
+    uninit_val = :(MixedStructTypes.Uninitialized)
+    compact_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, new_type)
+    expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
                          :(begin 
                             $(all_fields_transf...)
                             $field_type
@@ -73,6 +77,7 @@ macro compact_structs(new_type, struct_defs)
         if new_type_p === nothing 
             new_type_n, new_type_p = new_type, []
         end
+        new_type_p = [t isa Expr && t.head == :(<:) ? t.args[1] : t for t in new_type_p]
         f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? (x isa Symbol ? x : x.args[1]) : x 
                                 for x in f_params_args_with_T]
         struct_spec_n2_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
@@ -90,7 +95,9 @@ macro compact_structs(new_type, struct_defs)
 
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
-        new_type_p = [t in struct_t_p ? t : (:(MixedStructTypes.Uninitialized)) 
+        struct_t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p]
+        struct_t_arg = struct_t_p_no_sup != [] ? :($struct_t_n{$(struct_t_p_no_sup...)}) : struct_t
+        new_type_p = [t in struct_t_p_no_sup ? t : (:(MixedStructTypes.Uninitialized)) 
                       for t in new_type_p]
 
         expr_function_kwargs = :()
@@ -115,7 +122,7 @@ macro compact_structs(new_type, struct_defs)
                         return $new_type_n{$(new_type_p...)}($(f_inside_args...))
                     end)
             if !isempty(struct_t_p)
-                expr_function_args2 = :(function $(struct_t)($(f_params_args...)) where {$(struct_t_p...)}
+                expr_function_args2 = :(function $(struct_t_arg)($(f_params_args...)) where {$(struct_t_p...)}
                                             return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
                                         end)
             end
@@ -126,7 +133,7 @@ macro compact_structs(new_type, struct_defs)
                     end)
                 if !isempty(struct_t_p)
                     expr_function_kwargs2 = :(
-                        function $(struct_t)($f_params_kwargs) where {$(struct_t_p...)}
+                        function $(struct_t_arg)($f_params_kwargs) where {$(struct_t_p...)}
                             return $new_type_n{$(new_type_p...)}($(f_inside_args2...))
                         end)
                 end
