@@ -29,14 +29,15 @@ macro sum_structs(type, struct_defs)
         t = d.args[2]
         c = @capture(t, t_n_{t_p__})
         c == false && ((t_n, t_p) = (t, []))
-        push!(variants_types, t)
+        t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in t_p]
+        push!(variants_types, t_p != [] ? :($t_n{$(t_p_no_sup...)}) : t_n)
         h_t = gensym(t_n)
-        if t_p != []
-            h_t = :($h_t{$(t_p...)})
+        if t_p_no_sup != []
+            h_t = :($h_t{$(t_p_no_sup...)})
         end
         push!(hidden_struct_types, h_t)
         d_new = MacroTools.postwalk(s -> s == t ? h_t : s, d)
-        for p in t_p
+        for p in t_p_no_sup
             p_u = gensym(p)
             d_new = MacroTools.postwalk(s -> s == p ? p_u : s, d_new)
         end
@@ -54,7 +55,10 @@ macro sum_structs(type, struct_defs)
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
-    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $type begin
+    type_name = type isa Symbol ? type : type.args[1]
+    uninit_val = :(MixedStructTypes.SumTypes.Uninit)
+    sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type)
+    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t begin
                         $(variants_defs...)
                       end)
     expr_sum_type = macroexpand(__module__, expr_sum_type)
@@ -213,6 +217,12 @@ function print_transform(x)
     x isa String && return "\"$x\""
     x isa Symbol && return QuoteNode(x)
     return x
+end
+
+function make_union_uninit(s, type_name, uninit_val)
+    s.args[1] == type_name && return s
+    s.args[2] = :(Union{$(s.args[2]), $uninit_val})
+    return s
 end
 
 function remove_redefinitions(e, t, vs, fs)
