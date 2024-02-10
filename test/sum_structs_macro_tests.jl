@@ -3,8 +3,8 @@
     struct ST2 end
 end
 
-@sum_structs A{X,Y<:Real} begin
-    @kwdef mutable struct B{X}
+@sum_structs A{X<:Real,Y<:Real} begin
+    @kwdef mutable struct B{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
         const c::Symbol
@@ -15,7 +15,7 @@ end
         e::Bool
         const c::Symbol
     end
-    @kwdef struct D{Y}
+    @kwdef struct D{Y<:Real}
         a::Tuple{Int, Int}
         f::Y
         g::Tuple{Complex, Complex}
@@ -70,6 +70,7 @@ end
     c2 = C(; a = (1,1), d = 1, e = 1, c = :c)
     d = D((1,1), 1, (im, im), :d)
 
+    @test_throws "" B((1.0,1.0), (1.0, 1.0), :s)
     @test_throws "" D((1,1), im, (im, im), :d)
 
     @test b.a == (1,1)
