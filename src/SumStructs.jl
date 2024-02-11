@@ -3,7 +3,10 @@
     @sum_structs(type_definition, structs_definitions)
 """
 macro sum_structs(type, struct_defs)
-    
+    return esc(_sum_structs(type, struct_defs))
+end
+
+function _sum_structs(type, struct_defs)
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
 
     struct_defs_new = []
@@ -64,7 +67,7 @@ macro sum_structs(type, struct_defs)
     expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t begin
                         $(variants_defs...)
                       end)
-    expr_sum_type = macroexpand(__module__, expr_sum_type)
+    expr_sum_type = macroexpand(MixedStructTypes, expr_sum_type)
 
     variants_types_names = namify.(variants_types)
     branching_getprop = generate_branching_variants(variants_types_names, :(return getfield(data_a.data[1], s)))
@@ -215,7 +218,7 @@ macro sum_structs(type, struct_defs)
                nothing
            end
 
-    return esc(expr)
+    return expr
 end
 
 function generate_branching_variants(variants_types, res)

@@ -7,7 +7,10 @@ const uninit = Uninitialized()
     @compact_structs(type_definition, structs_definitions)
 """
 macro compact_structs(new_type, struct_defs)
+    return esc(_compact_structs(new_type, struct_defs))
+end
 
+function _compact_structs(new_type, struct_defs)
     if new_type isa Expr && new_type.head == :(<:)
         new_type, abstract_type = new_type.args
     else
@@ -215,7 +218,7 @@ macro compact_structs(new_type, struct_defs)
             $(expr_show)
             nothing
            end
-    return esc(expr)
+    return expr
 end
 
 function decompose_struct_base(struct_repr)
