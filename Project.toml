@@ -1,16 +1,18 @@
 name = "MixedStructTypes"
 uuid = "3d69f371-6fa5-5add-b11c-3293622cad62"
-version = "0.2.5"
+version = "0.2.6"
 
 [deps]
 ExprTools = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 SumTypes = "8e1ec7a9-0e02-4297-b0fe-6433085c89f2"
 
 [compat]
 julia = "1"
 ExprTools = "0.1"
 MacroTools = "0.5"
+PrecompileTools = "1"
 SumTypes = "0.5.4"
 
 [extras]

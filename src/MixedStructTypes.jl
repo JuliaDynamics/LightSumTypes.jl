@@ -14,5 +14,6 @@ function constructor end
 
 include("SumStructs.jl")
 include("CompactStructs.jl")
+include("precompile.jl")
 
 end
