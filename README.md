@@ -114,7 +114,6 @@ julia> @kwdef mutable struct O{X}
 
 julia> @kwdef mutable struct P{X}
            a::Tuple{X, X} = (3,3)
-           const c::Symbol = :s
        end
 
 julia> vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
@@ -124,7 +123,7 @@ julia> vec_sum = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 julia> vec_compact = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_union)
-33995448
+31994928
 
 julia> Base.summarysize(vec_sum)
 34925776
@@ -144,4 +143,4 @@ julia> @btime sum(x.a[1] for x in $vec_compact);
   2.911 ms (0 allocations: 0 bytes)
 ```
 
-In this case, `@compact_structs` is almost 10 times faster than a `Union`, even if it requires double the memory. Whereas `@sum_structs` is less time efficient than `@compact_structs` as expected, but it uses nearly the same memory of a `Union`.
+In this case, `@compact_structs` is almost 10 times faster than a `Union`, even if it requires double the memory. Whereas, as expected, `@sum_structs` is less time efficient than `@compact_structs`, but it uses nearly the same memory of a `Union`.
