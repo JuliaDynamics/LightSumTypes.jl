@@ -79,6 +79,11 @@ end
     @test c1.d === c2.d === Int32(1)
     @test c1.e === c2.e === true
 
+    b = B((1,1), (1.0, 1.0), :s)
+    copy_b = copy(b)
+    @test copy_b.a == b.a
+    @test kindof(copy_b) == kindof(b)
+
     b.a = (3, 3)
     @test b.a == (3, 3)
 
@@ -130,13 +135,4 @@ end
     @test o1.y == 2.0 && o2.y == 3.0
     @test o2.z == [1]
     @test_throws "" o1.z
-end
-
-@static if VERSION >= v"1.10"
-    @testset "copy tests @sum_structs" begin
-        b = B((1,1), (1.0, 1.0), :s)
-        copy_b = copy(b)
-        @test copy_b.a == b.a
-        @test kindof(copy_b) == kindof(b)
-    end
 end
