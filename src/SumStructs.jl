@@ -120,7 +120,9 @@ function _sum_structs(type, struct_defs)
                            $(branching_propnames...)
                        end)
 
-    return_copy = [:(return $v(map(x -> getproperty(a, x), propertynames(a))...)) for v in variants_types_names]
+    getprops = [[:(getproperty(a, $(Expr(:quote, s)))) for s in f] 
+                for f in retrieve_fields_names.(fields_each, false)]
+    return_copy = [:(return $v($(g...))) for (v, g) in zip(variants_types_names, getprops)]
     branching_copy = generate_branching_variants(variants_types_names, return_copy)
     expr_copy = :(function Base.copy(a::$(namify(type)))::typeof(a)
                       $(extract_data)
