@@ -9,9 +9,9 @@ by avoiding Union-splitting, which have big performance drawbacks when many type
 Two macros implement different strategies to create a compact representation of the types: `@compact_structs` and
 `@sum_structs`.
 
-Both work very similarly but there are some differences:
+Both work very similarly, but there are some differences:
 
-- `@compact_structs` is significantly faster in almost all cases;
+- `@compact_structs` is faster;
 
 - `@sum_structs` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
 
