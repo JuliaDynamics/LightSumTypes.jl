@@ -3,7 +3,8 @@
     struct ST2 end
 end
 
-@sum_structs A{X<:Real,Y<:Real} begin
+abstract type AbstractA{X, Y} end
+@sum_structs A{X<:Real,Y<:Real} <: AbstractA{X, Y} begin
     @kwdef mutable struct B{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -90,6 +91,8 @@ end
     @test kindof(b) == :B
     @test MixedStructTypes.constructor(b) == B
     @test propertynames(b) == (:a, :b, :c)
+    @test allkinds(A) == (:B, :C, :D)
+    @test allkinds(typeof(b)) == (:B, :C, :D)
     
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
@@ -111,6 +114,8 @@ end
     @test_throws "" wolf_1.flight_speed
     @test kindof(hawk_1) == kindof(hawk_2) == :Hawk
     @test kindof(wolf_1) == kindof(wolf_2) == :Wolf 
+    @test allkinds(Animal) == (:Wolf, :Hawk)
+    @test allkinds(typeof(wolf_2)) == (:Wolf, :Hawk)
 
     b = SimpleA(1, 3)
     c = SimpleB(2, "a")
@@ -125,6 +130,8 @@ end
     @test kindof(c) == :SimpleB
     @test Simple <: AbstractSimple
     @test b isa Simple && c isa Simple 
+    @test allkinds(Simple) == (:SimpleA, :SimpleB)
+    @test allkinds(typeof(b)) == (:SimpleA, :SimpleB)
 
     o1 = TestOrder11("a", 2.0)
     o2 = TestOrder12(3.0, [1], "b") 
@@ -135,4 +142,5 @@ end
     @test o1.y == 2.0 && o2.y == 3.0
     @test o2.z == [1]
     @test_throws "" o1.z
+    @test allkinds(TestOrder1) == (:TestOrder11, :TestOrder12)
 end

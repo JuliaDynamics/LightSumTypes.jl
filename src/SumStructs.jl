@@ -61,10 +61,15 @@ function _sum_structs(type, struct_defs)
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
 
-    type_name = type isa Symbol ? type : type.args[1]
+    abstract_t = type isa Expr && type.head == :(<:) ? type.args[2] : :(Any)
+    type_no_abstract = type isa Expr && type.head == :(<:) ? type.args[1] : type
+    type_name = type_no_abstract isa Symbol ? type_no_abstract : type_no_abstract.args[1]
+    type_no_constr = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? s.args[1] : s, type_no_abstract)
+    type_params = type_no_abstract isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in type_no_abstract.args[2:end]]
     uninit_val = :(MixedStructTypes.SumTypes.Uninit)
-    sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type)
-    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t begin
+    sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
+
+    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin
                         $(variants_defs...)
                       end)
     expr_sum_type = macroexpand(MixedStructTypes, expr_sum_type)
@@ -105,7 +110,13 @@ function _sum_structs(type, struct_defs)
                         $(branching_kindof...)
                     end)
 
-    expr_allkinds = :(MixedStructTypes.allkinds(a::Type{$(namify(type))}) = $(Tuple(namify.(variants_types_names))))
+    expr_allkinds = []
+    expr_allkinds1 = :(MixedStructTypes.allkinds(a::Type{$(namify(type))}) = $(Tuple(namify.(variants_types_names))))
+    push!(expr_allkinds, expr_allkinds1)
+    if namify(type_no_constr) !== type_no_constr
+        expr_allkinds2 = :(MixedStructTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(variants_types_names))))
+        push!(expr_allkinds, expr_allkinds2)
+    end
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
 
@@ -153,7 +164,7 @@ function _sum_structs(type, struct_defs)
         f_params_args = retrieve_fields_names(fs, false)
         f_params_args_with_T = retrieve_fields_names(fs, true)
         c = @capture(t, t_n_{t_p__})
-        a_spec_n_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
+        a_spec_n_d = [d != "#32872248308323039203329" ? Expr(:kw, n, d) : (:($n)) 
                           for (n, d) in zip(f_params_args, fd)]
         f_params_kwargs = Expr(:parameters, a_spec_n_d...)
         new_typ = type isa Expr && type.head == :(<:) ? type.args[1] : type
@@ -164,7 +175,7 @@ function _sum_structs(type, struct_defs)
         new_type_p = [t isa Expr && t.head == :(<:) ? t.args[1] : t for t in new_type_p]
         f_params_args_with_T = [!any(p -> inexpr(x, p), new_type_p) ? (x isa Symbol ? x : x.args[1]) : x 
                                 for x in f_params_args_with_T]
-        struct_spec_n2_d = [d != "#328723329" ? Expr(:kw, n, d) : (:($n)) 
+        struct_spec_n2_d = [d != "#32872248308323039203329" ? Expr(:kw, n, d) : (:($n)) 
                       for (n, d) in zip(f_params_args_with_T, fd)]
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
@@ -213,7 +224,7 @@ function _sum_structs(type, struct_defs)
                $(expr_getprop)
                $(expr_setprop)
                $(expr_kindof)
-               $(expr_allkinds)
+               $(expr_allkinds...)
                $(expr_propnames)
                $(expr_copy)
                $(expr_constructor)

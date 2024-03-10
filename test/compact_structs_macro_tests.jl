@@ -3,7 +3,8 @@
     struct ST1 end
 end
 
-@compact_structs E{X<:Real,Y<:Real} begin
+abstract type AbstractE{X, Y} end
+@compact_structs E{X<:Real,Y<:Real} <: AbstractE{X, Y} begin
     @kwdef mutable struct F{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -110,6 +111,8 @@ end
     copy_f = copy(f)
     @test copy_f.a == f.a
     @test kindof(copy_f) == kindof(f)
+    @test allkinds(E) == (:F, :G, :H)
+    @test allkinds(typeof(f)) == (:F, :G, :H)
 
     hawk_1 = Hawk2(1.0, 2.0, 3)
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
@@ -131,7 +134,8 @@ end
     @test_throws "" wolf_1.flight_speed
     @test kindof(hawk_1) == kindof(hawk_2) == :Hawk2
     @test kindof(wolf_1) == kindof(wolf_2) == :Wolf2 
-
+    @test allkinds(Animal2) == (:Wolf2, :Hawk2)
+    @test allkinds(typeof(wolf_3)) == (:Wolf2, :Hawk2)
 
     b = SimpleA2(1, 3)
     c = SimpleB2(2, "a")
@@ -146,6 +150,8 @@ end
     @test kindof(c) == :SimpleB2
     @test Simple2 <: AbstractSimple2
     @test b isa Simple2 && c isa Simple2 
+    @test allkinds(Simple2) == (:SimpleA2, :SimpleB2)
+    @test allkinds(typeof(b)) == (:SimpleA2, :SimpleB2)
 
     o1 = TestOrder21("a", 2.0)
     o2 = TestOrder22(3.0, [1], "b")  
@@ -156,7 +162,7 @@ end
     @test o1.y == 2.0 && o2.y == 3.0
     @test o2.z == [1]
     @test_throws "" o1.z
-
+    @test allkinds(TestOrder2) == (:TestOrder21, :TestOrder22)
 
     b1 = BB(1, 2, 1, :s)
     c1 = CC(1, 1, :s, Int[])
