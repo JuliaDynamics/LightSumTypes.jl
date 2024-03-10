@@ -105,6 +105,8 @@ function _sum_structs(type, struct_defs)
                         $(branching_kindof...)
                     end)
 
+    expr_allkinds = :(MixedStructTypes.allkinds(a::Type{$(namify(type))}) = $(Tuple(namify.(variants_types_names))))
+
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
 
     expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(type)))
@@ -211,6 +213,7 @@ function _sum_structs(type, struct_defs)
                $(expr_getprop)
                $(expr_setprop)
                $(expr_kindof)
+               $(expr_allkinds)
                $(expr_propnames)
                $(expr_copy)
                $(expr_constructor)

@@ -151,6 +151,8 @@ function _compact_structs(new_type, struct_defs)
 
     expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
+    expr_allkinds = :(MixedStructTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each))))
+
     branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
 
     expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(new_type)))
@@ -210,6 +212,7 @@ function _compact_structs(new_type, struct_defs)
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
             $(expr_kindof)
+            $(expr_allkinds)
             $(expr_getprop)
             $(expr_setprop)
             $(expr_propnames)
