@@ -3,7 +3,7 @@ using PrecompileTools
 
 @setup_workload begin
     @compile_workload begin
-        type = :(E{X<:Real,Y<:Real})
+        type = :(E{X<:Real,Y<:Real} <: AbstractE{X,Y})
         struct_defs = :(begin
                             @kwdef mutable struct F{X<:Int}
                                 a::Tuple{X, X}

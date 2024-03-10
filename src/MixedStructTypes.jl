@@ -7,9 +7,10 @@ using SumTypes
 
 export @sum_structs
 export @compact_structs
-export kindof
+export kindof, allkinds
 
 function kindof end
+function allkinds end
 function constructor end
 
 include("SumStructs.jl")
