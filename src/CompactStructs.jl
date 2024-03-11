@@ -163,7 +163,7 @@ function _compact_structs(new_type, struct_defs)
 
     branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
 
-    expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(new_type)))
+    expr_constructor = :(function MixedStructTypes.kindconstructor(a::$(namify(new_type)))
                         kind = kindof(a)
 
                         $(branching_constructor...)
@@ -297,9 +297,10 @@ function generate_branching_types(variants_types, res)
         res = repeat([res], length(variants_types))
     end
     branchs = [Expr(:if, :(kind === $(Expr(:quote, variants_types[1]))), res[1])]
-    for i in 2:length(variants_types)-1
+    for i in 2:length(variants_types)
         push!(branchs, Expr(:elseif, :(kind === $(Expr(:quote, variants_types[i]))), res[i]))
     end
+    push!(branchs, :(error("unreacheable")))
     return branchs
 end
 

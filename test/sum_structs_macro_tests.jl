@@ -89,10 +89,11 @@ end
     @test b.a == (3, 3)
 
     @test kindof(b) == :B
-    @test MixedStructTypes.constructor(b) == B
     @test propertynames(b) == (:a, :b, :c)
     @test allkinds(A) == (:B, :C, :D)
     @test allkinds(typeof(b)) == (:B, :C, :D)
+    @test kindconstructor(b) == B
+    @test kindconstructor(d) == D
     
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)

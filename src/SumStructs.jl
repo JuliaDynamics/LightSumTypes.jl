@@ -119,8 +119,7 @@ function _sum_structs(type, struct_defs)
     end
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
-
-    expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(type)))
+    expr_constructor = :(function MixedStructTypes.kindconstructor(a::$(namify(type)))
                             $(extract_data)
                             $(branching_constructor...)
                          end)
