@@ -119,12 +119,12 @@ function _sum_structs(type, struct_defs)
     end
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
-
     expr_constructor = :(function MixedStructTypes.kindconstr(a::$(namify(type)))
                             $(extract_data)
                             $(branching_constructor...)
                          end)
-
+    println(expr_constructor)
+                                
     fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each, false)]
     branching_propnames = generate_branching_variants(variants_types_names, fields_each_symbol)
 
