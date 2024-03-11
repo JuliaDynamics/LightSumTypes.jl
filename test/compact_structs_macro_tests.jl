@@ -113,8 +113,8 @@ end
     @test kindof(copy_f) == kindof(f)
     @test allkinds(E) == (:F, :G, :H)
     @test allkinds(typeof(f)) == (:F, :G, :H)
-    @test kindconstr(f) == F
-    @test kindconstr(h) == H
+    @test kindconstructor(f) == F
+    @test kindconstructor(h) == H
 
     hawk_1 = Hawk2(1.0, 2.0, 3)
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
