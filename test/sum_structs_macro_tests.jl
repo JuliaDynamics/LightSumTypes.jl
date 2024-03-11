@@ -93,6 +93,7 @@ end
     @test allkinds(A) == (:B, :C, :D)
     @test allkinds(typeof(b)) == (:B, :C, :D)
     @test kindconstr(b) == B
+    @test kindconstr(d) == D
     
     hawk_1 = Hawk(1.0, 2.0, 3)
     hawk_2 = Hawk(; ground_speed = 2.3, flight_speed = 2)
