@@ -12,7 +12,7 @@ export allkinds
 export kindconstr
 
 """
-Return a symbol representing the conceptual type of an instance
+Return a symbol representing the conceptual type of an instance:
 
 ```
 julia> @compact_structs AB begin
@@ -29,8 +29,8 @@ julia> kindof(a)
 function kindof end
 
 """
-Return a `Tuple` containing all kinds associated with the overarching type defined 
-with `@compact_structs` or `@sum_structs`:
+Return a `Tuple` containing all kinds associated with the overarching 
+type defined with `@compact_structs` or `@sum_structs`:
 
 ```
 julia> @compact_structs AB begin
