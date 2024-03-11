@@ -163,7 +163,7 @@ function _compact_structs(new_type, struct_defs)
 
     branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
 
-    expr_constructor = :(function MixedStructTypes.constructor(a::$(namify(new_type)))
+    expr_constructor = :(function MixedStructTypes.kindconstr(a::$(namify(new_type)))
                         kind = kindof(a)
 
                         $(branching_constructor...)
