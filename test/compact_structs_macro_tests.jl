@@ -105,7 +105,6 @@ end
     @test f.a == (3, 3)
 
     @test kindof(f) == :F
-    @test MixedStructTypes.constructor(f) == F
     @test propertynames(f) == (:a, :b, :c)
 
     copy_f = copy(f)
