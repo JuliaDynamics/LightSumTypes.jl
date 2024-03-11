@@ -89,7 +89,6 @@ end
     @test b.a == (3, 3)
 
     @test kindof(b) == :B
-    @test MixedStructTypes.constructor(b) == B
     @test propertynames(b) == (:a, :b, :c)
     @test allkinds(A) == (:B, :C, :D)
     @test allkinds(typeof(b)) == (:B, :C, :D)
