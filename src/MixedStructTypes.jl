@@ -9,7 +9,7 @@ export @sum_structs
 export @compact_structs
 export kindof
 export allkinds
-export kindconstr
+export kindconstructor
 
 """
 Return a symbol representing the conceptual type of an instance:
@@ -55,11 +55,11 @@ julia> @compact_structs AB begin
 
 julia> a = A(1);
 
-julia> kindconstr(a)
+julia> kindconstructor(a)
 A
 ```
 """
-function kindconstr end
+function kindconstructor end
 
 include("SumStructs.jl")
 include("CompactStructs.jl")
