@@ -123,8 +123,7 @@ function _sum_structs(type, struct_defs)
                             $(extract_data)
                             $(branching_constructor...)
                          end)
-    println(expr_constructor)
-                                
+
     fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each, false)]
     branching_propnames = generate_branching_variants(variants_types_names, fields_each_symbol)
 
