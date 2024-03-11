@@ -7,11 +7,59 @@ using SumTypes
 
 export @sum_structs
 export @compact_structs
-export kindof, allkinds
+export kindof
+export allkinds
+export kindconstr
 
+"""
+Return a symbol representing the conceptual type of an instance
+
+```
+julia> @compact_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia> a = A(1);
+
+julia> kindof(a)
+:A
+```
+"""
 function kindof end
+
+"""
+Return a `Tuple` containing all kinds associated with the overarching type defined 
+with `@compact_structs` or `@sum_structs`:
+
+```
+julia> @compact_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia> allkinds(AB)
+(:A, :B)
+```
+"""
 function allkinds end
-function constructor end
+
+"""
+Return the constructor of an instance:
+
+```
+julia> @compact_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia> a = A(1);
+
+julia> kindconstr(a)
+A
+```
+"""
+function kindconstr end
 
 include("SumStructs.jl")
 include("CompactStructs.jl")
