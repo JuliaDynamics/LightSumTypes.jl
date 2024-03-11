@@ -90,6 +90,7 @@ end
     f = F((1,1), (1.0, 1.0), :s)
     g1 = G((1,1), 1, 1, :c)
     g2 = G(; a = (1,1), d = 1, e = 1, c = :c)
+    h = H((1,1), 1, (im, im), :j)
 
     @test_throws "" F((1.0,1.0), (1.0, 1.0), :s)
     @test_throws "" G((1,1), im, (im, im), :d)
@@ -113,6 +114,7 @@ end
     @test allkinds(E) == (:F, :G, :H)
     @test allkinds(typeof(f)) == (:F, :G, :H)
     @test kindconstr(f) == F
+    @test kindconstr(h) == H
 
     hawk_1 = Hawk2(1.0, 2.0, 3)
     hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
