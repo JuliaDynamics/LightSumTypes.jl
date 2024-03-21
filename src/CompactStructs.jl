@@ -54,7 +54,7 @@ function _compact_structs(new_type, struct_defs)
     noncommon_fields = setdiff(all_fields, common_fields)
     all_fields_transf = [transform_field(x, noncommon_fields) for x in all_fields]
 
-    gensym_type = gensym(:(type))
+    gensym_type = gensym(:(_kind))
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
