@@ -12,7 +12,7 @@ identical to having just one type.
 
 ## Example
 
-```
+```julia
 julia> @compact_structs AB begin
            struct A x::Int end
            struct B y::Int end
