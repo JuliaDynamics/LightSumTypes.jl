@@ -1,6 +1,10 @@
 
 """
     @sum_structs(type_definition, structs_definitions)
+
+Combine multiple types in a single one offered by the package. 
+This version is optimized to yield a better memory usage than the
+@compact_structs macro.
 """
 macro sum_structs(type, struct_defs)
     return esc(_sum_structs(type, struct_defs))
