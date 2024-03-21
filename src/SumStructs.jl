@@ -3,9 +3,21 @@
     @sum_structs(type_definition, structs_definitions)
 
 This macro allows to combine multiple types in a single one. 
-This version is slower than `@compact_structs` but it consumes
-less memory. See the `ReadMe` at https://github.com/JuliaDynamics/MixedStructTypes.jl
-of the package for an example of usage.
+While its usage is equivalent to `@compact_structs`, this version consumes
+less memory at the cost of being slower.
+
+## Example
+
+```
+julia> @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+```
+
+See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
+of the documentation for a more advanced example.
+
 """
 macro sum_structs(type, struct_defs)
     return esc(_sum_structs(type, struct_defs))
