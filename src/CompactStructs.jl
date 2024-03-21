@@ -10,7 +10,7 @@ This macro allows to combine multiple types in a single one.
 This version has been built to yield a performance almost 
 identical to having just one type. See the `ReadMe` at 
 https://github.com/JuliaDynamics/MixedStructTypes.jl
-of the package for an example's usage.
+of the package for an example of usage.
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
