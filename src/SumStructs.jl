@@ -8,7 +8,7 @@ less memory at the cost of being slower.
 
 ## Example
 
-```
+```julia
 julia> @sum_structs AB begin
            struct A x::Int end
            struct B y::Int end
