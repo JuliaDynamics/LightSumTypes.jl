@@ -5,6 +5,11 @@ const uninit = Uninitialized()
 
 """
     @compact_structs(type_definition, structs_definitions)
+
+Combine multiple types in a single one offered by the package. 
+This version is optimized to yield a better performance than
+`@sum_structs`.
+
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
@@ -38,7 +43,7 @@ function _compact_structs(new_type, struct_defs)
         push!(is_mutable, x.args[1])
     end
     if !allequal(is_mutable)
-        return error("the compact_struct_type macro does not accept mixing mutable and immutable structs.")
+        return error("`@compact_structs` does not accept mixing mutable and immutable structs.")
     end
     is_mutable = all(x -> x == true, is_mutable)
     types_each, fields_each, default_each = [], [], []

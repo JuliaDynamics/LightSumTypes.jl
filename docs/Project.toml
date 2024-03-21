@@ -1,0 +1,7 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MixedStructTypes = "3d69f371-6fa5-5add-b11c-3293622cad62"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+
+[compat]
+Documenter = "1"
