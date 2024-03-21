@@ -17,11 +17,17 @@ julia> @compact_structs AB begin
            struct A x::Int end
            struct B y::Int end
        end
+
+julia> a = A(1)
+A(1)::AB
+
+julia> a.x
+1
+
 ```
 
 See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
 of the documentation for a more advanced example.
-
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
