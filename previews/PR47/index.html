@@ -1,27 +1,113 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>API · MixedStructTypes.jl</title><meta name="title" content="API · MixedStructTypes.jl"/><meta property="og:title" content="API · MixedStructTypes.jl"/><meta property="twitter:title" content="API · MixedStructTypes.jl"/><meta name="description" content="Documentation for MixedStructTypes.jl."/><meta property="og:description" content="Documentation for MixedStructTypes.jl."/><meta property="twitter:description" content="Documentation for MixedStructTypes.jl."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>MixedStructTypes.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>API</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>API</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/MixedStructTypes.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/main/docs/src/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="API"><a class="docs-heading-anchor" href="#API">API</a><a id="API-1"></a><a class="docs-heading-anchor-permalink" href="#API" title="Permalink"></a></h1><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MixedStructTypes.@compact_structs" href="#MixedStructTypes.@compact_structs"><code>MixedStructTypes.@compact_structs</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@compact_structs(type_definition, structs_definitions)</code></pre><p>This macro allows to combine multiple types in a single one.  This version has been built to yield a performance almost  identical to having just one type.</p><p><strong>Example</strong></p><pre><code class="nohighlight hljs">julia&gt; @compact_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end</code></pre><p>See the <code>ReadMe</code> at  https://github.com/JuliaDynamics/MixedStructTypes.jl of the package for an example of usage.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/f4145f674d98b9ebc1c3259b9946046089ba437c/src/CompactStructs.jl#L6-L26">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MixedStructTypes.@sum_structs" href="#MixedStructTypes.@sum_structs"><code>MixedStructTypes.@sum_structs</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@sum_structs(type_definition, structs_definitions)</code></pre><p>This macro allows to combine multiple types in a single one.  This version is slower than <code>@compact_structs</code> but it consumes less memory. See the <code>ReadMe</code> at https://github.com/JuliaDynamics/MixedStructTypes.jl of the package for an example of usage.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/f4145f674d98b9ebc1c3259b9946046089ba437c/src/SumStructs.jl#L2-L9">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MixedStructTypes.kindof" href="#MixedStructTypes.kindof"><code>MixedStructTypes.kindof</code></a> — <span class="docstring-category">Function</span></header><section><div><p>Return a symbol representing the conceptual type of an instance:</p><pre><code class="nohighlight hljs">julia&gt; @compact_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Introduction · MixedStructTypes.jl</title><meta name="title" content="Introduction · MixedStructTypes.jl"/><meta property="og:title" content="Introduction · MixedStructTypes.jl"/><meta property="twitter:title" content="Introduction · MixedStructTypes.jl"/><meta name="description" content="Documentation for MixedStructTypes.jl."/><meta property="og:description" content="Documentation for MixedStructTypes.jl."/><meta property="twitter:description" content="Documentation for MixedStructTypes.jl."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>MixedStructTypes.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Introduction</a><ul class="internal"><li><a class="tocitem" href="#Example"><span>Example</span></a></li><li><a class="tocitem" href="#Benchmark"><span>Benchmark</span></a></li></ul></li><li><a class="tocitem" href="api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/MixedStructTypes.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/main/docs/src/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><p>This package allows to combine multiple heterogeneous types in a single one. This helps to write type-stable code by avoiding Union-splitting, which have big performance drawbacks when many types are unionized.</p><p>Two macros implement different strategies to create a compact representation of the types: <code>@compact_structs</code> and <code>@sum_structs</code>.</p><p>Both work very similarly, but there are some differences:</p><ul><li><p><code>@compact_structs</code> is faster;</p></li><li><p><code>@sum_structs</code> is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses <a href="https://github.com/MasonProtter/SumTypes.jl">SumTypes.jl</a> under the hood. </p></li></ul><p>Even if there is only a unique type defined by these macros, you can access a symbol containing the conceptual type of an instance with the function <code>kindof</code>.</p><h2 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h2><pre><code class="language-julia hljs">julia&gt; using MixedStructTypes
+
+julia&gt; abstract type AbstractA{X} end
+
+julia&gt; @sum_structs A{X} &lt;: AbstractA{X} begin
+           @kwdef mutable struct B{X}
+               a::Tuple{X, X} = (1,1)
+               b::Tuple{Float64, Float64} = (1.0, 1.0)
+           end
+           @kwdef mutable struct C
+               a::Tuple{Int, Int} = (2,2)
+               d::Int32 = Int32(2)
+           end
+           @kwdef mutable struct D
+               a::Tuple{Int, Int} = (3,3)
+               const c::Symbol = :s
+           end
+           @kwdef struct E{X}
+               a::Tuple{X, X} = (3,3)
+           end
        end
 
-julia&gt; a = A(1);
+julia&gt; b = B((1,1), (1.0, 1.0))
+B{Int64}((1, 1), (1.0, 1.0))::A
 
-julia&gt; kindof(a)
-:A</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/f4145f674d98b9ebc1c3259b9946046089ba437c/src/MixedStructTypes.jl#L14-L28">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MixedStructTypes.allkinds" href="#MixedStructTypes.allkinds"><code>MixedStructTypes.allkinds</code></a> — <span class="docstring-category">Function</span></header><section><div><p>Return a <code>Tuple</code> containing all kinds associated with the overarching  type defined with <code>@compact_structs</code> or <code>@sum_structs</code>:</p><pre><code class="nohighlight hljs">julia&gt; @compact_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
+julia&gt; b.a
+(1, 1)
+
+julia&gt; b.a = (3, 3)
+(3, 3)
+
+julia&gt; kindof(b)
+:B
+
+julia&gt; abstract type AbstractF{X} end 
+
+julia&gt; # as you can see, here, all structs are mutable
+       # and all shared fields in different structs have
+       # the same type
+
+julia&gt; @compact_structs F{X} &lt;: AbstractF{X} begin
+           @kwdef mutable struct G{X}
+               a::Tuple{X, X} = (1,1)
+               b::Tuple{Float64, Float64} = (1.0, 1.0)
+           end
+           @kwdef mutable struct H{X}
+               a::Tuple{X, X} = (2,2)
+               d::Int32 = Int32(2)
+           end
+           @kwdef mutable struct I{X}
+               a::Tuple{X, X} = (3,3)
+               const c::Symbol = :s
+           end
+           @kwdef mutable struct L{X}
+               a::Tuple{X, X} = (3,3)
+           end
        end
 
-julia&gt; allkinds(AB)
-(:A, :B)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/f4145f674d98b9ebc1c3259b9946046089ba437c/src/MixedStructTypes.jl#L31-L44">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="MixedStructTypes.kindconstructor" href="#MixedStructTypes.kindconstructor"><code>MixedStructTypes.kindconstructor</code></a> — <span class="docstring-category">Function</span></header><section><div><p>Return the constructor of an instance:</p><pre><code class="nohighlight hljs">julia&gt; @compact_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
+julia&gt; g = G((1,1), (1.0, 1.0))
+G{Int64}((1, 1), (1.0, 1.0))::F
+
+julia&gt; g.a
+(1, 1)
+
+julia&gt; g.a = (3, 3)
+(3, 3)
+
+julia&gt; kindof(g)
+:G</code></pre><h2 id="Benchmark"><a class="docs-heading-anchor" href="#Benchmark">Benchmark</a><a id="Benchmark-1"></a><a class="docs-heading-anchor-permalink" href="#Benchmark" title="Permalink"></a></h2><p>Let&#39;s see briefly how the two macros compare performance-wise in respect to a <code>Union</code>:</p><pre><code class="language-julia hljs">julia&gt; @kwdef mutable struct M{X}
+           a::Tuple{X, X} = (1,1)
+           b::Tuple{Float64, Float64} = (1.0, 1.0)
        end
 
-julia&gt; a = A(1);
+julia&gt; @kwdef mutable struct N{X}
+           a::Tuple{X, X} = (2,2)
+           d::Int32 = Int32(2)
+       end
 
-julia&gt; kindconstructor(a)
-A</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/MixedStructTypes.jl/blob/f4145f674d98b9ebc1c3259b9946046089ba437c/src/MixedStructTypes.jl#L47-L61">source</a></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Thursday 21 March 2024 21:43">Thursday 21 March 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+julia&gt; @kwdef mutable struct O{X}
+           a::Tuple{X, X} = (3,3)
+           const c::Symbol = :s
+       end
+
+julia&gt; @kwdef mutable struct P{X}
+           a::Tuple{X, X} = (3,3)
+       end
+
+julia&gt; vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
+
+julia&gt; vec_sum = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+
+julia&gt; vec_compact = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
+
+julia&gt; Base.summarysize(vec_union)
+31994928
+
+julia&gt; Base.summarysize(vec_sum)
+34925776
+
+julia&gt; Base.summarysize(vec_compact)
+75643452
+
+julia&gt; using BenchmarkTools
+
+julia&gt; @btime sum(x.a[1] for x in $vec_union);
+  26.268 ms (999780 allocations: 15.26 MiB)
+
+julia&gt; @btime sum(x.a[1] for x in $vec_sum);
+  6.301 ms (0 allocations: 0 bytes)
+
+julia&gt; @btime sum(x.a[1] for x in $vec_compact);
+  2.911 ms (0 allocations: 0 bytes)</code></pre><p>In this case, <code>@compact_structs</code> is almost 10 times faster than a <code>Union</code>, even if it requires double the memory.  Whereas, as expected, <code>@sum_structs</code> is less time efficient than <code>@compact_structs</code>, but it uses nearly the same  memory of a <code>Union</code>.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.3.0 on <span class="colophon-date" title="Thursday 21 March 2024 21:50">Thursday 21 March 2024</span>. Using Julia version 1.10.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
