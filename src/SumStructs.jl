@@ -4,7 +4,8 @@
 
 This macro allows to combine multiple types in a single one. 
 This version is slower than `@compact_structs` but it consumes
-less memory.
+less memory. See the `ReadMe` at https://github.com/JuliaDynamics/MixedStructTypes.jl
+of the package for an example's usage.
 """
 macro sum_structs(type, struct_defs)
     return esc(_sum_structs(type, struct_defs))
