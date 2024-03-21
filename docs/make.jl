@@ -5,8 +5,9 @@ println("Documentation Build")
 makedocs(
     modules = [MixedStructTypes],
     sitename = "MixedStructTypes.jl",
-    pages = [
-        "API" => "index.md",
+    pages = [    
+        "Introduction" => "index.md",
+        "API" => "api.md",
     ],
 )
 

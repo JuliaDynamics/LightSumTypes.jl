@@ -8,9 +8,25 @@ const uninit = Uninitialized()
 
 This macro allows to combine multiple types in a single one. 
 This version has been built to yield a performance almost 
-identical to having just one type. See the `ReadMe` at 
-https://github.com/JuliaDynamics/MixedStructTypes.jl
-of the package for an example of usage.
+identical to having just one type.
+
+## Example
+
+```julia
+julia> @compact_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia> a = A(1)
+A(1)::AB
+
+julia> a.x
+1
+```
+
+See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
+of the documentation for a more advanced example.
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
