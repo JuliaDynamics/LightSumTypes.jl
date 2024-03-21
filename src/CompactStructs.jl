@@ -6,9 +6,9 @@ const uninit = Uninitialized()
 """
     @compact_structs(type_definition, structs_definitions)
 
-Combine multiple types in a single one. This version is has been
-built to yield a performance almost identical to having just 
-one type.
+This macro allows to combine multiple types in a single one. 
+This version has been built to yield a performance almost 
+identical to having just one type.
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
