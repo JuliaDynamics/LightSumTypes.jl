@@ -5,6 +5,10 @@ const uninit = Uninitialized()
 
 """
     @compact_structs(type_definition, structs_definitions)
+
+Combine multiple types in a single one offered by the package. 
+This version is optimized to yield a better performance than the
+@sum_structs macro
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
