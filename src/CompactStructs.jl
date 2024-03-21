@@ -19,9 +19,8 @@ julia> @compact_structs AB begin
        end
 ```
 
-See the `ReadMe` at 
-https://github.com/JuliaDynamics/MixedStructTypes.jl
-of the package for an example of usage.
+See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
+of the documentation for a more advanced example.
 
 """
 macro compact_structs(new_type, struct_defs)
