@@ -23,7 +23,6 @@ A(1)::AB
 
 julia> a.x
 1
-
 ```
 
 See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
