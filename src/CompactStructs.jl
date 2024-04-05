@@ -207,7 +207,7 @@ function _compact_structs(new_type, struct_defs)
     expr_getprop = :(function Base.getproperty(a::$(namify(new_type)), s::Symbol)
                         f = getfield(a, s)
                         if f isa MixedStructTypes.Uninitialized
-                            return error("type $(kindof(a)) has no field $s")
+                            return error(lazy"type $(kindof(a)) has no field $s")
                         end
                         return f
                      end)
@@ -216,7 +216,7 @@ function _compact_structs(new_type, struct_defs)
         expr_setprop = :(function Base.setproperty!(a::$(namify(new_type)), s::Symbol, v)
                             f = getfield(a, s)
                             if f isa MixedStructTypes.Uninitialized
-                                return error("type $(kindof(a)) has no field $s")
+                                return error(lazy"type $(kindof(a)) has no field $s")
                             end
                             setfield!(a, s, v)
                          end)
