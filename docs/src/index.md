@@ -55,8 +55,7 @@ julia> abstract type AbstractF{X} end
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
        # the same type
-
-julia> @compact_structs F{X} <: AbstractF{X} begin
+       @compact_structs F{X} <: AbstractF{X} begin
            @kwdef mutable struct G{X}
                a::Tuple{X, X} = (1,1)
                b::Tuple{Float64, Float64} = (1.0, 1.0)
