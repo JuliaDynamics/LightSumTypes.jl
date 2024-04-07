@@ -12,9 +12,11 @@ export allkinds
 export kindconstructor
 
 """
+    kindof(instance)
+
 Return a symbol representing the conceptual type of an instance:
 
-```
+```julia
 julia> @compact_structs AB begin
            struct A x::Int end
            struct B y::Int end
@@ -29,10 +31,12 @@ julia> kindof(a)
 function kindof end
 
 """
+    allkinds(type)
+
 Return a `Tuple` containing all kinds associated with the overarching 
 type defined with `@compact_structs` or `@sum_structs`:
 
-```
+```julia
 julia> @compact_structs AB begin
            struct A x::Int end
            struct B y::Int end
@@ -45,9 +49,11 @@ julia> allkinds(AB)
 function allkinds end
 
 """
+    kindconstructor(instance)
+
 Return the constructor of an instance:
 
-```
+```julia
 julia> @compact_structs AB begin
            struct A x::Int end
            struct B y::Int end
