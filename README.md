@@ -47,13 +47,13 @@ julia> @sum_structs A{X} <: AbstractA{X} begin
            end
        end
 
-julia> b = B((1,1), (1.0, 1.0))
+julia> b = B(1, 1.5)
 B{Int64}((1, 1), (1.0, 1.0))::A
 
 julia> b.a
 (1, 1)
 
-julia> b.a = (3, 3)
+julia> b.a = 3
 (3, 3)
 
 julia> kindof(b)
@@ -82,13 +82,13 @@ julia> # as you can see, here, all structs are mutable
            end
        end
 
-julia> g = G((1,1), (1.0, 1.0))
+julia> g = G(1, 1.5)
 G{Int64}((1, 1), (1.0, 1.0))::F
 
 julia> g.a
 (1, 1)
 
-julia> g.a = (3, 3)
+julia> g.a = 3
 (3, 3)
 
 julia> kindof(g)
