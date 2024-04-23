@@ -6,8 +6,7 @@ makedocs(
     modules = [MixedStructTypes],
     sitename = "MixedStructTypes.jl",
     pages = [    
-        "Introduction" => "index.md",
-        "API" => "api.md",
+        "API" => "index.md",
     ],
 )
 
