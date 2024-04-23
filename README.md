@@ -48,18 +48,18 @@ julia> @sum_structs A{X} <: AbstractA{X} begin
        end
 
 julia> b = B(1, 1.5)
-B{Int64}((1, 1), (1.0, 1.0))::A
+B{Int64}(1, 1.5)::A
 
 julia> b.a
-(1, 1)
+1
 
 julia> b.a = 3
-(3, 3)
+3
 
 julia> kindof(b)
 :B
 
-julia> abstract type AbstractF{X} end 
+julia> abstract type AbstractF{X} end
 
 julia> # as you can see, here, all structs are mutable
        # and all shared fields in different structs have
@@ -83,13 +83,13 @@ julia> # as you can see, here, all structs are mutable
        end
 
 julia> g = G(1, 1.5)
-G{Int64}((1, 1), (1.0, 1.0))::F
+G{Int64}(1, 1.5)::F
 
 julia> g.a
-(1, 1)
+1
 
 julia> g.a = 3
-(3, 3)
+3
 
 julia> kindof(g)
 :G
@@ -128,26 +128,26 @@ julia> vec_sum = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 julia> vec_compact = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_union)
-31994928
+21997856
 
 julia> Base.summarysize(vec_sum)
-34925776
+28868832
 
 julia> Base.summarysize(vec_compact)
-75643452
+49924817
 
 julia> using BenchmarkTools
 
 julia> @btime sum(x.a for x in $vec_union);
-  26.268 ms (999780 allocations: 15.26 MiB)
+  26.762 ms (999788 allocations: 15.26 MiB)
 
 julia> @btime sum(x.a for x in $vec_sum);
-  6.301 ms (0 allocations: 0 bytes)
+  6.595 ms (0 allocations: 0 bytes)
 
 julia> @btime sum(x.a for x in $vec_compact);
-  2.911 ms (0 allocations: 0 bytes)
+  1.936 ms (0 allocations: 0 bytes)
 ```
 
-In this case, `@compact_structs` is almost 10 times faster than a `Union`, even if it requires double the memory. 
-Whereas, as expected, `@sum_structs` is less time efficient than `@compact_structs`, but it uses nearly the same 
-memory of a `Union`.
+In this case, `@compact_structs` types are almost 15 times faster than `Union` ones, even if they require more than
+double the memory. Whereas, as expected, `@sum_structs` types are less time efficient than `@compact_structs` ones, 
+but the memory usage increase in respect to `Union` types is smaller.
