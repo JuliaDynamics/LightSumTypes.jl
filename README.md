@@ -151,3 +151,8 @@ julia> @btime sum(x.a for x in $vec_compact);
 In this case, `@compact_structs` types are almost 15 times faster than `Union` ones, even if they require more than
 double the memory. Whereas, as expected, `@sum_structs` types are less time efficient than `@compact_structs` ones, 
 but the memory usage increase in respect to `Union` types is smaller.
+
+## Contributing
+
+Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
+features, feel free to open an issue or submit a pull request.
