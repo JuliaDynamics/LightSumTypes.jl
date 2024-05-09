@@ -24,6 +24,9 @@ A(1)::AB
 julia> a.x
 1
 ```
+
+See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
+of the documentation for a more advanced example.
 """
 macro compact_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
@@ -78,16 +81,30 @@ function _compact_structs(new_type, struct_defs)
 
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
     type_name = new_type isa Symbol ? new_type : new_type.args[1]
+
     type_no_constr = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? s.args[1] : s, new_type)
     type_params = new_type isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in new_type.args[2:end]]
     uninit_val = :(MixedStructTypes.Uninitialized)
     compact_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, new_type)
-    expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
+    
+    abstract_type_inner = Symbol("##$(namify(compact_t))#563487")
+    if abstract_type isa Expr
+        abstract_type_inner = :($abstract_type_inner{$(abstract_type.args[2:end]...)})
+    end
+    expr_subt = :(abstract type $abstract_type_inner <: $abstract_type end)
+    expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type_inner),
                          :(begin 
                             $(all_fields_transf...)
                             $field_type
                           end))
 
+
+    expr_new_type = quote
+            $expr_subt
+            $expr_new_type
+        end
+
+    expr_params_each = []
     expr_functions = []
     for (struct_t, struct_f, struct_d, is_kw) in zip(types_each, fields_each, default_each, is_kws)
         struct_spec_n = retrieve_fields_names(struct_f)
@@ -129,6 +146,8 @@ function _compact_structs(new_type, struct_defs)
         expr_function_args = :()
         expr_function_args2 = :()
 
+        push!(expr_params_each, :($new_type_n{$(new_type_p...)}))
+
         if isempty(new_type_p)
             expr_function_args = :(
                 function $(namify(struct_t))($(f_params_args...))
@@ -169,6 +188,9 @@ function _compact_structs(new_type, struct_defs)
         push!(expr_functions, expr_function_kwargs2)
         push!(expr_functions, expr_function_args2)
     end
+
+    add_types_to_cache(type_name, types_each)
+    add_types_params_to_cache(expr_params_each, types_each)
 
     expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
@@ -344,5 +366,20 @@ function transform_field(x, noncommon_fields)
         else
             return x
         end
+    end
+end
+
+function add_types_to_cache(type, variants)
+    type = namify(type)
+    variants = namify.(variants)
+    for v in variants
+        __variants_types_cache__[v] = type
+    end
+end
+
+function add_types_params_to_cache(params, variants)
+    variants_n = namify.(variants)
+    for (v1, v2, p) in zip(variants, variants_n, params)
+        __variants_types_with_params_cache__[v2] = [v1, p]
     end
 end
