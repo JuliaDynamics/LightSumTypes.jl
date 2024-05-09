@@ -75,6 +75,6 @@ function kindconstructor end
 include("SumStructs.jl")
 include("CompactStructs.jl")
 include("Dispatch.jl")
-#include("precompile.jl")
+include("precompile.jl")
 
 end
