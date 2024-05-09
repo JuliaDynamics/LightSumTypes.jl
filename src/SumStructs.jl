@@ -20,6 +20,9 @@ A(1)::AB
 julia> a.x
 1
 ```
+
+See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
+of the documentation for a more advanced example.
 """
 macro sum_structs(type, struct_defs)
     return esc(_sum_structs(type, struct_defs))
@@ -87,8 +90,17 @@ function _sum_structs(type, struct_defs)
     type_params = type_no_abstract isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in type_no_abstract.args[2:end]]
     uninit_val = :(MixedStructTypes.SumTypes.Uninit)
     sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
-
-    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin
+    
+    println(sum_t)
+    add_types_to_cache(type_name, variants_types)
+    add_types_params_to_cache(sum_t isa Expr ? sum_t.args[2:end] : [], variants_types)
+    
+    abstract_type_inner = Symbol("##$(namify(sum_t))#563487")
+    if abstract_t isa Expr
+        abstract_type_inner = :($abstract_type_inner{$(abstract_t.args[2:end]...)})
+    end
+    expr_subt = :(abstract type $abstract_type_inner <: $abstract_t end)
+    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_type_inner begin
                         $(variants_defs...)
                       end)
     expr_sum_type = macroexpand(MixedStructTypes, expr_sum_type)
@@ -198,6 +210,9 @@ function _sum_structs(type, struct_defs)
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
 
+
+        println(h_t)
+
         if t_p !== nothing
             c1 = :(function $t($(f_params_args...)) where {$(t_p_u...)}
                        return $t($h_t($(f_params_args...)))
@@ -235,6 +250,11 @@ function _sum_structs(type, struct_defs)
     expr_sum_type = MacroTools.postwalk(e -> e isa Expr ? 
                                         remove_redefinitions(e, namify(type), variants_types_names, fields_each) : e, 
                                         expr_sum_type)
+
+    expr_sum_type = quote
+            $expr_subt
+            $expr_sum_type
+        end
 
     expr = quote 
                $(struct_defs...)
