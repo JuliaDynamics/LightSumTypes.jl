@@ -21,8 +21,6 @@ julia> a.x
 1
 ```
 
-See the [introduction page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
-of the documentation for a more advanced example.
 """
 macro sum_structs(type, struct_defs)
     return esc(_sum_structs(type, struct_defs))
@@ -91,7 +89,6 @@ function _sum_structs(type, struct_defs)
     uninit_val = :(MixedStructTypes.SumTypes.Uninit)
     sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
     
-    println(sum_t)
     add_types_to_cache(type_name, variants_types)
     add_types_params_to_cache(sum_t isa Expr ? sum_t.args[2:end] : [], variants_types)
     
@@ -209,9 +206,6 @@ function _sum_structs(type, struct_defs)
                       for (n, d) in zip(f_params_args_with_T, fd)]
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
-
-
-        println(h_t)
 
         if t_p !== nothing
             c1 = :(function $t($(f_params_args...)) where {$(t_p_u...)}
