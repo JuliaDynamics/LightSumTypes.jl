@@ -7,9 +7,14 @@ using SumTypes
 
 export @sum_structs
 export @compact_structs
+export @dispatch
 export kindof
 export allkinds
 export kindconstructor
+
+const __variants_types_cache__ = Dict{Symbol, Symbol}()
+const __variants_types_with_params_cache__ = Dict{Symbol, Vector{Any}}()
+const __dispatch_cache__ = Dict{Tuple{Symbol, Vector{Tuple{Int, Symbol}}}, Expr}()
 
 """
     kindof(instance)
@@ -69,6 +74,7 @@ function kindconstructor end
 
 include("SumStructs.jl")
 include("CompactStructs.jl")
-include("precompile.jl")
+include("Dispatch.jl")
+#include("precompile.jl")
 
 end
