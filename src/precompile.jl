@@ -90,5 +90,7 @@ using PrecompileTools
                         end)
         _compact_structs(type, struct_defs)
         _sum_structs(type, struct_defs)
+        empty!(__variants_types_cache__)
+        empty!(__variants_types_with_params_cache__)
     end
 end
