@@ -2,11 +2,11 @@
 @compact_structs X{T1, T2, T3} begin
     struct A1 end
     struct B1{T3, T1}
-    	a::T1 
-    	c::T3
+        a::T1 
+        c::T3
     end
     struct C1{T2} 
-    	b::T2
+        b::T2
     end
 end
 
@@ -42,4 +42,3 @@ end
 @dispatch f(a::F1, b::Complex, c::E1{Int, Int}; s = 1) = 7
 @dispatch f(a::D1, b::Int, c::E1{Q, Int} where Q; s = 1) = 8
 @dispatch f(a::D1, b::Int, c::E1{Q, Q} where Q; s = 1) = 9
-

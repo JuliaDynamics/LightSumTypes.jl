@@ -89,8 +89,23 @@ function _sum_structs(type, struct_defs)
     uninit_val = :(MixedStructTypes.SumTypes.Uninit)
     sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
     
+    each_sum_version = []
+    uninit_val
+    for v in variants_types
+        if sum_t isa Symbol
+            push!(each_sum_version, sum_t)
+        else
+            params_v = v isa Symbol ? [] : v.args[2:end]
+            params_t = sum_t.args[2:end]
+            sum_t_new = sum_t
+            for p in filter(p -> !(p in params_v), params_t)
+                sum_t_new = MacroTools.postwalk(s -> s isa Symbol && s == p ? uninit_val : s, sum_t_new)
+            end
+            push!(each_sum_version, sum_t_new)
+        end
+    end
     add_types_to_cache(type_name, variants_types)
-    add_types_params_to_cache(sum_t isa Expr ? sum_t.args[2:end] : [], variants_types)
+    add_types_params_to_cache(each_sum_version, variants_types)
     
     abstract_type_inner = Symbol("##$(namify(sum_t))#563487")
     if abstract_t isa Expr
