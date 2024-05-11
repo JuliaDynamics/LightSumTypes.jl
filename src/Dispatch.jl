@@ -193,7 +193,7 @@ macro dispatch(f_def)
 
     f_super_dict[:body] = quote
             $f_body_start
-            error("unreacheable reached!")
+            error("unreacheable reached! Maybe $(f_comps[:name]) is not defined for all kinds?")
         end
     whereparams != [] && (f_super_dict[:whereparams] = whereparams)
     f_super_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
