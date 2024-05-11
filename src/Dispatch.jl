@@ -49,6 +49,11 @@ macro dispatch(f_def)
     end
 
     idxs_mctc = findall(a -> a in values(vtc), f_args_n)
+
+    if !isempty(idxs_mctc)
+        error("Dispatching on the overall type $(first(f_args_n)) is not supported")
+    end
+
     idxs_mvtc = findall(a -> a in keys(vtc), f_args_n)
 
     new_arg_types = [vtc[f_args_n[i]] for i in idxs_mvtc]
@@ -105,9 +110,6 @@ macro dispatch(f_def)
         f_args[i] = MacroTools.postwalk(s -> is_arg_no_name(s) ? (pushfirst!(s.args, a); s) : s, f_args[i])
         push!(f_args_name, f_args[i].args[1])
     end
-    for i in idxs_mctc
-        f_args[i] = MacroTools.postwalk(s -> s isa Symbol && s == f_args_n[i] ? Symbol("##$(s)#563487") : s, f_args[i])
-    end
 
     g_args = deepcopy(f_args)
     for i in length(f_args)
@@ -116,7 +118,7 @@ macro dispatch(f_def)
             f_args[i].args[1], f_args[i].args[2] = f_args[i].args[2], f_args[i].args[1]
         end
     end
-    for i in length(f_args)
+    for i in 1:length(f_args)
         a = Symbol("##argv#563487$i")
         g_args[i].args[1] = a
     end
@@ -128,8 +130,6 @@ macro dispatch(f_def)
     idx_and_variant = collect(zip(idxs_mvtc, map(i -> vtc[f_args_n[i]], idxs_mvtc)))
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))
 
-    #all_types_args0 = sort([idx_and_variant0..., idx_and_type...])
-    #all_types_args = sort([idx_and_variant..., idx_and_type...])
     all_types_args0 = sort(idx_and_variant0)
     all_types_args = sort(idx_and_variant)
 
@@ -142,7 +142,7 @@ macro dispatch(f_def)
     end
 
     f_sub_dict = Dict{Symbol, Any}()
-    f_sub_name = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args0))..., length(f_args))
+    f_sub_name = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args0))..., :_, length(f_args))
     f_sub_dict[:name] = f_sub_name
     f_sub_dict[:args] = f_args
     f_sub_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
@@ -190,7 +190,9 @@ macro dispatch(f_def)
 
     return esc(
         quote
+            function $(f_comps[:name]) end
             $f_sub
-            MixedStructTypes.Suppressor.@capture_err $f_super
+            $f_super
+            $(f_comps[:name])
         end)
 end

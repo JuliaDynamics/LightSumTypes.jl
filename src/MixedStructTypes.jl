@@ -4,7 +4,6 @@ module MixedStructTypes
 using ExprTools
 using MacroTools
 using SumTypes
-using Suppressor
 
 export @sum_structs
 export @compact_structs
