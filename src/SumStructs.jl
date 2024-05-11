@@ -253,10 +253,6 @@ function _sum_structs(type, struct_defs)
                                         remove_redefinitions(e, namify(type), variants_types_names, fields_each) : e, 
                                         expr_sum_type)
 
-    expr_sum_type = quote
-            $expr_subt
-            $expr_sum_type
-        end
 
     expr = quote 
                $(struct_defs...)
