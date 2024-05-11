@@ -21,6 +21,7 @@ end
     end
 end
 
+@dispatch g(x::B1, q, a::A1) = -1
 @dispatch g(x::B1, q::Int, a::A1) = 0
 @dispatch g(x::B1, q::Int, b::B1) = 1
 @dispatch g(x::B1, q::Int, c::C1) = 2
@@ -47,6 +48,7 @@ end
     
     a, b1, b2, c = A1(), B1(1, 1), B1(1.0, 1.0), C1(1)
 
+    @test g(b1, true, a) == -1
     @test g(b1, 1, a) == 0
     @test g(b1, 1, b2) == 1
     @test g(b1, 1, c) == 2

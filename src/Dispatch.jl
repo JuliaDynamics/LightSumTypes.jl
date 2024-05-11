@@ -48,7 +48,8 @@ macro dispatch(f_def)
 
     f_comps = ExprTools.splitdef(f_def; throw=true)
     f_args = f_comps[:args]
-
+    f_args = [x isa Symbol ? :($x::Any) : x for x in f_args]
+    
     f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
     f_args_n = [a isa Symbol ? a : namify(a) for a in f_args_t]
 
