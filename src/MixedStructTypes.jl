@@ -8,7 +8,7 @@ using Suppressor
 
 export @sum_structs
 export @compact_structs
-export @dispatch
+export @branch
 export kindof
 export allkinds
 export kindconstructor
@@ -75,7 +75,7 @@ function kindconstructor end
 
 include("SumStructs.jl")
 include("CompactStructs.jl")
-include("Dispatch.jl")
+include("Branch.jl")
 include("precompile.jl")
 
 end
