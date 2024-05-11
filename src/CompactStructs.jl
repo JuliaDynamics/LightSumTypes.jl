@@ -85,22 +85,11 @@ function _compact_structs(new_type, struct_defs)
     uninit_val = :(MixedStructTypes.Uninitialized)
     compact_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, new_type)
     
-    abstract_type_inner = Symbol("##$(namify(compact_t))#563487")
-    if abstract_type isa Expr
-        abstract_type_inner = :($abstract_type_inner{$(abstract_type.args[2:end]...)})
-    end
-    expr_subt = :(abstract type $abstract_type_inner <: $abstract_type end)
-    expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type_inner),
+    expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
                          :(begin 
                             $(all_fields_transf...)
                             $field_type
                           end))
-
-
-    expr_new_type = quote
-            $expr_subt
-            $expr_new_type
-        end
 
     expr_params_each = []
     expr_functions = []
