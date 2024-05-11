@@ -128,7 +128,11 @@ macro dispatch(f_def)
     end
     for i in 1:length(f_args)
         a = Symbol("##argv#563487$i")
-        g_args[i].args[1] = a
+        if !(g_args[i] isa Symbol)
+            g_args[i].args[1] = a
+        else
+            g_args[i] = a
+        end
     end
 
     f_args_names = namify.(f_args)
@@ -196,15 +200,13 @@ macro dispatch(f_def)
 
     __dispatch_cache__[f_cache] = f_body_start
 
+    f_super = :(global $(f_super))
     for m in macros
         f_super = Expr(:macrocall, m, LineNumberNode(0, Symbol()), f_super)
     end
 
-    return esc(
-        quote
-            function $(f_comps[:name]) end
-            $f_sub
-            $f_super
-            $(f_comps[:name])
-        end)
+    return quote
+            $(esc(f_sub))
+            $(esc(f_comps[:name])) = MixedStructTypes.Suppressor.@suppress $(esc(f_super))
+        end
 end

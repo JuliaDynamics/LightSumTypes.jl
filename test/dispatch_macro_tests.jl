@@ -46,10 +46,14 @@ end
 @testset "@dispatch" begin
     
     a, b1, b2, c = A1(), B1(1, 1), B1(1.0, 1.0), C1(1)
-    d, e1, e2, f = D1(), E1(1, 1), E1(1.0, 1.0), F1(1)
 
     @test g(b1, 1, a) == 0
     @test g(b1, 1, b2) == 1
     @test g(b1, 1, c) == 2
-end
 
+    d, e1, e2, f = D1(), E1(1, 1), E1(1.0, 1.0), F1(1)
+
+    @test g(e1, 1, d) == 0
+    @test g(e1, 1, e2) == 1
+    @test g(e1, 1, f) == 2
+end
