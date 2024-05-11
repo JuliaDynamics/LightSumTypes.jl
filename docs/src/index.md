@@ -3,7 +3,7 @@
 ```@docs
 @compact_structs
 @sum_structs
-@dispatch
+@branch
 kindof
 allkinds
 kindconstructor
