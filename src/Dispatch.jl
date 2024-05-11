@@ -33,7 +33,14 @@ julia> f(B(0))
 
 """
 macro dispatch(f_def)
+    f_super, f_sub, f_name = _dispatch(f_def)
+    return quote
+            $(esc(f_sub))
+            $(esc(f_name)) = MixedStructTypes.Suppressor.@suppress $(esc(f_super))
+        end
+end
 
+function _dispatch(f_def)
     macros = []
     while f_def.head == :macrocall
         f_def_comps = rmlines(f_def.args)
@@ -206,8 +213,5 @@ macro dispatch(f_def)
         f_super = Expr(:macrocall, m, LineNumberNode(0, Symbol()), f_super)
     end
 
-    return quote
-            $(esc(f_sub))
-            $(esc(f_comps[:name])) = MixedStructTypes.Suppressor.@suppress $(esc(f_super))
-        end
+    return f_super, f_sub, f_comps[:name]
 end
