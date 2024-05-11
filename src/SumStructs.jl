@@ -107,14 +107,7 @@ function _sum_structs(type, struct_defs)
     add_types_to_cache(type_name, variants_types)
     add_types_params_to_cache(each_sum_version, variants_types)
     
-    abstract_type_inner = Symbol("##$(namify(sum_t))#563487")
-    if abstract_t isa Expr
-        abstract_type_inner = :($abstract_type_inner{$(abstract_t.args[2:end]...)})
-    end
-    expr_subt = :(abstract type $abstract_type_inner <: $abstract_t end)
-    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_type_inner begin
-                        $(variants_defs...)
-                      end)
+    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin
     expr_sum_type = macroexpand(MixedStructTypes, expr_sum_type)
 
     variants_types_names = namify.(variants_types)
