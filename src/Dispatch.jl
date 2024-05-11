@@ -33,6 +33,14 @@ julia> f(B(0))
 
 """
 macro dispatch(f_def)
+
+    macros = []
+    while f_def.head == :macrocall
+        f_def_comps = rmlines(f_def.args)
+        push!(macros, f_def.args[1])
+        f_def = f_def.args[end]
+    end
+
     is_arg_no_name(s) = s isa Expr && s.head == :(::) && length(s.args) == 1 
 
     vtc = __variants_types_cache__
@@ -187,6 +195,10 @@ macro dispatch(f_def)
     f_super = ExprTools.combinedef(f_super_dict)
 
     __dispatch_cache__[f_cache] = f_body_start
+
+    for m in macros
+        f_super = Expr(:macrocall, m, LineNumberNode(0, Symbol()), f_super)
+    end
 
     return esc(
         quote
