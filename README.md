@@ -95,7 +95,7 @@ julia> kindof(g)
 :G
 ```
 
-## Define functions on the mixed types
+## Define functions operating with the mixed structs
 
 There are currently two ways to operate on the types made with this package when a different
 operation needs to be defined for each kind:
@@ -107,9 +107,10 @@ For example, let's say we want to create a sum function where different values a
 depending on the kind of each element in a vector:
 
 ```julia
-julia> # with manual branching
 
-julia> function sum1(v)
+julia> v = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+
+julia> function sum1(v) # with manual branching
            s = 0
            for x in v
                if kindof(x) === :B
@@ -124,6 +125,7 @@ julia> function sum1(v)
                    error()
                end
            end
+           return s
        end
 sum1 (generic function with 1 method)
 
@@ -135,13 +137,12 @@ julia> value_D() = 3;
 
 julia> value_E() = 4;
 
-julia> # with @dispatch macro
-
-julia> function sum2(v)
+julia> function sum2(v) # with @dispatch macro
            s = 0
            for x in v
                s += value(x)
            end
+           return s
        end
 sum2 (generic function with 1 method)
 
@@ -152,6 +153,12 @@ julia> @dispatch value(::C) = 2;
 julia> @dispatch value(::D) = 3;
 
 julia> @dispatch value(::E) = 4;
+
+julia> sum1(v)
+2499517
+
+julia> sum2(v)
+2499517
 ```
 
 As you can see the version using the `@dispatch` macro is much less verbose and more intuitive. In some more
