@@ -154,7 +154,7 @@ julia> @dispatch value(::D) = 3;
 julia> @dispatch value(::E) = 4;
 ```
 
-As you can see the version using the `@dispatch` macro is much less verbose and works just as with normal. In some more
+As you can see the version using the `@dispatch` macro is much less verbose and more intuitive. In some more
 advanced cases the verbosity of the first approach could be even stronger. 
 
 Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on the available functionalities.
