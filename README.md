@@ -22,7 +22,7 @@ Both work very similarly, but there are some differences:
 Even if there is only a unique type defined by these macros, you can access a symbol containing the conceptual type
 of an instance with the function `kindof`.
 
-## Example
+## Construct mixed structs
 
 ```julia
 julia> using MixedStructTypes
