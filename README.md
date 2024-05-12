@@ -95,6 +95,68 @@ julia> kindof(g)
 :G
 ```
 
+## Define functions on the mixed types
+
+There are currently two ways to operate on the types made with this package when a different
+operation needs to be defined for each kind:
+
+- Use manual branching;
+- Use the `@dispatch` macro.
+
+For example, let's say we want to create a sum function where different values are added
+depending on the kind of each element in a vector:
+
+```julia
+julia> # with manual branching
+
+julia> function sum1(v)
+           s = 0
+           for x in v
+               if kindof(x) === :B
+                   s += value_B()
+               elseif kindof(x) === :C
+                   s += value_C()
+               elseif kindof(x) === :D
+                   s += value_D()
+               elseif kindof(x) === :E
+                   s += value_E()
+               else
+                   error()
+               end
+           end
+       end
+sum1 (generic function with 1 method)
+
+julia> value_B() = 1;
+
+julia> value_C() = 2;
+
+julia> value_D() = 3;
+
+julia> value_E() = 4;
+
+julia> # with @dispatch macro
+
+julia> function sum2(v)
+           s = 0
+           for x in v
+               s += value(x)
+           end
+       end
+sum2 (generic function with 1 method)
+
+julia> @dispatch value(::B) = 1;
+
+julia> @dispatch value(::C) = 2;
+
+julia> @dispatch value(::D) = 3;
+
+julia> @dispatch value(::E) = 4;
+```
+
+As you can see the version using the `@dispatch` macro is much less verbose and works just as with normal. In some more
+advanced cases the verbosity of the first approach could be even stronger. 
+
 Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on the available functionalities.
 
 ## Benchmark
