@@ -95,10 +95,10 @@ julia> kindof(g)
 :G
 ```
 
-## Define functions operating with the mixed structs
+## Define functions on the mixed structs
 
-There are currently two ways to operate on the types made with this package when a different
-operation needs to be defined for each kind:
+There are currently two ways to define function on the types created 
+with this package:
 
 - Use manual branching;
 - Use the `@dispatch` macro.
@@ -107,7 +107,6 @@ For example, let's say we want to create a sum function where different values a
 depending on the kind of each element in a vector:
 
 ```julia
-
 julia> v = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 
 julia> function sum1(v) # with manual branching
@@ -164,9 +163,12 @@ julia> sum2(v)
 As you can see the version using the `@dispatch` macro is much less verbose and more intuitive. In some more
 advanced cases the verbosity of the first approach could be even stronger. 
 
+Since the macro essentially reconstruct the branching version described above, to ensure that everything works correctly 
+when using it, do not define functions operating on the main type of a mixed struct without using the `@dispatch` macro.
+
 Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on the available functionalities.
 
-## Benchmark
+## Benchmark against a `Union` of types
 
 Let's see briefly how the two macros compare performance-wise in respect to a `Union` of types:
 
