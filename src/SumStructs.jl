@@ -47,6 +47,7 @@ function _sum_structs(type, struct_defs)
     isnotmutable = all(!(d.args[1]) for d in struct_defs)
     
     variants_types = []
+    variants_types_constrained = []
     hidden_struct_types = []
     variants_params_unconstr = [[] for _ in 1:length(struct_defs)]
 
@@ -64,6 +65,7 @@ function _sum_structs(type, struct_defs)
         append!(variants_params_unconstr[i], t_p)
         t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in t_p]
         push!(variants_types, t_p != [] ? :($t_n{$(t_p_no_sup...)}) : t_n)
+        push!(variants_types_constrained, t_p != [] ? :($t_n{$(t_p...)}) : t_n)
         h_t = gensym(t_n)
         if t_p_no_sup != []
             h_t = :($h_t{$(t_p_no_sup...)})
@@ -79,7 +81,7 @@ function _sum_structs(type, struct_defs)
 
     struct_defs = [:($Base.@kwdef $d) for d in struct_defs]
 
-    variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types, hidden_struct_types)]
+    variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types_constrained, hidden_struct_types)]
 
     abstract_t = type isa Expr && type.head == :(<:) ? type.args[2] : :(Any)
     type_no_abstract = type isa Expr && type.head == :(<:) ? type.args[1] : type
