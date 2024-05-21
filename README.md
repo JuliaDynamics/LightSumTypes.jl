@@ -1,4 +1,4 @@
-# MixedStructTypes.jl
+# DynamicSumTypes.jl
 
 [![CI](https://github.com/JuliaDynamics/MixedStructTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/MixedStructTypes.jl/actions?query=workflow%3ACI)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
