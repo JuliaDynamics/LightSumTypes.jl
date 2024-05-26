@@ -33,11 +33,29 @@ julia> f(B(0))
 
 """
 macro dispatch(f_def)
-    f_super, f_sub, f_name = _dispatch(f_def)
-    return quote
-            $(esc(f_sub))
-            $(esc(f_name)) = MixedStructTypes.Suppressor.@suppress $(esc(f_super))
-        end
+    f_sub, f_super, f_cache = _dispatch(f_def)
+
+    if __module__ in __modules_cache__
+        is_first = false
+    else
+        is_first = true
+        push!(__modules_cache__, __module__)
+    end
+
+    if is_first 
+        expr_m = :(module Methods_Dispatch_Module_219428042303
+                        const __dispatch_cache__ = Dict{Tuple{Symbol, Vector{Tuple{Int, Symbol}}}, Expr}()
+                        function __init__()
+                            for f in values(__dispatch_cache__)
+                                Base.eval(parentmodule(@__MODULE__), f)
+                            end
+                        end
+                    end)
+    else
+        expr_m = :(Methods_Dispatch_Module_219428042303.__dispatch_cache__[$(QuoteNode(f_cache))] = $(QuoteNode(f_super)))
+    end
+
+    return Expr(:toplevel, esc(f_sub), esc(expr_m))
 end
 
 function _dispatch(f_def)
@@ -156,7 +174,14 @@ function _dispatch(f_def)
     f_cache = (f_comps[:name], all_types_args)
 
     if f_cache in keys(__dispatch_cache__)
-        f_body_start = __dispatch_cache__[f_cache]
+        f_super_old = __dispatch_cache__[f_cache]
+        while f_super_old.head == :macrocall
+            f_def_comps = rmlines(f_super_old.args)
+            push!(macros, f_super_old.args[1])
+            f_super_old = f_super_old.args[end]
+        end
+        f_body_start = ExprTools.splitdef(__dispatch_cache__[f_cache])[:body]
+        f_body_start = Expr(:block, Base.remove_linenums!(f_body_start).args[1:end-1]...)
     else
         f_body_start = nothing
     end
@@ -206,12 +231,11 @@ function _dispatch(f_def)
     f_super_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
     f_super = ExprTools.combinedef(f_super_dict)
 
-    __dispatch_cache__[f_cache] = f_body_start
-
-    f_super = :(global $(f_super))
     for m in macros
         f_super = Expr(:macrocall, m, LineNumberNode(0, Symbol()), f_super)
     end
 
-    return f_super, f_sub, f_comps[:name]
+    __dispatch_cache__[f_cache] = f_super
+
+    return f_sub, f_super, f_cache
 end
