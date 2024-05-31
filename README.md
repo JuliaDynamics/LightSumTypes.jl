@@ -2,9 +2,9 @@
 
 ## !! This package is in the process to be renamed from MixedStructTypes.jl to DynamicSumTypes.jl !!
 
-[![CI](https://github.com/JuliaDynamics/MixedStructTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/MixedStructTypes.jl/actions?query=workflow%3ACI)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/MixedStructTypes.jl/stable/)
-[![codecov](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/MixedStructTypes.jl)
+[![CI](https://github.com/JuliaDynamics/DynamicSumTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/DynamicSumTypes.jl/actions?query=workflow%3ACI)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/)
+[![codecov](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 This package allows to combine multiple heterogeneous types in a single one. This helps to write type-stable code
@@ -13,16 +13,15 @@ of this library is to provide a syntax as similar as possible to standard Julia 
 other libraries. 
 
 Two macros implement different strategies to create a compact representation of the types: `@compact_structs` and
-`@sum_structs`.
+`@sum_structs`. The first merges all fields of each struct in a unique type, while the second uses 
+[SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
 
-Both work very similarly, but there are some differences:
-
-- `@compact_structs` is faster;
-
-- `@sum_structs` is more memory efficient and allows to mix mutable and immutable structs where fields belonging to different structs can also have different types, it uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
+Both work very similarly, but there are some differences: `@compact_structs` is faster in many cases, while `@sum_structs` is 
+more memory efficient and allows to mix mutable and immutable structs.
 
 Even if there is only a unique type defined by these macros, you can access a symbol containing the conceptual type
-of an instance with the function `kindof`.
+of an instance with the function `kindof` and use the `@dispatch` macro to define functions which can operate differently
+on each kind.
 
 ## Construct mixed structs
 
@@ -36,15 +35,15 @@ julia> @sum_structs A{X} <: AbstractA{X} begin
                a::X = 1
                b::Float64 = 1.0
            end
-           @kwdef mutable struct C
-               a::Int = 2
+           @kwdef mutable struct C{X}
+               a::X = 2
                c::Bool = true
            end
-           @kwdef mutable struct D
-               a::Int = 3
+           @kwdef mutable struct D{X}
+               a::X = 3
                const d::Symbol = :s
            end
-           @kwdef struct E{X}
+           @kwdef mutable struct E{X}
                a::X = 4
            end
        end
@@ -165,10 +164,12 @@ julia> sum2(v)
 As you can see the version using the `@dispatch` macro is much less verbose and more intuitive. In some more
 advanced cases the verbosity of the first approach could be even stronger. 
 
-Since the macro essentially reconstruct the branching version described above, to ensure that everything works correctly 
-when using it, do not define functions operating on the main type of a mixed struct without using the `@dispatch` macro.
+Since the macro essentially reconstruct the branching version described above, to ensure that everything will 
+work correctly when using it, do not define functions operating on the main type of a mixed struct without 
+using the `@dispatch` macro.
 
-Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on the available functionalities.
+Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on 
+the available functionalities.
 
 ## Benchmark against a `Union` of types
 
@@ -215,7 +216,7 @@ julia> @btime sum(x.a for x in $vec_union);
   26.762 ms (999788 allocations: 15.26 MiB)
 
 julia> @btime sum(x.a for x in $vec_sum);
-  6.595 ms (0 allocations: 0 bytes)
+  7.507 ms (0 allocations: 0 bytes)
 
 julia> @btime sum(x.a for x in $vec_compact);
   1.936 ms (0 allocations: 0 bytes)
