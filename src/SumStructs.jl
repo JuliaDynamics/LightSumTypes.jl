@@ -219,6 +219,11 @@ function _sum_structs(type, struct_defs)
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
 
+        struct_t_p_in = [p for p in t_p_u if any(x -> inexpr(x, p isa Expr && p.head == :(<:) ? p.args[1] : p), f_params_args_with_T)]
+        struct_t_p_in_2 = [any(x -> inexpr(x, p isa Expr && p.head == :(<:) ? p.args[1] : p), f_params_args_with_T) ? p : (:(MixedStructTypes.SumTypes.Uninit))
+                           for p in t_p_u]
+        struct_t_p_in_2 = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p_in_2]                
+
         if t_p !== nothing
             c1 = :(function $t($(f_params_args...)) where {$(t_p_u...)}
                        return $t($h_t($(f_params_args...)))
@@ -235,16 +240,28 @@ function _sum_structs(type, struct_defs)
             c1 = :()
             c4 = :()
         end
-        c2 = :(function $(namify(t))($(f_params_args_with_T...)) where {$(t_p_u...)}
-                   return $(namify(t))($(namify(h_t))($(f_params_args...)))
-               end
-              )
-        c3 = :()
-        if is_kw
-            c3 = :(function $(namify(t))($(f_params_kwargs_with_T)) where {$(t_p_u...)}
+        c2 = :(function $(namify(t))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
                        return $(namify(t))($(namify(h_t))($(f_params_args...)))
                    end
                   )
+        if !isempty(struct_t_p_in_2)
+            c2 = :(function $(namify(t))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
+                       return $(namify(t))($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
+                   end
+                  )
+        end
+        c3 = :()
+        if is_kw
+            c3 = :(function $(namify(t))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
+                       return $(namify(t))($(namify(h_t))($(f_params_args...)))
+                   end
+                  )
+            if !isempty(struct_t_p_in_2)
+                c3 = :(function $(namify(t))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
+                           return $(namify(t))($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
+                       end
+                      )
+            end
         end
 
         push!(expr_constructors, c1)
