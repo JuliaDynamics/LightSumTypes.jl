@@ -33,7 +33,7 @@ julia> f(B(0))
 
 """
 macro dispatch(f_def)
-    f_sub, f_super, f_cache = _dispatch(f_def)
+    f_sub, f_super_dict, f_cache = _dispatch(f_def)
 
     if __module__ in __modules_cache__
         is_first = false
@@ -44,18 +44,50 @@ macro dispatch(f_def)
 
     if is_first 
         expr_m = :(module Methods_Dispatch_Module_219428042303
-                        const __dispatch_cache__ = Dict{Tuple{Symbol, Vector{Tuple{Int, Symbol}}}, Expr}()
+                        const __dispatch_cache__ = Dict{Symbol, Any}()
                         function __init__()
-                            for f in values(__dispatch_cache__)
-                                Base.eval(parentmodule(@__MODULE__), f)
+                            define_all()
+                        end
+                        function define_all()
+                            mod = parentmodule(@__MODULE__)
+                            defs = []
+                            for f in keys(__dispatch_cache__)
+                                for ds in values(__dispatch_cache__[f])
+                                    new_d = Dict{Symbol, Any}()
+                                    new_d[:whereparams] = ds[end][:whereparams]
+                                    new_d[:args] = ds[end][:args]
+                                    new_d[:name] = ds[end][:name]
+                                    new_d[:kwargs] = ds[end][:kwargs]
+                                    body = Expr(:if, ds[1][:condition], ds[1][:subcall])
+                                    body_prev = body
+                                    for d in ds[2:end]
+                                        push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
+                                        body_prev = body_prev.args[end]
+                                    end
+                                    error_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
+                                    push!(body_prev.args, error_f)
+                                    new_d[:body] = quote $body end
+                                    new_df = mod.MixedStructTypes.ExprTools.combinedef(new_d)
+                                    for m in ds[end][:macros]
+                                        new_df = Expr(:macrocall, m, :(), new_df)
+                                    end
+                                    push!(defs, new_df)
+                                end
+                                for d in defs
+                                    Base.eval(mod, d)
+                                end
                             end
                         end
                     end)
     else
-        expr_m = :(Methods_Dispatch_Module_219428042303.__dispatch_cache__[$(QuoteNode(f_cache))] = $(QuoteNode(f_super)))
+        expr_m = :()
     end
+    expr_d = :(MixedStructTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
+    expr_fire = :(if isinteractive() && (@__MODULE__) == Main
+                      Methods_Dispatch_Module_219428042303.define_all()
+                  end)
 
-    return Expr(:toplevel, esc(f_sub), esc(expr_m))
+    return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
 end
 
 function _dispatch(f_def)
@@ -171,21 +203,52 @@ function _dispatch(f_def)
     all_types_args0 = sort(idx_and_variant0)
     all_types_args = sort(idx_and_variant)
 
-    f_cache = (f_comps[:name], all_types_args)
-
-    if f_cache in keys(__dispatch_cache__)
-        f_super_old = __dispatch_cache__[f_cache]
-        while f_super_old.head == :macrocall
-            f_def_comps = rmlines(f_super_old.args)
-            push!(macros, f_super_old.args[1])
-            f_super_old = f_super_old.args[end]
+    f_args_cache = deepcopy(f_args)
+    for i in eachindex(f_args_cache)
+        for p in whereparams
+            p_n = p isa Symbol ? p : p.args[1]
+            p_t = p isa Symbol ? :Any : (p.head == :(<:) ? p.args[2] : error())
+            if f_args_cache[i] isa Symbol
+                f_args_cache[i] = MacroTools.postwalk(s -> s isa Symbol && s == p_n ? p_t : s, f_args_cache[i])
+            else
+                f_args_cache[i] = MacroTools.postwalk(s -> s isa Symbol && s == p_n ? :(<:($p_t)) : s, f_args_cache[i])
+            end
         end
-        f_body_start = ExprTools.splitdef(__dispatch_cache__[f_cache])[:body]
-        f_body_start = Expr(:block, Base.remove_linenums!(f_body_start).args[1:end-1]...)
+    end
+    f_args_cache = map(MacroTools.splitarg, f_args_cache)
+    f_args_cache = [(x[2], x[3]) for x in f_args_cache]
+
+    f_cache = f_args_cache
+
+    f_sub_dict = define_f_sub(whereparams, f_comps, all_types_args0, f_args)
+    f_sub = ExprTools.combinedef(f_sub_dict)
+
+    f_super_dict = Dict{Symbol, Any}()
+    f_super_dict[:name] = f_comps[:name]
+    f_super_dict[:args] = g_args
+
+    a_cond = [:(kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
+    new_cond = nothing
+    if length(a_cond) == 1
+        new_cond = a_cond[1]
     else
-        f_body_start = nothing
+        new_cond = Expr(:&&, a_cond[1], a_cond[2])
+        for x in a_cond[3:end]
+            new_cond = Expr(:&&, x, new_cond)
+        end
     end
 
+    f_super_dict[:whereparams] = whereparams
+    f_super_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
+    f_super_dict[:macros] = macros
+    f_super_dict[:condition] = new_cond
+    f_super_dict[:subcall] = :(return $(f_sub_dict[:name])($(g_args_names...)))
+
+    return f_sub, f_super_dict, f_cache
+end
+
+
+function define_f_sub(whereparams, f_comps, all_types_args0, f_args)
     f_sub_dict = Dict{Symbol, Any}()
     f_sub_name = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args0))..., :_, length(f_args))
     f_sub_dict[:name] = f_sub_name
@@ -193,49 +256,27 @@ function _dispatch(f_def)
     f_sub_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
     f_sub_dict[:body] = f_comps[:body]
     whereparams != [] && (f_sub_dict[:whereparams] = whereparams)
-    f_sub = ExprTools.combinedef(f_sub_dict)
+    return f_sub_dict
+end
 
-    f_super_dict = Dict{Symbol, Any}()
-    f_super_dict[:name] = f_comps[:name]
-    f_super_dict[:args] = g_args
-    new_cond = nothing
-    a_cond = [:(kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
-    if length(a_cond) == 1
-        tif = f_body_start == nothing ? :if : (:elseif)
-        new_cond = a_cond[1]
-        new_cond_if = Expr(tif, a_cond[1], :(return $(f_sub_dict[:name])($(g_args_names...))))
+function define_f_super(mod, f_super_dict, f_cache)
+    f_name = f_super_dict[:name]
+    cache = mod.Methods_Dispatch_Module_219428042303.__dispatch_cache__
+    if !(f_name in keys(cache))
+        cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
-        new_cond = Expr(:&&, a_cond[1], a_cond[2])
-        for x in a_cond[3:end]
-            new_cond = Expr(:&&, x, new_cond)
+        never_same = true
+        for sig in keys(cache[f_name])
+            same_sig = length(f_cache) == length(sig) && all(Base.eval(mod, e1) == Base.eval(mod, e2) for (e1, e2) in zip(sig, f_cache))
+            if same_sig
+                same_cond = findfirst(f_prev -> f_prev[:condition] == f_super_dict[:condition], cache[f_name][sig])
+                same_cond === nothing && push!(cache[f_name][sig], f_super_dict)
+                never_same = false
+                break
+            end
         end
-        tif = f_body_start == nothing ? :if : (:elseif)
-        new_cond_if = Expr(tif, new_cond, :(return $(f_sub_dict[:name])($(g_args_names...))))
-    end
-
-    if f_body_start == nothing
-        f_body_start = new_cond_if
-    elseif !(inexpr(f_body_start, new_cond))
-        f_body_in = f_body_start
-        while length(f_body_in.args) == 3
-            f_body_in = f_body_in.args[end]
+        if never_same
+            cache[f_name][f_cache] = [f_super_dict]
         end
-        push!(f_body_in.args, new_cond_if)
     end
-
-    f_super_dict[:body] = quote
-            $f_body_start
-            error("unreacheable reached! Maybe $(f_comps[:name]) is not defined for all kinds?")
-        end
-    whereparams != [] && (f_super_dict[:whereparams] = whereparams)
-    f_super_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
-    f_super = ExprTools.combinedef(f_super_dict)
-
-    for m in macros
-        f_super = Expr(:macrocall, m, LineNumberNode(0, Symbol()), f_super)
-    end
-
-    __dispatch_cache__[f_cache] = f_super
-
-    return f_sub, f_super, f_cache
 end
