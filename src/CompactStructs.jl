@@ -133,6 +133,11 @@ function _compact_structs(new_type, struct_defs)
         expr_function_args = :()
         expr_function_args2 = :()
 
+        struct_t_p_in = [p for p in struct_t_p if any(x -> inexpr(x, p isa Expr && p.head == :(<:) ? p.args[1] : p), f_params_args_with_T)]
+        struct_t_p_in_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p_in]
+        new_type_p_in = [t in struct_t_p_in_no_sup ? t : (:(MixedStructTypes.Uninitialized)) 
+                         for t in new_type_p]
+
         push!(expr_params_each, :($new_type_n{$(new_type_p...)}))
 
         if isempty(new_type_p)
@@ -148,8 +153,8 @@ function _compact_structs(new_type, struct_defs)
             end
         else
             expr_function_args = :(
-                    function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p...)}
-                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    function $(namify(struct_t))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
+                        return $new_type_n{$(new_type_p_in...)}($(f_inside_args...))
                     end)
             if !isempty(struct_t_p)
                 expr_function_args2 = :(function $(struct_t_arg)($(f_params_args...)) where {$(struct_t_p...)}
@@ -158,8 +163,8 @@ function _compact_structs(new_type, struct_defs)
             end
             if is_kw
                 expr_function_kwargs = :(
-                    function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p...)}
-                        return $new_type_n{$(new_type_p...)}($(f_inside_args...))
+                    function $(namify(struct_t))($f_params_kwargs_with_T) where {$(struct_t_p_in...)}
+                        return $new_type_n{$(new_type_p_in...)}($(f_inside_args...))
                     end)
                 if !isempty(struct_t_p)
                     expr_function_kwargs2 = :(

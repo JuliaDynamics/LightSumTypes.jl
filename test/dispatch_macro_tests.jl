@@ -27,7 +27,7 @@ end
 @dispatch g(x::B1, q::Int, a::A1) = 0
 @dispatch g(x::B1, q::Int, b::B1) = 1
 @dispatch g(x::B1, q::Int, c::C1) = 2
-@dispatch g(a::A1, q::Int, c::B1; s = 1) = 3
+@dispatch g(a::A1, q::Int, c::B1) = 3
 
 @dispatch g(a::A1, q::Int, c::B1{Int}; s = 1) = 10 + s
 @dispatch g(a::A1, q::Int, c::C1{Int}; s = 1) = 11 + s
@@ -35,7 +35,7 @@ end
 @dispatch g(a::E1, b::Int, c::D1) = 0
 @dispatch g(a::E1, b::Int, c::E1) = 1
 @dispatch g(a::E1, b::Int, c::F1) = 2
-@dispatch g(a::D1, b::Int, c::E1; s = 1) = 3
+@dispatch g(a::D1, b::Int, c::E1) = 3
 @dispatch g(a::E1, b::Int, c::F1) = 4
 
 Methods_Dispatch_Module_219428042303.define_all()
