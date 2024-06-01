@@ -4,10 +4,8 @@ module MixedStructTypes
 using ExprTools
 using MacroTools
 using SumTypes
-using Suppressor
 
 export @sum_structs
-export @compact_structs
 export @dispatch
 export kindof
 export allkinds
@@ -24,7 +22,7 @@ const __dispatch_cache__ = Dict{Tuple{Symbol, Vector{Tuple{Any, Bool}}}, Expr}()
 Return a symbol representing the conceptual type of an instance:
 
 ```julia
-julia> @compact_structs AB begin
+julia> @sum_structs AB begin
            struct A x::Int end
            struct B y::Int end
        end
@@ -41,10 +39,10 @@ function kindof end
     allkinds(type)
 
 Return a `Tuple` containing all kinds associated with the overarching 
-type defined with `@compact_structs` or `@sum_structs`:
+type defined with `@sum_structs`
 
 ```julia
-julia> @compact_structs AB begin
+julia> @sum_structs AB begin
            struct A x::Int end
            struct B y::Int end
        end
@@ -61,7 +59,7 @@ function allkinds end
 Return the constructor of an instance:
 
 ```julia
-julia> @compact_structs AB begin
+julia> @sum_structs AB begin
            struct A x::Int end
            struct B y::Int end
        end
@@ -74,8 +72,8 @@ A
 """
 function kindconstructor end
 
-include("SumStructs.jl")
-include("CompactStructs.jl")
+include("SumStructsSpeed.jl")
+include("SumStructsMem.jl")
 include("Dispatch.jl")
 include("precompile.jl")
 

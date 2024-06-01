@@ -4,7 +4,7 @@
 end
 
 abstract type AbstractA{X, Y} end
-@sum_structs A{X<:Real,Y<:Real} <: AbstractA{X, Y} begin
+@sum_structs :opt_memory A{X<:Real,Y<:Real} <: AbstractA{X, Y} begin
     @kwdef mutable struct B{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -24,7 +24,7 @@ abstract type AbstractA{X, Y} end
     end
 end
 
-@sum_structs Animal{T,N,J} begin
+@sum_structs :opt_memory Animal{T,N,J} begin
     @kwdef mutable struct Wolf{T,N}
         energy::T = 0.5
         ground_speed::N
@@ -38,7 +38,7 @@ end
 end
 
 abstract type AbstractSimple end
-@sum_structs Simple <: AbstractSimple begin
+@sum_structs :opt_memory Simple <: AbstractSimple begin
     struct SimpleA
         x
         z::Int
@@ -49,7 +49,7 @@ abstract type AbstractSimple end
     end
 end
 
-@sum_structs TestOrder1 begin
+@sum_structs :opt_memory TestOrder1 begin
     struct TestOrder11
         x::String
         y::Float64
