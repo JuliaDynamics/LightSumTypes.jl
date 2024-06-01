@@ -50,35 +50,9 @@ macro dispatch(f_def)
                         end
                         function define_all()
                             mod = parentmodule(@__MODULE__)
-                            defs = []
-                            for f in keys(__dispatch_cache__)
-                                for ds in values(__dispatch_cache__[f])
-                                    new_d = Dict{Symbol, Any}()
-                                    new_d[:args] = ds[end][:args]
-                                    new_d[:name] = ds[end][:name]
-                                    !allequal(d[:whereparams] for d in ds) && error("Parameters in where {...} should be the same for all @dispatch methods with same signature")
-                                    new_d[:whereparams] = ds[end][:whereparams]
-                                    !allequal(d[:kwargs] for d in ds) && error("Keyword arguments should be the same for all @dispatch methods with same signature")
-                                    new_d[:kwargs] = ds[end][:kwargs]
-                                    body = Expr(:if, ds[1][:condition], ds[1][:subcall])
-                                    body_prev = body
-                                    for d in ds[2:end]
-                                        push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
-                                        body_prev = body_prev.args[end]
-                                    end
-                                    error_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
-                                    push!(body_prev.args, error_f)
-                                    new_d[:body] = quote $body end
-                                    new_df = mod.MixedStructTypes.ExprTools.combinedef(new_d)
-                                    !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @dispatch methods with same signature")
-                                    for m in ds[end][:macros]
-                                        new_df = Expr(:macrocall, m, :(), new_df)
-                                    end
-                                    push!(defs, new_df)
-                                end
-                                for d in defs
-                                    Base.eval(mod, d)
-                                end
+                            defs = mod.MixedStructTypes.generate_defs(mod.MixedStructTypes, __dispatch_cache__)
+                            for d in defs
+                                Base.eval(mod, d)
                             end
                         end
                     end)
@@ -282,4 +256,35 @@ function define_f_super(mod, f_super_dict, f_cache)
             cache[f_name][f_cache] = [f_super_dict]
         end
     end
+end
+
+function generate_defs(mod, cache)
+    defs = []
+    for f in keys(cache)
+        for ds in values(cache[f])
+            new_d = Dict{Symbol, Any}()
+            new_d[:args] = ds[end][:args]
+            new_d[:name] = ds[end][:name]
+            !allequal(d[:whereparams] for d in ds) && error("Parameters in where {...} should be the same for all @dispatch methods with same signature")
+            new_d[:whereparams] = ds[end][:whereparams]
+            !allequal(d[:kwargs] for d in ds) && error("Keyword arguments should be the same for all @dispatch methods with same signature")
+            new_d[:kwargs] = ds[end][:kwargs]
+            body = Expr(:if, ds[1][:condition], ds[1][:subcall])
+            body_prev = body
+            for d in ds[2:end]
+                push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
+                body_prev = body_prev.args[end]
+            end
+            error_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
+            push!(body_prev.args, error_f)
+            new_d[:body] = quote $body end
+            new_df = mod.ExprTools.combinedef(new_d)
+            !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @dispatch methods with same signature")
+            for m in ds[end][:macros]
+                new_df = Expr(:macrocall, m, :(), new_df)
+            end
+            push!(defs, new_df)
+        end
+    end
+    return defs
 end
