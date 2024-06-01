@@ -54,7 +54,7 @@ macro dispatch(f_def)
                         end
                         function define_all()
                             mod = parentmodule(@__MODULE__)
-                            defs = mod.MixedStructTypes.generate_defs(mod)
+                            defs = mod.DynamicSumTypes.generate_defs(mod)
                             for d in defs
                                 Base.eval(mod, d)
                             end
@@ -64,7 +64,7 @@ macro dispatch(f_def)
     else
         expr_m = :()
     end
-    expr_d = :(MixedStructTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
+    expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
                         Methods_Dispatch_Module_219428042303.define_all()
@@ -138,8 +138,8 @@ function _dispatch(f_def)
             end
             pos_no_args = [i for i in 1:length(type_abstract_args) 
                            if !(i in pos_args) && (
-                                type_abstract_args[i] != :(MixedStructTypes.Uninitialized) &&
-                                type_abstract_args[i] != :(MixedStructTypes.SumTypes.Uninit))]
+                                type_abstract_args[i] != :(DynamicSumTypes.Uninitialized) &&
+                                type_abstract_args[i] != :(DynamicSumTypes.SumTypes.Uninit))]
 
             @capture(y, _{t_params__})
             for (p, q) in enumerate(pos_args)
@@ -302,7 +302,7 @@ function generate_defs(mod, cache)
                 push!(body_prev.args, f_end)
             end
             new_d[:body] = quote $body end
-            new_df = mod.MixedStructTypes.ExprTools.combinedef(new_d)
+            new_df = mod.DynamicSumTypes.ExprTools.combinedef(new_d)
             !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @dispatch methods with same signature")
             for m in ds[end][:macros]
                 new_df = Expr(:macrocall, m, :(), new_df)

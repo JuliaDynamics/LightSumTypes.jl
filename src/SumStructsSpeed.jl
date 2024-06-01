@@ -85,7 +85,7 @@ function _compact_structs(new_type, struct_defs)
 
     type_no_constr = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? s.args[1] : s, new_type)
     type_params = new_type isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in new_type.args[2:end]]
-    uninit_val = :(MixedStructTypes.Uninitialized)
+    uninit_val = :(DynamicSumTypes.Uninitialized)
     compact_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, new_type)
     
     expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
@@ -128,7 +128,7 @@ function _compact_structs(new_type, struct_defs)
         struct_t_p === nothing && (struct_t_p = [])
         struct_t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p]
         struct_t_arg = struct_t_p_no_sup != [] ? :($struct_t_n{$(struct_t_p_no_sup...)}) : struct_t
-        new_type_p = [t in struct_t_p_no_sup ? t : (:(MixedStructTypes.Uninitialized)) 
+        new_type_p = [t in struct_t_p_no_sup ? t : (:(DynamicSumTypes.Uninitialized)) 
                       for t in new_type_p]
 
         expr_function_kwargs = :()
@@ -138,7 +138,7 @@ function _compact_structs(new_type, struct_defs)
 
         struct_t_p_in = [p for p in struct_t_p if any(x -> inexpr(x, p isa Expr && p.head == :(<:) ? p.args[1] : p), f_params_args_with_T)]
         struct_t_p_in_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p_in]
-        new_type_p_in = [t in struct_t_p_in_no_sup ? t : (:(MixedStructTypes.Uninitialized)) 
+        new_type_p_in = [t in struct_t_p_in_no_sup ? t : (:(DynamicSumTypes.Uninitialized)) 
                          for t in new_type_p]
 
         push!(expr_params_each, :($new_type_n{$(new_type_p...)}))
@@ -187,28 +187,28 @@ function _compact_structs(new_type, struct_defs)
     add_types_to_cache(type_name, types_each)
     add_types_params_to_cache(expr_params_each, types_each)
 
-    expr_kindof = :(MixedStructTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
+    expr_kindof = :(DynamicSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
     expr_allkinds = []
-    expr_allkinds1 = :(MixedStructTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each))))
+    expr_allkinds1 = :(DynamicSumTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each))))
     push!(expr_allkinds, expr_allkinds1)
     if namify(type_no_constr) !== type_no_constr
-        expr_allkinds2 = :(MixedStructTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each))))
+        expr_allkinds2 = :(DynamicSumTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each))))
         push!(expr_allkinds, expr_allkinds2)
     end
 
     branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
 
-    expr_constructor = :(function MixedStructTypes.kindconstructor(a::$(namify(new_type)))
+    expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(new_type)))
                         kind = kindof(a)
 
                         $(branching_constructor...)
                      end)
 
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
-                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != MixedStructTypes.uninit]
-                      vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
-                      params = [x for x in typeof(a).parameters if x != MixedStructTypes.Uninitialized] 
+                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != DynamicSumTypes.uninit]
+                      vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
+                      params = [x for x in typeof(a).parameters if x != DynamicSumTypes.Uninitialized] 
                       if isempty(params)
                           print(io, string(kindof(a)), "($vals)", "::", $(namify(new_type)))
                       else
@@ -220,7 +220,7 @@ function _compact_structs(new_type, struct_defs)
 
     expr_getprop = :(function Base.getproperty(a::$(namify(new_type)), s::Symbol)
                         f = getfield(a, s)
-                        if f isa MixedStructTypes.Uninitialized
+                        if f isa DynamicSumTypes.Uninitialized
                             return error(lazy"type $(kindof(a)) has no field $s")
                         end
                         return f
@@ -229,7 +229,7 @@ function _compact_structs(new_type, struct_defs)
     if is_mutable
         expr_setprop = :(function Base.setproperty!(a::$(namify(new_type)), s::Symbol, v)
                             f = getfield(a, s)
-                            if f isa MixedStructTypes.Uninitialized
+                            if f isa DynamicSumTypes.Uninitialized
                                 return error(lazy"type $(kindof(a)) has no field $s")
                             end
                             setfield!(a, s, v)
@@ -306,7 +306,7 @@ function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec
                 new_f = f
             end
         else
-            new_f = :(MixedStructTypes.uninit)
+            new_f = :(DynamicSumTypes.uninit)
         end
         i += 1
         push!(f_inside_args_new, new_f)
@@ -353,7 +353,7 @@ function transform_field(x, noncommon_fields)
     else
         if x in noncommon_fields
             name, T = x_args.args
-            f = :($name::Union{MixedStructTypes.Uninitialized, $T})
+            f = :($name::Union{DynamicSumTypes.Uninitialized, $T})
             if const_x
                 f = Expr(:const, f)
             end
