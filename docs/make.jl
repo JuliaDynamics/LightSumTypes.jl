@@ -1,10 +1,10 @@
 using Documenter
-using MixedStructTypes
+using DynamicSumTypes
 
 println("Documentation Build")
 makedocs(
-    modules = [MixedStructTypes],
-    sitename = "MixedStructTypes.jl",
+    modules = [DynamicSumTypes],
+    sitename = "DynamicSumTypes.jl",
     pages = [    
         "API" => "index.md",
     ],
