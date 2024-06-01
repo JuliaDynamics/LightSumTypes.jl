@@ -1,5 +1,5 @@
 
-using MixedStructTypes, Test
+using DynamicSumTypes, Test
 
 @sum_structs X{T1, T2, T3} begin
     struct A1 end
