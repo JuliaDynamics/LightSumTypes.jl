@@ -60,9 +60,12 @@ macro dispatch(f_def)
         expr_m = :()
     end
     expr_d = :(MixedStructTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
-    expr_fire = :(if isinteractive() && (@__MODULE__) == Main
-                      Methods_Dispatch_Module_219428042303.define_all()
-                  end)
+    expr_fire = quote 
+                    if isinteractive() && (@__MODULE__) == Main
+                        Methods_Dispatch_Module_219428042303.define_all()
+                    end
+                    $(f_super_dict[:name])
+                end
 
     return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
 end
