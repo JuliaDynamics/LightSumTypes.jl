@@ -63,8 +63,8 @@ macro dispatch(f_def)
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
                         Methods_Dispatch_Module_219428042303.define_all()
+                        $(f_super_dict[:name])
                     end
-                    $(f_super_dict[:name])
                 end
 
     return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
