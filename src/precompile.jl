@@ -88,8 +88,15 @@ using PrecompileTools
                                 a::T
                             end
                         end)
+
+        f1 = :(f(x::Int, y, z::BB, ::CC) = 3)
+        f2 = :(f(x::Int, y, z::DD, ::CC) = 3)
+
         _compact_structs(type, struct_defs)
         _sum_structs(type, struct_defs)
+        _dispatch(f1)
+        _dispatch(f2)
+
         empty!(__variants_types_cache__)
         empty!(__variants_types_with_params_cache__)
     end
