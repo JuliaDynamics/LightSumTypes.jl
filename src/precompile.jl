@@ -2,7 +2,7 @@
 using PrecompileTools
 
 @setup_workload begin
-    @compile_workload begin
+    @compile_workload let
         type = :(E{X<:Real,Y<:Real} <: AbstractE{X,Y})
         struct_defs = :(begin
                             @kwdef mutable struct F{X<:Int}
@@ -91,13 +91,17 @@ using PrecompileTools
 
         f1 = :(f(x::Int, y, z::BB, ::CC) = 3)
         f2 = :(f(x::Int, y, z::DD, ::CC) = 3)
+        f3 = :(f(x::Int, y, z::Hawk{Int, N, J} where N, ::CC; s = 1) where J = 3)
 
         _compact_structs(type, struct_defs)
         _sum_structs(type, struct_defs)
         _dispatch(f1)
         _dispatch(f2)
+        _dispatch(f3)
+        generate_defs(MixedStructTypes, __dispatch_cache__)
 
         empty!(__variants_types_cache__)
         empty!(__variants_types_with_params_cache__)
+        empty(__dispatch_cache__)
     end
 end
