@@ -72,7 +72,7 @@ function _sum_structs(type, struct_defs)
     type_name = type_no_abstract isa Symbol ? type_no_abstract : type_no_abstract.args[1]
     type_no_constr = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? s.args[1] : s, type_no_abstract)
     type_params = type_no_abstract isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in type_no_abstract.args[2:end]]
-    uninit_val = :(MixedStructTypes.SumTypes.Uninit)
+    uninit_val = :(DynamicSumTypes.SumTypes.Uninit)
     sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
     
     each_sum_version = []
@@ -93,18 +93,18 @@ function _sum_structs(type, struct_defs)
     add_types_to_cache(type_name, variants_types)
     add_types_params_to_cache(each_sum_version, variants_types)
     
-    expr_sum_type = :(MixedStructTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin                        
+    expr_sum_type = :(DynamicSumTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin                        
                           $(variants_defs...)
                       end)
-    expr_sum_type = macroexpand(MixedStructTypes, expr_sum_type)
+    expr_sum_type = macroexpand(DynamicSumTypes, expr_sum_type)
 
     variants_types_names = namify.(variants_types)
     branching_getprop = generate_branching_variants(variants_types_names, :(return getfield(data_a.data[1], s)))
 
     extract_data = :(begin
                         type_a = (typeof)(a)
-                        MixedStructTypes.SumTypes.check_sum_type(type_a)
-                        MixedStructTypes.SumTypes.assert_exhaustive(
+                        DynamicSumTypes.SumTypes.check_sum_type(type_a)
+                        DynamicSumTypes.SumTypes.assert_exhaustive(
                                                         Val{(MixedStructTypes.SumTypes.tags)(type_a)}, 
                                                         Val{$(Tuple(variants_types_names))}
                                                         )
@@ -129,7 +129,7 @@ function _sum_structs(type, struct_defs)
 
     branching_kindof = generate_branching_variants(variants_types_names, :(return MixedStructTypes.retrieve_type(data_a)))
 
-    expr_kindof = :(function MixedStructTypes.kindof(a::$(namify(type)))
+    expr_kindof = :(function DynamicSumTypes.kindof(a::$(namify(type)))
                         $(extract_data)
                         $(branching_kindof...)
                     end)
@@ -143,7 +143,7 @@ function _sum_structs(type, struct_defs)
     end
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
-    expr_constructor = :(function MixedStructTypes.kindconstructor(a::$(namify(type)))
+    expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(type)))
                             $(extract_data)
                             $(branching_constructor...)
                          end)
@@ -168,7 +168,7 @@ function _sum_structs(type, struct_defs)
     expr_show = :(function Base.show(io::IO, a::$(namify(type)))
                       h_a = (MixedStructTypes.SumTypes.unwrap)(a).data[1]
                       f_vals = [getfield(h_a, x) for x in fieldnames(typeof(h_a))]
-                      vals = join([MixedStructTypes.print_transform(x) for x in f_vals], ", ")
+                      vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
                       if isempty(params)
                           print(io, string(kindof(a)), "($vals)", "::", $(namify(type)))
