@@ -1,6 +1,6 @@
 
 using Test
-using MixedStructTypes
+using DynamicSumTypes
 
 @testset "MixedStructTypes.jl Tests" begin
     include("package_sanity_tests.jl")
