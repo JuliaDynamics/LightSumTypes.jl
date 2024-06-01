@@ -35,6 +35,10 @@ julia> f(B(0))
 macro dispatch(f_def)
     f_sub, f_super_dict, f_cache = _dispatch(f_def)
 
+    if f_super_dict == nothing
+        return f_sub
+    end
+
     if __module__ in __modules_cache__
         is_first = false
     else
@@ -50,10 +54,11 @@ macro dispatch(f_def)
                         end
                         function define_all()
                             mod = parentmodule(@__MODULE__)
-                            defs = mod.MixedStructTypes.generate_defs(mod.MixedStructTypes, __dispatch_cache__)
+                            defs = mod.MixedStructTypes.generate_defs(mod)
                             for d in defs
                                 Base.eval(mod, d)
                             end
+                            return defs
                         end
                     end)
     else
@@ -91,16 +96,15 @@ function _dispatch(f_def)
     f_args_n = [a isa Symbol ? a : namify(a) for a in f_args_t]
 
     if !any(a -> a in keys(vtc) || a in values(vtc), f_args_n)
-        return f_def
+        return f_def, nothing, nothing
     end
 
     idxs_mctc = findall(a -> a in values(vtc), f_args_n)
-
-    if !isempty(idxs_mctc)
-        error("Dispatching on the overall type $(first(f_args_n)) is not supported")
-    end
-
     idxs_mvtc = findall(a -> a in keys(vtc), f_args_n)
+
+    if !isempty(idxs_mctc) && !isempty(idxs_mvtc) 
+        error("Dispatching on overall types and variants at the same time is not supported")
+    end
 
     new_arg_types = [vtc[f_args_n[i]] for i in idxs_mvtc]
 
@@ -177,11 +181,9 @@ function _dispatch(f_def)
     g_args_names = namify.(g_args)
 
     idx_and_variant0 = collect(zip(idxs_mvtc, map(i -> f_args_n[i], idxs_mvtc)))
-    idx_and_variant = collect(zip(idxs_mvtc, map(i -> vtc[f_args_n[i]], idxs_mvtc)))
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))
 
-    all_types_args0 = sort(idx_and_variant0)
-    all_types_args = sort(idx_and_variant)
+    all_types_args0 = idx_and_variant0 != [] ? sort(idx_and_variant0) : sort(idx_and_type)
 
     f_args_cache = deepcopy(f_args)
     for i in eachindex(f_args_cache)
@@ -211,7 +213,7 @@ function _dispatch(f_def)
     new_cond = nothing
     if length(a_cond) == 1
         new_cond = a_cond[1]
-    else
+    elseif length(a_cond) > 1
         new_cond = Expr(:&&, a_cond[1], a_cond[2])
         for x in a_cond[3:end]
             new_cond = Expr(:&&, x, new_cond)
@@ -261,6 +263,11 @@ function define_f_super(mod, f_super_dict, f_cache)
     end
 end
 
+function generate_defs(mod)
+    cache = mod.Methods_Dispatch_Module_219428042303.__dispatch_cache__
+    return generate_defs(mod, cache)
+end
+
 function generate_defs(mod, cache)
     defs = []
     for f in keys(cache)
@@ -272,16 +279,28 @@ function generate_defs(mod, cache)
             new_d[:whereparams] = ds[end][:whereparams]
             !allequal(d[:kwargs] for d in ds) && error("Keyword arguments should be the same for all @dispatch methods with same signature")
             new_d[:kwargs] = ds[end][:kwargs]
-            body = Expr(:if, ds[1][:condition], ds[1][:subcall])
-            body_prev = body
-            for d in ds[2:end]
-                push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
-                body_prev = body_prev.args[end]
+            default = findfirst(d -> d[:condition] == nothing, ds)
+            subcall_default = nothing
+            if default != nothing
+                subcall_default = ds[default][:subcall]
+                ds[default], ds[end] = ds[end], ds[default]
             end
-            error_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
-            push!(body_prev.args, error_f)
+            body = nothing
+            if default != nothing && length(ds) == 1
+                body = subcall_default
+            else
+                body = Expr(:if, ds[1][:condition], ds[1][:subcall])
+                body_prev = body
+                for d in ds[2:end-(default != nothing)]
+                    push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
+                    body_prev = body_prev.args[end]
+                end
+                err_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
+                f_end = default == nothing ? err_f : subcall_default
+                push!(body_prev.args, f_end)
+            end
             new_d[:body] = quote $body end
-            new_df = mod.ExprTools.combinedef(new_d)
+            new_df = mod.MixedStructTypes.ExprTools.combinedef(new_d)
             !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @dispatch methods with same signature")
             for m in ds[end][:macros]
                 new_df = Expr(:macrocall, m, :(), new_df)
