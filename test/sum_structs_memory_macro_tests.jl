@@ -61,7 +61,7 @@ end
     end
 end
 
-@testset "@sum_structs" begin
+@testset "@sum_structs :opt_memory" begin
 
     st = ST2()
     @test propertynames(st) == ()
