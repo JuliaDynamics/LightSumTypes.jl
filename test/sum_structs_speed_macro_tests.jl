@@ -82,7 +82,7 @@ end
     end
 end
 
-@testset "@compact_structs" begin
+@testset "@sum_structs :opt_speed" begin
     
     st = ST1()
     @test propertynames(st) == ()

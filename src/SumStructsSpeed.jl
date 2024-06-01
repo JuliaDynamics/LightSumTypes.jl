@@ -16,7 +16,7 @@ a performance almost identical to having just one type. Using
 ## Example
 
 ```julia
-julia> @compact_structs AB begin
+julia> @sum_structs AB begin
            struct A x::Int end
            struct B y::Int end
        end
@@ -61,7 +61,7 @@ function _compact_structs(new_type, struct_defs)
         push!(is_mutable, x.args[1])
     end
     if !allequal(is_mutable)
-        return error("`@compact_structs` does not accept mixing mutable and immutable structs.")
+        return error("`@sum_structs :opt_speed` does not accept mixing mutable and immutable structs.")
     end
     is_mutable = all(x -> x == true, is_mutable)
     types_each, fields_each, default_each = [], [], []
