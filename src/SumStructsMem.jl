@@ -1,29 +1,13 @@
 
-"""
-    @sum_structs(type_definition, structs_definitions)
 
-This macro allows to combine multiple types in a single one. 
-While its usage is equivalent to `@compact_structs`, this version consumes
-less memory at the cost of being slower.
-
-## Example
-
-```julia
-julia> @sum_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end
-
-julia> a = A(1)
-A(1)::AB
-
-julia> a.x
-1
-```
-
-"""
-macro sum_structs(type, struct_defs)
-    return esc(_sum_structs(type, struct_defs))
+macro sum_structs(version, type, struct_defs)
+    if version == QuoteNode(:opt_speed)
+        return esc(_compact_structs(type, struct_defs))
+    elseif version == QuoteNode(:opt_memory)
+        return esc(_sum_structs(type, struct_defs))
+    else
+        error("The version of @sum_structs should be either :opt_speed or :opt_memory")
+    end
 end
 
 function _sum_structs(type, struct_defs)

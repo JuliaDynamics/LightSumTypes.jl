@@ -4,11 +4,14 @@ struct Uninitialized end
 const uninit = Uninitialized()
 
 """
-    @compact_structs(type_definition, structs_definitions)
+    @sum_structs [version] type_definition begin
+        structs_definitions
+    end
 
 This macro allows to combine multiple types in a single one. 
-This version has been built to yield a performance almost 
-identical to having just one type.
+The default version is `:opt_speed` which has been built to yield 
+a performance almost identical to having just one type. Using
+`:opt_memory` consumes less memory at the cost of being a bit slower.
 
 ## Example
 
@@ -26,7 +29,7 @@ julia> a.x
 ```
 
 """
-macro compact_structs(new_type, struct_defs)
+macro sum_structs(new_type, struct_defs)
     return esc(_compact_structs(new_type, struct_defs))
 end
 

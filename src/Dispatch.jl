@@ -184,6 +184,7 @@ function _dispatch(f_def)
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))
 
     all_types_args0 = idx_and_variant0 != [] ? sort(idx_and_variant0) : sort(idx_and_type)
+    all_types_args1 = sort(collect(zip(idxs_mvtc, map(i -> vtc[f_args_n[i]], idxs_mvtc))))
 
     f_args_cache = deepcopy(f_args)
     for i in eachindex(f_args_cache)
@@ -225,6 +226,8 @@ function _dispatch(f_def)
     f_super_dict[:macros] = macros
     f_super_dict[:condition] = new_cond
     f_super_dict[:subcall] = :(return $(f_sub_dict[:name])($(g_args_names...)))
+    f_sub_name_default = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args1))..., :_, length(f_args))
+    f_super_dict[:subcall_default] = :(return $(f_sub_name_default)($(g_args_names...)))
 
     return f_sub, f_super_dict, f_cache
 end
@@ -295,8 +298,7 @@ function generate_defs(mod, cache)
                     push!(body_prev.args, Expr(:elseif, d[:condition], d[:subcall]))
                     body_prev = body_prev.args[end]
                 end
-                err_f = :(error("unreacheable reached! Maybe $($(new_d[:name])) is not defined for all kinds?"))
-                f_end = default == nothing ? err_f : subcall_default
+                f_end = ds[1][:subcall_default]
                 push!(body_prev.args, f_end)
             end
             new_d[:body] = quote $body end

@@ -12,14 +12,12 @@ by avoiding Union-splitting, which has big performance drawbacks when many types
 of this library is to provide a syntax as similar as possible to standard Julia structs to help integration within
 other libraries. 
 
-Two macros implement different strategies to create a compact representation of the types: `@compact_structs` and
-`@sum_structs`. The first merges all fields of each struct in a unique type, while the second uses 
-[SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood. 
+The `@sum_structs` macro implements two strategies to create a compact representation of the types: 
+the default one merges all fields of each struct in a unique type which is faster in many cases, 
+while the second uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood, 
+which is more memory efficient and allows to mix mutable and immutable structs.
 
-Both work very similarly, but there are some differences: `@compact_structs` is faster in many cases, while `@sum_structs` is 
-more memory efficient and allows to mix mutable and immutable structs.
-
-Even if there is only a unique type defined by these macros, you can access a symbol containing the conceptual type
+Even if there is only a unique type defined by this macro, you can access a symbol containing the conceptual type
 of an instance with the function `kindof` and use the `@dispatch` macro to define functions which can operate differently
 on each kind.
 
@@ -30,7 +28,8 @@ julia> using MixedStructTypes
 
 julia> abstract type AbstractA{X} end
 
-julia> @sum_structs A{X} <: AbstractA{X} begin
+julia>  # default version is :opt_speed
+        @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::X = 1
                b::Float64 = 1.0
@@ -62,10 +61,7 @@ julia> kindof(b)
 
 julia> abstract type AbstractF{X} end
 
-julia> # as you can see, here, all structs are mutable
-       # and all shared fields in different structs have
-       # the same type
-       @compact_structs F{X} <: AbstractF{X} begin
+julia> @sum_structs :opt_memory F{X} <: AbstractF{X} begin
            @kwdef mutable struct G{X}
                a::X = 1
                b::Float64 = 1.0
@@ -222,9 +218,9 @@ julia> @btime sum(x.a for x in $vec_compact);
   1.936 ms (0 allocations: 0 bytes)
 ```
 
-In this case, `@compact_structs` types are almost 15 times faster than `Union` ones, even if they require more than
-double the memory. Whereas, as expected, `@sum_structs` types are less time efficient than `@compact_structs` ones, 
-but the memory usage increase in respect to `Union` types is smaller.
+In this case, `@sum_structs :opt_speed` types are almost 15 times faster than `Union` ones, even if they require more than
+double the memory. Whereas, as expected, `@sum_structs :opt_memory` types are less time efficient, but the memory increase 
+in respect to `Union` types is smaller.
 
 ## Contributing
 

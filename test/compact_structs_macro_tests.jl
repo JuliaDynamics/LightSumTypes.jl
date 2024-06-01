@@ -1,10 +1,10 @@
 
-@compact_structs SingleT1 begin
+@sum_structs SingleT1 begin
     struct ST1 end
 end
 
 abstract type AbstractE{X, Y} end
-@compact_structs E{X<:Real,Y<:Real} <: AbstractE{X, Y} begin
+@sum_structs E{X<:Real,Y<:Real} <: AbstractE{X, Y} begin
     @kwdef mutable struct F{X<:Int}
         a::Tuple{X, X}
         b::Tuple{Float64, Float64}
@@ -24,7 +24,7 @@ abstract type AbstractE{X, Y} end
     end
 end
 
-@compact_structs Animal2{T,N,J} begin
+@sum_structs Animal2{T,N,J} begin
     @kwdef mutable struct Wolf2{T,N}
         energy::T = 0.5
         ground_speed::N
@@ -38,7 +38,7 @@ end
 end
 
 abstract type AbstractSimple2 end
-@compact_structs Simple2 <: AbstractSimple2 begin
+@sum_structs Simple2 <: AbstractSimple2 begin
     struct SimpleA2
         x
         z::Int
@@ -49,7 +49,7 @@ abstract type AbstractSimple2 end
     end
 end
 
-@compact_structs TestOrder2 begin
+@sum_structs TestOrder2 begin
     struct TestOrder21
         x::String
         y::Float64
@@ -61,7 +61,7 @@ end
     end
 end
 
-@compact_structs AA{T} begin
+@sum_structs AA{T} begin
     @kwdef mutable struct BB{T}
         id::Int
         a::T = 1
