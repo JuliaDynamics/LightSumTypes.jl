@@ -1,7 +1,5 @@
 # DynamicSumTypes.jl
 
-## !! This package is in the process to be renamed from MixedStructTypes.jl to DynamicSumTypes.jl !!
-
 [![CI](https://github.com/JuliaDynamics/DynamicSumTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/DynamicSumTypes.jl/actions?query=workflow%3ACI)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/)
 [![codecov](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl)
@@ -24,7 +22,7 @@ on each kind.
 ## Construct mixed structs
 
 ```julia
-julia> using MixedStructTypes
+julia> using DynamicSumTypes
 
 julia> abstract type AbstractA{X} end
 
@@ -164,7 +162,7 @@ Since the macro essentially reconstruct the branching version described above, t
 work correctly when using it, do not define functions operating on the main type of a mixed struct without 
 using the `@dispatch` macro.
 
-Consult the [API page](https://juliadynamics.github.io/MixedStructTypes.jl/stable/) for more information on 
+Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
 the available functionalities.
 
 ## Benchmark against a `Union` of types

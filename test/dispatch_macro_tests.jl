@@ -1,5 +1,5 @@
 
-using MixedStructTypes, Test
+using DynamicSumTypes, Test
 
 @sum_structs X{T1, T2, T3} begin
     struct A1 end
@@ -43,7 +43,7 @@ end
 
 @dispatch g(a::A1, q::Int, c::B1{Int}; s = 1) = 10 + s
 @dispatch g(a::A1, q::Int, c::C1{Int}; s = 1) = 11 + s
-@dispatch g(a::X, q::Int, c::X{MixedStructTypes.Uninitialized, Int}; s = 1) = 12 + s
+@dispatch g(a::X, q::Int, c::X{DynamicSumTypes.Uninitialized, Int}; s = 1) = 12 + s
 
 @dispatch g(a::E1, b::Int, c::D1) = 0
 @dispatch g(a::E1, b::Int, c::E1) = 1
