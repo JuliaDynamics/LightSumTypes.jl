@@ -1,5 +1,5 @@
 
-module MixedStructTypes
+module DynamicSumTypes
 
 using ExprTools
 using MacroTools
