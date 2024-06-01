@@ -22,16 +22,18 @@ julia> @dispatch f(::B) = 2;
 julia> @dispatch f(::Vector{AB}) = 3; # this works 
 
 julia> @dispatch f(::Vector{B}) = 3; # this doesn't work
-ERROR: UndefVarError: `B` not defined
+ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
 Stacktrace:
- [1] top-level scope
-   @ REPL[7]:1
+ ...
 
 julia> f(A(0))
 1
 
 julia> f(B(0))
 2
+
+julia> f([A(0), B(0)])
+3
 ```
 
 """
@@ -39,7 +41,7 @@ macro dispatch(f_def)
     f_sub, f_super_dict, f_cache = _dispatch(f_def)
 
     if f_super_dict == nothing
-        return f_sub
+        return Expr(:toplevel, esc(f_sub))
     end
 
     if __module__ in __modules_cache__
@@ -98,15 +100,21 @@ function _dispatch(f_def)
     f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
     f_args_n = [a isa Symbol ? a : namify(a) for a in f_args_t]
 
-    if !any(a -> a in keys(vtc) || a in values(vtc), f_args_n)
-        return f_def, nothing, nothing
-    end
-
     idxs_mctc = findall(a -> a in values(vtc), f_args_n)
     idxs_mvtc = findall(a -> a in keys(vtc), f_args_n)
 
+    for k in keys(vtc)
+        if any(a -> inexpr(a[2], k) && !(a[1] in idxs_mvtc), enumerate(f_args_t)) 
+            error("It is not possible to dispatch on a variant wrapped in another type")
+        end
+    end
+
     if !isempty(idxs_mctc) && !isempty(idxs_mvtc) 
         error("Dispatching on overall types and variants at the same time is not supported")
+    end
+
+    if !any(a -> a in keys(vtc) || a in values(vtc), f_args_n)
+        return f_def, nothing, nothing
     end
 
     new_arg_types = [vtc[f_args_n[i]] for i in idxs_mvtc]
@@ -164,13 +172,14 @@ function _dispatch(f_def)
         push!(f_args_name, f_args[i].args[1])
     end
 
-    g_args = deepcopy(f_args)
     for i in length(f_args)
         if f_args[i] isa Expr && f_args[i].head == :(::) && length(f_args[i].args) == 1
             push!(f_args[i].args, gensym(:a))
             f_args[i].args[1], f_args[i].args[2] = f_args[i].args[2], f_args[i].args[1]
         end
     end
+    g_args = deepcopy(f_args)
+
     for i in 1:length(f_args)
         a = Symbol("##argv#563487$i")
         if !(g_args[i] isa Symbol)
