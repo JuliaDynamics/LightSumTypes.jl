@@ -102,7 +102,7 @@ using PrecompileTools
         _dispatch(f1, vtc, vtwpc)
         _dispatch(f2, vtc, vtwpc)
         f_sub, f_super_dict, f_cache = _dispatch(f3, vtc, vtwpc)
-        cache = Dict{Symbol, Any}()
+        cache = Dict{Any, Any}()
         cache[:f] = Dict{Any, Any}(f_cache => [f_super_dict])
         generate_defs(parentmodule(@__MODULE__), cache)
     end
