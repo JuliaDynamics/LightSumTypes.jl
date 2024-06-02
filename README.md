@@ -5,19 +5,19 @@
 [![codecov](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
-This package allows to combine multiple heterogeneous types in a single one. This helps to write type-stable code
-by avoiding Union-splitting, which has big performance drawbacks when many types are unionized. A second aim
-of this library is to provide a syntax as similar as possible to standard Julia structs to help integration within
-other libraries. 
+This package allows to combine multiple heterogeneous types in a single one. This helps to write 
+type-stable code by avoiding Union-splitting, which has big performance drawbacks when many types are 
+unionized. A second aim of this library is to provide a syntax as similar as possible to standard Julia 
+structs to help integration within other libraries. 
 
 The `@sum_structs` macro implements two strategies to create a compact representation of the types: 
 the default one merges all fields of each struct in a unique type which is faster in many cases, 
 while the second uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl) under the hood, 
 which is more memory efficient and allows to mix mutable and immutable structs.
 
-Even if there is only a unique type defined by this macro, you can access a symbol containing the conceptual type
-of an instance with the function `kindof` and use the `@dispatch` macro to define functions which can operate differently
-on each kind.
+Even if there is only a unique type defined by this macro, you can access a symbol containing the conceptual 
+type of an instance with the function `kindof` and use the `@dispatch` macro to define functions which 
+can operate differently on each kind.
 
 ## Construct mixed structs
 
@@ -207,13 +207,13 @@ julia> Base.summarysize(vec_sum_speed)
 julia> using BenchmarkTools
 
 julia> @btime sum(x.a for x in $vec_union);
-  26.762 ms (999788 allocations: 15.26 MiB)
+  26.886 ms (999805 allocations: 15.26 MiB)
 
 julia> @btime sum(x.a for x in $vec_sum_memory);
-  7.507 ms (0 allocations: 0 bytes)
+  6.585 ms (0 allocations: 0 bytes)
 
 julia> @btime sum(x.a for x in $vec_sum_speed);
-  1.936 ms (0 allocations: 0 bytes)
+  1.747 ms (0 allocations: 0 bytes)
 ```
 
 In this case, `@sum_structs :opt_speed` types are almost 15 times faster than `Union` ones, even if they require more than
