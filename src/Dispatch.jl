@@ -134,6 +134,7 @@ function _dispatch(f_def, vtc, vtwpc)
             type_abstract = deepcopy(type_abstract)
             type_abstract_args = type_abstract.args[2:end]
             arg_abstract = arg_abstract.args[2:end]
+            arg_abstract = [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in arg_abstract]
             pos_args = []
 
             if y.head == :where 
@@ -141,6 +142,7 @@ function _dispatch(f_def, vtc, vtwpc)
                 y = y.args[1]
             end
             arg_concrete = y.args[2:end]
+
             for x in arg_abstract[1:length(arg_concrete)]
                 j = findfirst(t -> t == x, type_abstract_args)
                 push!(pos_args, j)
