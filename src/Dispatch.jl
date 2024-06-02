@@ -169,7 +169,7 @@ function _dispatch(f_def, vtc, vtwpc)
         push!(f_args_name, f_args[i].args[1])
     end
 
-    for i in length(f_args)
+    for i in 1:length(f_args)
         if f_args[i] isa Expr && f_args[i].head == :(::) && length(f_args[i].args) == 1
             push!(f_args[i].args, gensym(:a))
             f_args[i].args[1], f_args[i].args[2] = f_args[i].args[2], f_args[i].args[1]
