@@ -23,8 +23,7 @@ julia> @dispatch f(::Vector{AB}) = 3; # this works
 
 julia> @dispatch f(::Vector{B}) = 3; # this doesn't work
 ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
-Stacktrace:
- ...
+...
 
 julia> f(A(0))
 1
@@ -35,10 +34,11 @@ julia> f(B(0))
 julia> f([A(0), B(0)])
 3
 ```
-
 """
 macro dispatch(f_def)
-    f_sub, f_super_dict, f_cache = _dispatch(f_def)
+    vtc = __variants_types_cache__[__module__]
+    vtwpc = __variants_types_with_params_cache__[__module__]
+    f_sub, f_super_dict, f_cache = _dispatch(f_def, vtc, vtwpc)
 
     if f_super_dict == nothing
         return Expr(:toplevel, esc(f_sub))
@@ -80,7 +80,7 @@ macro dispatch(f_def)
     return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
 end
 
-function _dispatch(f_def)
+function _dispatch(f_def, vtc, vtwpc)
     macros = []
     while f_def.head == :macrocall
         f_def_comps = rmlines(f_def.args)
@@ -89,9 +89,6 @@ function _dispatch(f_def)
     end
 
     is_arg_no_name(s) = s isa Expr && s.head == :(::) && length(s.args) == 1 
-
-    vtc = __variants_types_cache__
-    vtwpc = __variants_types_with_params_cache__
 
     f_comps = ExprTools.splitdef(f_def; throw=true)
     f_args = f_comps[:args]

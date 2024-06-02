@@ -30,10 +30,12 @@ julia> a.x
 
 """
 macro sum_structs(new_type, struct_defs)
-    return esc(_compact_structs(new_type, struct_defs))
+    vtc = get!(__variants_types_cache__, __module__, Dict{Symbol, Symbol}())
+    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Symbol, Vector{Any}}())
+    return esc(_compact_structs(new_type, struct_defs, vtc, vtwpc))
 end
 
-function _compact_structs(new_type, struct_defs)
+function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     if new_type isa Expr && new_type.head == :(<:)
         new_type, abstract_type = new_type.args
     else
@@ -184,8 +186,8 @@ function _compact_structs(new_type, struct_defs)
         push!(expr_functions, expr_function_args2)
     end
 
-    add_types_to_cache(type_name, types_each)
-    add_types_params_to_cache(expr_params_each, types_each)
+    add_types_to_cache(type_name, types_each, vtc)
+    add_types_params_to_cache(expr_params_each, types_each, vtwpc)
 
     expr_kindof = :(DynamicSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
@@ -364,17 +366,17 @@ function transform_field(x, noncommon_fields)
     end
 end
 
-function add_types_to_cache(type, variants)
+function add_types_to_cache(type, variants, vtc)
     type = namify(type)
     variants = namify.(variants)
     for v in variants
-        __variants_types_cache__[v] = type
+        vtc[v] = type
     end
 end
 
-function add_types_params_to_cache(params, variants)
+function add_types_params_to_cache(params, variants, vtwpc)
     variants_n = namify.(variants)
     for (v1, v2, p) in zip(variants, variants_n, params)
-        __variants_types_with_params_cache__[v2] = [v1, p]
+        vtwpc[v2] = [v1, p]
     end
 end

@@ -1,16 +1,18 @@
 
 
 macro sum_structs(version, type, struct_defs)
+    vtc = get!(__variants_types_cache__, __module__, Dict{Symbol, Symbol}())
+    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Symbol, Vector{Any}}())
     if version == QuoteNode(:opt_speed)
-        return esc(_compact_structs(type, struct_defs))
+        return esc(_compact_structs(type, struct_defs, vtc, vtwpc))
     elseif version == QuoteNode(:opt_memory)
-        return esc(_sum_structs(type, struct_defs))
+        return esc(_sum_structs(type, struct_defs, vtc, vtwpc))
     else
         error("The version of @sum_structs should be either :opt_speed or :opt_memory")
     end
 end
 
-function _sum_structs(type, struct_defs)
+function _sum_structs(type, struct_defs, vtc, vtwpc)
     struct_defs = [x for x in struct_defs.args if !(x isa LineNumberNode)]
 
     struct_defs_new = []
@@ -90,8 +92,8 @@ function _sum_structs(type, struct_defs)
             push!(each_sum_version, sum_t_new)
         end
     end
-    add_types_to_cache(type_name, variants_types)
-    add_types_params_to_cache(each_sum_version, variants_types)
+    add_types_to_cache(type_name, variants_types, vtc)
+    add_types_params_to_cache(each_sum_version, variants_types, vtwpc)
     
     expr_sum_type = :(DynamicSumTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin                        
                           $(variants_defs...)

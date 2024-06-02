@@ -3,6 +3,8 @@ using PrecompileTools
 
 @setup_workload begin
     @compile_workload let
+        vtc = Dict{Symbol, Symbol}()
+        vtwpc = Dict{Symbol, Vector{Any}}()
         type = :(E{X<:Real,Y<:Real} <: AbstractE{X,Y})
         struct_defs = :(begin
                             @kwdef mutable struct F{X<:Int}
@@ -23,8 +25,8 @@ using PrecompileTools
                                 const c::Symbol
                             end
                         end)
-        _compact_structs(type, struct_defs)
-        _sum_structs(type, struct_defs)
+        _compact_structs(type, struct_defs, vtc, vtwpc)
+        _sum_structs(type, struct_defs, vtc, vtwpc)
         type = :(Animal{T,N,J})
         struct_defs = :(begin
                             @kwdef mutable struct Wolf{T,N}
@@ -38,8 +40,8 @@ using PrecompileTools
                                 flight_speed::J
                             end
                         end)
-        _compact_structs(type, struct_defs)
-        _sum_structs(type, struct_defs)
+        _compact_structs(type, struct_defs, vtc, vtwpc)
+        _sum_structs(type, struct_defs, vtc, vtwpc)
         type = :(Simple2 <: AbstractSimple2)
         struct_defs = :(begin
                             struct SimpleA2
@@ -51,8 +53,8 @@ using PrecompileTools
                                 q::String
                             end
                         end)
-        _compact_structs(type, struct_defs)
-        _sum_structs(type, struct_defs)
+        _compact_structs(type, struct_defs, vtc, vtwpc)
+        _sum_structs(type, struct_defs, vtc, vtwpc)
         type = :(TestOrder2)
         struct_defs = :(begin
                             struct TestOrder21
@@ -65,8 +67,8 @@ using PrecompileTools
                                 x::String
                             end
                         end)
-        _compact_structs(type, struct_defs)
-        _sum_structs(type, struct_defs)
+        _compact_structs(type, struct_defs, vtc, vtwpc)
+        _sum_structs(type, struct_defs, vtc, vtwpc)
         type = :(AA{T})
         struct_defs = :(begin
                             @kwdef mutable struct BB{T}
@@ -94,16 +96,14 @@ using PrecompileTools
         f2 = :(f(x::Int, y, z::DD, ::CC) = 3)
         f3 = :(f(x::Int, y, z::Hawk{Int, N, J} where N, ::CC; s = 1) where J = 3)
 
-        _compact_structs(type, struct_defs)
-        _sum_structs(type, struct_defs)
-        _dispatch(f0)
-        _dispatch(f1)
-        _dispatch(f2)
-        _dispatch(f3)
-        generate_defs(Main, __dispatch_cache__)
-
-        empty!(__variants_types_cache__)
-        empty!(__variants_types_with_params_cache__)
-        empty(__dispatch_cache__)
+        _compact_structs(type, struct_defs, vtc, vtwpc)
+        _sum_structs(type, struct_defs, vtc, vtwpc)
+        _dispatch(f0, vtc, vtwpc)
+        _dispatch(f1, vtc, vtwpc)
+        _dispatch(f2, vtc, vtwpc)
+        f_sub, f_super_dict, f_cache = _dispatch(f3, vtc, vtwpc)
+        cache = Dict{Symbol, Any}()
+        cache[:f] = Dict{Any, Any}(f_cache => [f_super_dict])
+        generate_defs(parentmodule(@__MODULE__), cache)
     end
 end
