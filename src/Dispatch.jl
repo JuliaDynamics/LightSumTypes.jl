@@ -53,7 +53,7 @@ macro dispatch(f_def)
 
     if is_first 
         expr_m = :(module Methods_Dispatch_Module_219428042303
-                        const __dispatch_cache__ = Dict{Symbol, Any}()
+                        const __dispatch_cache__ = Dict{Any, Any}()
                         function __init__()
                             define_all()
                         end
