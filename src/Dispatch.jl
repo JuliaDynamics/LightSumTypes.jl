@@ -60,7 +60,8 @@ macro dispatch(f_def)
                         function define_all()
                             mod = parentmodule(@__MODULE__)
                             defs = mod.DynamicSumTypes.generate_defs(mod)
-                            for d in defs
+                            for (d, f_default) in defs
+                                !isdefined(mod, f_default) && Base.eval(mod, :(function $f_default end))
                                 Base.eval(mod, d)
                             end
                             return defs
@@ -316,7 +317,7 @@ function generate_defs(mod, cache)
             for m in ds[end][:macros]
                 new_df = Expr(:macrocall, m, :(), new_df)
             end
-            push!(defs, new_df)
+            push!(defs, [new_df, ds[1][:subcall_default].args[1].args[1]])
         end
     end
     return defs
