@@ -265,9 +265,9 @@ function define_f_super(mod, f_super_dict, f_cache)
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
         never_same = true
-        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Base.eval.(mod, map(x -> x[1], f_cache)))
+        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], f_cache)))
         for sig in keys(cache[f_name])
-            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Base.eval.(mod, map(x -> x[1], sig)))
+            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], sig)))
             same_sig = f_sig == k_sig
             if same_sig
                 same_cond = findfirst(f_prev -> f_prev[:condition] == f_super_dict[:condition], cache[f_name][sig])
