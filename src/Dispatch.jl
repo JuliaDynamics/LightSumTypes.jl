@@ -189,8 +189,10 @@ function _dispatch(f_def, vtc, vtwpc)
         end
     end
 
-    f_args_names = namify.(f_args)
-    g_args_names = namify.(g_args)
+    g_args_names = Any[namify(a) for a in g_args]
+    if g_args[end] isa Expr && namify(g_args[end].args[2]) == :(Vararg)
+        g_args_names[end] = :($(g_args_names[end])...)
+    end
 
     idx_and_variant0 = collect(zip(idxs_mvtc, map(i -> f_args_n[i], idxs_mvtc)))
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))
@@ -208,6 +210,7 @@ function _dispatch(f_def, vtc, vtwpc)
             else
                 f_args_cache[i] = MacroTools.postwalk(s -> s isa Symbol && s == p_n ? :(<:($p_t)) : s, f_args_cache[i])
             end
+            i == length(f_args_cache) && (f_args_cache[i] = MacroTools.postwalk(s -> sub_vararg_any(s), f_args_cache[i]))
         end
     end
     f_args_cache = map(MacroTools.splitarg, f_args_cache)
@@ -244,6 +247,11 @@ function _dispatch(f_def, vtc, vtwpc)
     return f_sub, f_super_dict, f_cache
 end
 
+function sub_vararg_any(s)
+    s isa Symbol && return s
+    length(s.args) != 3 && return s
+    return s.args[1] == :(Vararg) && s.args[3] == :(<:Any) ? :Any : s
+end
 
 function define_f_sub(whereparams, f_comps, all_types_args0, f_args)
     f_sub_dict = Dict{Symbol, Any}()
@@ -265,9 +273,9 @@ function define_f_super(mod, f_super_dict, f_cache)
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
         never_same = true
-        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], f_cache)))
+        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], f_cache)...))))))
         for sig in keys(cache[f_name])
-            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], sig)))
+            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], sig)...))))))
             same_sig = f_sig == k_sig
             if same_sig
                 same_cond = findfirst(f_prev -> f_prev[:condition] == f_super_dict[:condition], cache[f_name][sig])
