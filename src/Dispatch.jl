@@ -256,6 +256,8 @@ function define_f_sub(whereparams, f_comps, all_types_args0, f_args)
     return f_sub_dict
 end
 
+function inspect_sig end
+
 function define_f_super(mod, f_super_dict, f_cache)
     f_name = f_super_dict[:name]
     cache = mod.Methods_Dispatch_Module_219428042303.__dispatch_cache__
@@ -263,8 +265,10 @@ function define_f_super(mod, f_super_dict, f_cache)
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
         never_same = true
+        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], f_cache)))
         for sig in keys(cache[f_name])
-            same_sig = length(f_cache) == length(sig) && all(Base.eval(mod, e1) == Base.eval(mod, e2) for (e1, e2) in zip(sig, f_cache))
+            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, a) for a in map(x -> x[1], sig)))
+            same_sig = f_sig == k_sig
             if same_sig
                 same_cond = findfirst(f_prev -> f_prev[:condition] == f_super_dict[:condition], cache[f_name][sig])
                 same_cond === nothing && push!(cache[f_name][sig], f_super_dict)
