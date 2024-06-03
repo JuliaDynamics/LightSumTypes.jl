@@ -189,8 +189,10 @@ function _dispatch(f_def, vtc, vtwpc)
         end
     end
 
-    f_args_names = namify.(f_args)
-    g_args_names = namify.(g_args)
+    g_args_names = Any[namify(a) for a in g_args]
+    if g_args[end] isa Expr && namify(g_args[end].args[2]) == :(Vararg)
+        g_args_names[end] = :($(g_args_names[end])...)
+    end
 
     idx_and_variant0 = collect(zip(idxs_mvtc, map(i -> f_args_n[i], idxs_mvtc)))
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))

@@ -45,6 +45,9 @@ end
 @dispatch g(a::A1, q::Int, c::C1{Int}; s = 1) = 11 + s
 @dispatch g(a::X, q::Int, c::X{DynamicSumTypes.Uninitialized, Int}; s = 1) = 12 + s
 
+@dispatch g(x::X, q::Vararg{Int, 2}) = 1000
+@dispatch g(x::A1, q::Vararg{Int, 2}) = 1001
+
 @dispatch g(a::E1, b::Int, c::D1) = 0
 @dispatch g(a::E1, b::Int, c::E1) = 1
 @dispatch g(a::E1, b::Int, c::F1) = 2
@@ -78,6 +81,10 @@ Methods_Dispatch_Module_219428042303.define_all()
     @test g(c3, 1, c3) == 13
     @test g(a, 1, c3) == 12
     @test g(a, 1, b3) == 11
+
+    @test g(a, 1, 1) == 1001
+    @test g(b1, 1, 1) == 1000
+    @test g(c, 1, 1) == 1000
 
     d, e1, e2, f = D1(), E1(1, 1), E1(1.0, 1.0), F1(1)
 
