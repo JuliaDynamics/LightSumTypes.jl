@@ -6,7 +6,7 @@ using MacroTools
 using SumTypes
 
 export @sum_structs
-export @dispatch
+export @pattern
 export kindof
 export allkinds
 export kindconstructor
@@ -73,7 +73,7 @@ function kindconstructor end
 
 include("SumStructsSpeed.jl")
 include("SumStructsMem.jl")
-include("Dispatch.jl")
+include("Pattern.jl")
 include("precompile.jl")
 
 end

@@ -1,8 +1,8 @@
 
 """
-    @dispatch(function_definition)
+    @pattern(function_definition)
 
-This macro allows to dispatch on types created by [`@sum_structs`](@ref). 
+This macro allows to pattern on types created by [`@sum_structs`](@ref). 
 
 Notice that this only works when the kinds in the macro are not wrapped 
 by any type containing them.
@@ -15,14 +15,14 @@ julia> @sum_structs AB begin
            struct B y::Int end
        end
 
-julia> @dispatch f(::A) = 1;
+julia> @pattern f(::A) = 1;
 
-julia> @dispatch f(::B) = 2;
+julia> @pattern f(::B) = 2;
 
-julia> @dispatch f(::Vector{AB}) = 3; # this works 
+julia> @pattern f(::Vector{AB}) = 3; # this works 
 
-julia> @dispatch f(::Vector{B}) = 3; # this doesn't work
-ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
+julia> @pattern f(::Vector{B}) = 3; # this doesn't work
+ERROR: LoadError: It is not possible to pattern on a variant wrapped in another type
 ...
 
 julia> f(A(0))
@@ -35,10 +35,10 @@ julia> f([A(0), B(0)])
 3
 ```
 """
-macro dispatch(f_def)
+macro pattern(f_def)
     vtc = __variants_types_cache__[__module__]
     vtwpc = __variants_types_with_params_cache__[__module__]
-    f_sub, f_super_dict, f_cache = _dispatch(f_def, vtc, vtwpc)
+    f_sub, f_super_dict, f_cache = _pattern(f_def, vtc, vtwpc)
 
     if f_super_dict == nothing
         return Expr(:toplevel, esc(f_sub))
@@ -52,8 +52,8 @@ macro dispatch(f_def)
     end
 
     if is_first 
-        expr_m = :(module Methods_Dispatch_Module_219428042303
-                        const __dispatch_cache__ = Dict{Any, Any}()
+        expr_m = :(module Methods_Pattern_Module_219428042303
+                        const __pattern_cache__ = Dict{Any, Any}()
                         function __init__()
                             define_all()
                         end
@@ -73,7 +73,7 @@ macro dispatch(f_def)
     expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        Methods_Dispatch_Module_219428042303.define_all()
+                        Methods_Pattern_Module_219428042303.define_all()
                         $(f_super_dict[:name])
                     end
                 end
@@ -81,7 +81,7 @@ macro dispatch(f_def)
     return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
 end
 
-function _dispatch(f_def, vtc, vtwpc)
+function _pattern(f_def, vtc, vtwpc)
     macros = []
     while f_def.head == :macrocall
         f_def_comps = rmlines(f_def.args)
@@ -103,12 +103,12 @@ function _dispatch(f_def, vtc, vtwpc)
 
     for k in keys(vtc)
         if any(a -> inexpr(a[2], k) && !(a[1] in idxs_mvtc), enumerate(f_args_t)) 
-            error("It is not possible to dispatch on a variant wrapped in another type")
+            error("It is not possible to pattern on a variant wrapped in another type")
         end
     end
 
     if !isempty(idxs_mctc) && !isempty(idxs_mvtc) 
-        error("Dispatching on overall types and variants at the same time is not supported")
+        error("Using `@pattern` with signatures containing sum types and variants at the same time is not supported")
     end
 
     if !any(a -> a in keys(vtc) || a in values(vtc), f_args_n)
@@ -241,7 +241,7 @@ function _dispatch(f_def, vtc, vtwpc)
     f_super_dict[:macros] = macros
     f_super_dict[:condition] = new_cond
     f_super_dict[:subcall] = :(return $(f_sub_dict[:name])($(g_args_names...)))
-    f_sub_name_default = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args1))..., :_, length(f_args))
+    f_sub_name_default = Symbol(Symbol("##"), f_comps[:name], :_, collect(Iterators.flatten(all_types_args1))...)
     f_super_dict[:subcall_default] = :(return $(f_sub_name_default)($(g_args_names...)))
 
     return f_sub, f_super_dict, f_cache
@@ -255,7 +255,7 @@ end
 
 function define_f_sub(whereparams, f_comps, all_types_args0, f_args)
     f_sub_dict = Dict{Symbol, Any}()
-    f_sub_name = Symbol(f_comps[:name], :_sub_, collect(Iterators.flatten(all_types_args0))..., :_, length(f_args))
+    f_sub_name = Symbol(Symbol("##"), f_comps[:name], :_, collect(Iterators.flatten(all_types_args0))...)
     f_sub_dict[:name] = f_sub_name
     f_sub_dict[:args] = f_args
     f_sub_dict[:kwargs] = :kwargs in keys(f_comps) ? f_comps[:kwargs] : []
@@ -268,7 +268,7 @@ function inspect_sig end
 
 function define_f_super(mod, f_super_dict, f_cache)
     f_name = f_super_dict[:name]
-    cache = mod.Methods_Dispatch_Module_219428042303.__dispatch_cache__
+    cache = mod.Methods_Pattern_Module_219428042303.__pattern_cache__
     if !(f_name in keys(cache))
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
@@ -291,7 +291,7 @@ function define_f_super(mod, f_super_dict, f_cache)
 end
 
 function generate_defs(mod)
-    cache = mod.Methods_Dispatch_Module_219428042303.__dispatch_cache__
+    cache = mod.Methods_Pattern_Module_219428042303.__pattern_cache__
     return generate_defs(mod, cache)
 end
 
@@ -302,9 +302,9 @@ function generate_defs(mod, cache)
             new_d = Dict{Symbol, Any}()
             new_d[:args] = ds[end][:args]
             new_d[:name] = ds[end][:name]
-            !allequal(d[:whereparams] for d in ds) && error("Parameters in where {...} should be the same for all @dispatch methods with same signature")
+            !allequal(d[:whereparams] for d in ds) && error("Parameters in where {...} should be the same for all @pattern methods with same signature")
             new_d[:whereparams] = ds[end][:whereparams]
-            !allequal(d[:kwargs] for d in ds) && error("Keyword arguments should be the same for all @dispatch methods with same signature")
+            !allequal(d[:kwargs] for d in ds) && error("Keyword arguments should be the same for all @pattern methods with same signature")
             new_d[:kwargs] = ds[end][:kwargs]
             default = findfirst(d -> d[:condition] == nothing, ds)
             subcall_default = nothing
@@ -327,7 +327,7 @@ function generate_defs(mod, cache)
             end
             new_d[:body] = quote $body end
             new_df = mod.DynamicSumTypes.ExprTools.combinedef(new_d)
-            !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @dispatch methods with same signature")
+            !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @pattern methods with same signature")
             for m in ds[end][:macros]
                 new_df = Expr(:macrocall, m, :(), new_df)
             end

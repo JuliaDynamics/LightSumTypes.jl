@@ -34,41 +34,41 @@ end
     end
 end
 
-@dispatch g(x::X, q, a::X) = -10
-@dispatch g(x::B1, q, a::A1) = -1
-@dispatch g(x::B1, q::Int, a::A1) = 0
-@dispatch g(x::B1, q::Int, b::B1) = 1
-@dispatch g(x::B1, q::Int, c::C1) = 2
-@dispatch g(a::A1, q::Int, c::B1) = 3
+@pattern g(x::X, q, a::X) = -10
+@pattern g(x::B1, q, a::A1) = -1
+@pattern g(x::B1, q::Int, a::A1) = 0
+@pattern g(x::B1, q::Int, b::B1) = 1
+@pattern g(x::B1, q::Int, c::C1) = 2
+@pattern g(a::A1, q::Int, c::B1) = 3
 
-@dispatch g(a::A1, q::Int, c::B1{Int}; s = 1) = 10 + s
-@dispatch g(a::A1, q::Int, c::C1{Int}; s = 1) = 11 + s
-@dispatch g(a::X, q::Int, c::X{DynamicSumTypes.Uninitialized, Int}; s = 1) = 12 + s
+@pattern g(a::A1, q::Int, c::B1{Int}; s = 1) = 10 + s
+@pattern g(a::A1, q::Int, c::C1{Int}; s = 1) = 11 + s
+@pattern g(a::X, q::Int, c::X{DynamicSumTypes.Uninitialized, Int}; s = 1) = 12 + s
 
-@dispatch g(x::X, q::Vararg{Int, 2}) = 1000
-@dispatch g(x::A1, q::Vararg{Int, 2}) = 1001
+@pattern g(x::X, q::Vararg{Int, 2}) = 1000
+@pattern g(x::A1, q::Vararg{Int, 2}) = 1001
 
-@dispatch g(x::X, q::Vararg{Any, N}) where N = 2000
-@dispatch g(x::A1, q::Vararg{Any, N}) where N = 2001
+@pattern g(x::X, q::Vararg{Any, N}) where N = 2000
+@pattern g(x::A1, q::Vararg{Any, N}) where N = 2001
 
-@dispatch g(a::E1, b::Int, c::D1) = 0
-@dispatch g(a::E1, b::Int, c::E1) = 1
-@dispatch g(a::E1, b::Int, c::F1) = 2
-@dispatch g(a::D1, b::Int, c::E1) = 3
-@dispatch g(a::E1, b::Int, c::F1) = 4
+@pattern g(a::E1, b::Int, c::D1) = 0
+@pattern g(a::E1, b::Int, c::E1) = 1
+@pattern g(a::E1, b::Int, c::F1) = 2
+@pattern g(a::D1, b::Int, c::E1) = 3
+@pattern g(a::E1, b::Int, c::F1) = 4
 
-@dispatch g(a::B1, b::Int, c::Vector{<:X}) = c
+@pattern g(a::B1, b::Int, c::Vector{<:X}) = c
 
-@dispatch g(a::H1{Int}, b::G1{Int}, c::I1{Int}) = a.a + c.b
-@dispatch g(a::G1{Int}, b::G1{Int}, c::I1{Int}) = c.b
-@dispatch g(a::H1{Float64}, b::G1{Float64}, c::I1{Float64}) = a.a
-@dispatch g(a::X, q::Int, c::X{Int}; s = 1) = 12 + s
+@pattern g(a::H1{Int}, b::G1{Int}, c::I1{Int}) = a.a + c.b
+@pattern g(a::G1{Int}, b::G1{Int}, c::I1{Int}) = c.b
+@pattern g(a::H1{Float64}, b::G1{Float64}, c::I1{Float64}) = a.a
+@pattern g(a::X, q::Int, c::X{Int}; s = 1) = 12 + s
 
-@dispatch t(::A1) = 100
+@pattern t(::A1) = 100
 
-Methods_Dispatch_Module_219428042303.define_all()
+Methods_Pattern_Module_219428042303.define_all()
 
-@testset "@dispatch" begin
+@testset "@pattern" begin
     
     a, b1, b2, c = A1(), B1(0.0, 0.0), B1(1.0, 1.0), C1(1.0)
 

@@ -16,7 +16,7 @@ while the second uses [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl)
 which is more memory efficient and allows to mix mutable and immutable structs.
 
 Even if there is only a unique type defined by this macro, you can access a symbol containing the conceptual 
-type of an instance with the function `kindof` and use the `@dispatch` macro to define functions which 
+type of an instance with the function `kindof` and use the `@pattern` macro to define functions which 
 can operate differently on each kind.
 
 ## Construct mixed structs
@@ -96,7 +96,7 @@ There are currently two ways to define function on the types created
 with this package:
 
 - Use manual branching;
-- Use the `@dispatch` macro.
+- Use the `@pattern` macro.
 
 For example, let's say we want to create a sum function where different values are added
 depending on the kind of each element in a vector:
@@ -131,7 +131,7 @@ julia> value_D() = 3;
 
 julia> value_E() = 4;
 
-julia> function sum2(v) # with @dispatch macro
+julia> function sum2(v) # with @pattern macro
            s = 0
            for x in v
                s += value(x)
@@ -140,13 +140,13 @@ julia> function sum2(v) # with @dispatch macro
        end
 sum2 (generic function with 1 method)
 
-julia> @dispatch value(::B) = 1;
+julia> @pattern value(::B) = 1;
 
-julia> @dispatch value(::C) = 2;
+julia> @pattern value(::C) = 2;
 
-julia> @dispatch value(::D) = 3;
+julia> @pattern value(::D) = 3;
 
-julia> @dispatch value(::E) = 4;
+julia> @pattern value(::E) = 4;
 
 julia> sum1(v)
 2499517
@@ -155,12 +155,12 @@ julia> sum2(v)
 2499517
 ```
 
-As you can see the version using the `@dispatch` macro is much less verbose and more intuitive. In some more
+As you can see the version using the `@pattern` macro is much less verbose and more intuitive. In some more
 advanced cases the verbosity of the first approach could be even stronger. 
 
 Since the macro essentially reconstruct the branching version described above, to ensure that everything will 
 work correctly when using it, do not define functions operating on the main type of a mixed struct without 
-using the `@dispatch` macro.
+using the `@pattern` macro.
 
 Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
 the available functionalities.

@@ -2,7 +2,7 @@
 
 ```@docs
 @sum_structs
-@dispatch
+@pattern
 kindof
 allkinds
 kindconstructor
