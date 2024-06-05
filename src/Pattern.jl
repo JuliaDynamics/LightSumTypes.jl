@@ -22,7 +22,7 @@ julia> @pattern f(::B) = 2;
 julia> @pattern f(::Vector{AB}) = 3; # this works 
 
 julia> @pattern f(::Vector{B}) = 3; # this doesn't work
-ERROR: LoadError: It is not possible to pattern on a variant wrapped in another type
+ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
 ...
 
 julia> f(A(0))
@@ -103,7 +103,7 @@ function _pattern(f_def, vtc, vtwpc)
 
     for k in keys(vtc)
         if any(a -> inexpr(a[2], k) && !(a[1] in idxs_mvtc), enumerate(f_args_t)) 
-            error("It is not possible to pattern on a variant wrapped in another type")
+            error("It is not possible to dispatch on a variant wrapped in another type")
         end
     end
 

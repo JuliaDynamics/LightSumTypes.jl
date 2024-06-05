@@ -102,19 +102,17 @@ For example, let's say we want to create a sum function where different values a
 depending on the kind of each element in a vector:
 
 ```julia
-julia> v = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
-
 julia> function sum1(v) # with manual branching
            s = 0
            for x in v
                if kindof(x) === :B
-                   s += value_B()
+                   s += value_B(1)
                elseif kindof(x) === :C
-                   s += value_C()
+                   s += value_C(1)
                elseif kindof(x) === :D
-                   s += value_D()
+                   s += value_D(1)
                elseif kindof(x) === :E
-                   s += value_E()
+                   s += value_E(1)
                else
                    error()
                end
@@ -123,30 +121,32 @@ julia> function sum1(v) # with manual branching
        end
 sum1 (generic function with 1 method)
 
-julia> value_B() = 1;
+julia> value_B(k::Int) = k + 1;
 
-julia> value_C() = 2;
+julia> value_C(k::Int) = k + 2;
 
-julia> value_D() = 3;
+julia> value_D(k::Int) = k + 3;
 
-julia> value_E() = 4;
+julia> value_E(k::Int) = k + 4;
 
 julia> function sum2(v) # with @pattern macro
            s = 0
            for x in v
-               s += value(x)
+               s += value(1, x)
            end
            return s
        end
 sum2 (generic function with 1 method)
 
-julia> @pattern value(::B) = 1;
+julia> @pattern value(k::Int, ::B) = k + 1;
 
-julia> @pattern value(::C) = 2;
+julia> @pattern value(k::Int, ::C) = k + 2;
 
-julia> @pattern value(::D) = 3;
+julia> @pattern value(k::Int, ::D) = k + 3;
 
-julia> @pattern value(::E) = 4;
+julia> @pattern value(k::Int, ::E) = k + 4;
+
+julia> v = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 
 julia> sum1(v)
 2499517
