@@ -7,8 +7,10 @@
 
 This package allows to combine multiple heterogeneous types in a single one. This helps to write 
 type-stable code by avoiding Union-splitting, which has big performance drawbacks when many types are 
-unionized. A second aim of this library is to provide a syntax as similar as possible to standard Julia 
-structs to help integration within other libraries. 
+unionized. 
+
+Another aim of this library is to provide a syntax as similar as possible to standard Julia 
+structs to facilitate its integration within other libraries. 
 
 The `@sum_structs` macro implements two strategies to create a compact representation of the types: 
 the default one merges all fields of each struct in a unique type which is faster in many cases, 
