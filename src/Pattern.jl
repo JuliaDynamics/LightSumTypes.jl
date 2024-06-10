@@ -225,7 +225,7 @@ function _pattern(f_def, vtc, vtwpc)
     f_super_dict[:name] = f_comps[:name]
     f_super_dict[:args] = g_args
 
-    a_cond = [:(kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
+    a_cond = [:(DynamicSumTypes.kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
     new_cond = nothing
     if length(a_cond) == 1
         new_cond = a_cond[1]
