@@ -198,13 +198,13 @@ julia> vec_sum_memory = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
 julia> vec_sum_speed = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_union)
-21997856
+22003112
 
 julia> Base.summarysize(vec_sum_memory)
-28868832
+30004176
 
 julia> Base.summarysize(vec_sum_speed)
-49924817
+48000040
 
 julia> using BenchmarkTools
 
