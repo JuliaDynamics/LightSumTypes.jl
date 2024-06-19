@@ -12,7 +12,7 @@ using DynamicSumTypes, Test
     end
 end
 
-@sum_structs :opt_memory Y{T1, T2, T3} begin
+@sum_structs :on_types Y{T1, T2, T3} begin
     struct D1 end
     struct E1{T1, T3}
         a::T1 
@@ -23,7 +23,7 @@ end
     end
 end
 
-@sum_structs :opt_speed Z{T1, T2, T3} begin
+@sum_structs :on_fields Z{T1, T2, T3} begin
     struct G1{T1, T2, T3} end
     struct H1{T1, T2, T3}
         a::T1 
@@ -66,7 +66,7 @@ end
 
 @pattern t(::A1) = 100
 
-Methods_Pattern_Module_219428042303.define_all()
+define_pattern_functions()
 
 @testset "@pattern" begin
     

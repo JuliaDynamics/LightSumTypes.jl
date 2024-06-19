@@ -3,12 +3,12 @@
 macro sum_structs(version, type, struct_defs)
     vtc = get!(__variants_types_cache__, __module__, Dict{Symbol, Symbol}())
     vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Symbol, Vector{Any}}())
-    if version == QuoteNode(:opt_speed)
+    if version == QuoteNode(:on_fields)
         return esc(_compact_structs(type, struct_defs, vtc, vtwpc))
-    elseif version == QuoteNode(:opt_memory)
+    elseif version == QuoteNode(:on_types)
         return esc(_sum_structs(type, struct_defs, vtc, vtwpc))
     else
-        error("The version of @sum_structs should be either :opt_speed or :opt_memory")
+        error("The version of @sum_structs should be either :on_fields or :on_types")
     end
 end
 

@@ -21,14 +21,14 @@ Even if there is only a unique type defined by this macro, you can access a symb
 type of an instance with the function `kindof` and use the `@pattern` macro to define functions which 
 can operate differently on each kind.
 
-## Construct mixed structs
+## Construct mixed types
 
 ```julia
 julia> using DynamicSumTypes
 
 julia> abstract type AbstractA{X} end
 
-julia>  # default version is :opt_speed
+julia>  # default version is :on_fields
         @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::X = 1
@@ -61,7 +61,7 @@ julia> kindof(b)
 
 julia> abstract type AbstractF{X} end
 
-julia> @sum_structs :opt_memory F{X} <: AbstractF{X} begin
+julia> @sum_structs :on_types F{X} <: AbstractF{X} begin
            @kwdef mutable struct G{X}
                a::X = 1
                b::Float64 = 1.0
@@ -92,7 +92,7 @@ julia> kindof(g)
 :G
 ```
 
-## Define functions on the mixed structs
+## Define functions on the mixed types
 
 There are currently two ways to define function on the types created 
 with this package:
@@ -158,10 +158,11 @@ julia> sum2(v)
 ```
 
 As you can see the version using the `@pattern` macro is much less verbose and more intuitive. In some more
-advanced cases the verbosity of the first approach could be even stronger. 
+advanced cases the verbosity of the first approach could be even stronger. If you use it in a package you
+will need to 
 
 Since the macro essentially reconstruct the branching version described above, to ensure that everything will 
-work correctly when using it, do not define functions operating on the main type of a mixed struct without 
+work correctly when using it, do not define functions operating on the main type of some variants without 
 using the `@pattern` macro.
 
 Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
@@ -193,17 +194,17 @@ julia> @kwdef mutable struct P{X}
 
 julia> vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
 
-julia> vec_sum_memory = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
+julia> vec_sum_on_types = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
 
-julia> vec_sum_speed = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+julia> vec_sum_on_fields = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
 
 julia> Base.summarysize(vec_union)
 22003112
 
-julia> Base.summarysize(vec_sum_memory)
+julia> Base.summarysize(vec_sum_on_types)
 30004176
 
-julia> Base.summarysize(vec_sum_speed)
+julia> Base.summarysize(vec_sum_on_fields)
 48000040
 
 julia> using BenchmarkTools
@@ -211,15 +212,15 @@ julia> using BenchmarkTools
 julia> @btime sum(x.a for x in $vec_union);
   26.886 ms (999805 allocations: 15.26 MiB)
 
-julia> @btime sum(x.a for x in $vec_sum_memory);
+julia> @btime sum(x.a for x in $vec_sum_on_types);
   6.585 ms (0 allocations: 0 bytes)
 
-julia> @btime sum(x.a for x in $vec_sum_speed);
+julia> @btime sum(x.a for x in $vec_sum_on_fields);
   1.747 ms (0 allocations: 0 bytes)
 ```
 
-In this case, `@sum_structs :opt_speed` types are almost 15 times faster than `Union` ones, even if they require more than
-double the memory. Whereas, as expected, `@sum_structs :opt_memory` types are less time efficient, but the memory increase 
+In this case, `@sum_structs :on_fields` types are almost 15 times faster than `Union` ones, even if they require more than
+double the memory. Whereas, as expected, `@sum_structs :on_types` types are less time efficient, but the memory increase 
 in respect to `Union` types is smaller.
 
 ## Contributing

@@ -52,28 +52,27 @@ macro pattern(f_def)
     end
 
     if is_first 
-        expr_m = :(module Methods_Pattern_Module_219428042303
-                        const __pattern_cache__ = Dict{Any, Any}()
-                        function __init__()
-                            define_all()
-                        end
-                        function define_all()
-                            mod = parentmodule(@__MODULE__)
-                            defs = mod.DynamicSumTypes.generate_defs(mod)
-                            for (d, f_default) in defs
-                                !isdefined(mod, f_default) && Base.eval(mod, :(function $f_default end))
-                                Base.eval(mod, d)
-                            end
-                            return defs
-                        end
-                    end)
+        expr_m = quote 
+                     const __pattern_cache__ = Dict{Any, Any}()
+                     function define_pattern_functions(fs = :all)
+                         mod = @__MODULE__
+                         defs = mod.DynamicSumTypes.generate_defs(mod)
+                         for (d, f_default) in defs
+                             if fs == :all || d[:name] in fs
+                                 !isdefined(mod, f_default) && eval(:(function $f_default end))
+                                 eval(d)
+                             end
+                         end
+                         return defs
+                     end
+                 end
     else
         expr_m = :()
     end
     expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        Methods_Pattern_Module_219428042303.define_all()
+                        define_pattern_functions([:($f_super_dict[:name])])
                         $(f_super_dict[:name])
                     end
                 end
@@ -268,7 +267,7 @@ function inspect_sig end
 
 function define_f_super(mod, f_super_dict, f_cache)
     f_name = f_super_dict[:name]
-    cache = mod.Methods_Pattern_Module_219428042303.__pattern_cache__
+    cache = mod.__pattern_cache__
     if !(f_name in keys(cache))
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
@@ -291,7 +290,8 @@ function define_f_super(mod, f_super_dict, f_cache)
 end
 
 function generate_defs(mod)
-    cache = mod.Methods_Pattern_Module_219428042303.__pattern_cache__
+    println(mod)
+    cache = mod.__pattern_cache__
     return generate_defs(mod, cache)
 end
 

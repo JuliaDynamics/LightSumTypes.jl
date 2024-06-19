@@ -9,9 +9,9 @@ const uninit = Uninitialized()
     end
 
 This macro allows to combine multiple types in a single one. 
-The default version is `:opt_speed` which has been built to yield 
+The default version is `:on_fields` which has been built to yield 
 a performance almost identical to having just one type. Using
-`:opt_memory` consumes less memory at the cost of being a bit slower.
+`:on_types` consumes less memory at the cost of being a bit slower.
 
 ## Example
 
@@ -63,7 +63,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
         push!(is_mutable, x.args[1])
     end
     if !allequal(is_mutable)
-        return error("`@sum_structs :opt_speed` does not accept mixing mutable and immutable structs.")
+        return error("`@sum_structs :on_fields` does not accept mixing mutable and immutable structs.")
     end
     is_mutable = all(x -> x == true, is_mutable)
     types_each, fields_each, default_each = [], [], []
