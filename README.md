@@ -158,12 +158,15 @@ julia> sum2(v)
 ```
 
 As you can see the version using the `@pattern` macro is much less verbose and more intuitive. In some more
-advanced cases the verbosity of the first approach could be even stronger. If you use it in a package you
-will need to 
+advanced cases the verbosity of the first approach could be even stronger.
 
 Since the macro essentially reconstruct the branching version described above, to ensure that everything will 
 work correctly when using it, do not define functions operating on the main type of some variants without 
-using the `@pattern` macro.
+using the `@pattern` macro. 
+
+Also, if you use it in a package you will need to use `define_pattern_functions()` at some point to make sure 
+that the functions using the macro are defined, usually you will only need one invocation after all the rest 
+of the code.
 
 Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
 the available functionalities.

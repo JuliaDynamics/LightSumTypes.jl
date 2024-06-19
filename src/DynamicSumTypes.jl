@@ -71,6 +71,19 @@ A
 """
 function kindconstructor end
 
+"""
+    define_pattern_functions()
+
+When `@pattern` is used inside a module, it is needed
+to define at some points all the functions it constructed,
+this is done by invoking `define_pattern_functions`.
+
+If you don't need to call any of them before the functions 
+are imported, you can just put this invocation at the end of
+the module. 
+"""
+function define_pattern_functions end
+
 include("SumStructsSpeed.jl")
 include("SumStructsMem.jl")
 include("Pattern.jl")
