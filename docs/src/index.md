@@ -3,8 +3,8 @@
 ```@docs
 @sum_structs
 @pattern
+@finalize_patterns
 kindof
-DynamicSumTypes.finalize_patterns
 allkinds
 kindconstructor
 ```

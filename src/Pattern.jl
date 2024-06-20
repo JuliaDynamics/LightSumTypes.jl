@@ -55,20 +55,6 @@ macro pattern(f_def)
         expr_m = quote 
                      const __pattern_cache__ = Dict{Any, Any}()
                      const __finalized_methods_cache__ = Set{Expr}()
-                     function finalize_patterns()
-                         mod = @__MODULE__
-                         defs = mod.DynamicSumTypes.generate_defs(mod)
-                         for (d, f_default) in defs
-                             if d in mod.__finalized_methods_cache__
-                                 continue
-                             else
-                                 !isdefined(mod, f_default) && eval(:(function $f_default end))
-                                 push!(mod.__finalized_methods_cache__, d)
-                                 eval(d)
-                             end
-                         end
-                         return defs
-                     end
                  end
     else
         expr_m = :()
@@ -76,11 +62,10 @@ macro pattern(f_def)
     expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        finalize_patterns()
+                        @finalize_patterns
                         $(f_super_dict[:name])
                     end
                 end
-
     return Expr(:toplevel, esc(f_sub), esc(expr_m), esc(expr_d), esc(expr_fire))
 end
 
@@ -338,4 +323,37 @@ function generate_defs(mod, cache)
         end
     end
     return defs
+end
+
+"""
+    finalize_patterns()
+
+When `@pattern` is used inside a module or a script, it is 
+needed to define at some points all the functions it constructed.
+this can be done by invoking `finalize_patterns()`.
+
+If you don't need to call any of them before the functions 
+are imported, you can just put this invocation at the end of
+the module. 
+
+Notice that every `Module` using `@pattern` has its own definition of 
+`finalize_patterns`.
+"""
+macro finalize_patterns()
+    quote
+        defs = DynamicSumTypes.generate_defs($__module__)
+        for (d, f_default) in defs
+            if d in $__module__.__finalized_methods_cache__
+                continue
+            else
+                !isdefined($__module__, f_default) && eval(:(function $f_default end))
+                push!($__module__.__finalized_methods_cache__, d)
+                $__module__.DynamicSumTypes.evaluate_func($__module__, d)
+            end
+        end
+    end
+end
+
+function evaluate_func(mod, d)
+    @eval mod $d
 end
