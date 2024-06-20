@@ -54,14 +54,19 @@ macro pattern(f_def)
     if is_first 
         expr_m = quote 
                      const __pattern_cache__ = Dict{Any, Any}()
+                     const __finalized_methods_cache__ = Set{Expr}()
                      function finalize_patterns()
                          mod = @__MODULE__
                          defs = mod.DynamicSumTypes.generate_defs(mod)
                          for (d, f_default) in defs
-                             !isdefined(mod, f_default) && eval(:(function $f_default end))
-                             eval(d)
+                             if d in mod.__finalized_methods_cache__
+                                 continue
+                             else
+                                 !isdefined(mod, f_default) && eval(:(function $f_default end))
+                                 push!(mod.__finalized_methods_cache__, d)
+                                 eval(d)
+                             end
                          end
-                         !isinteractive() && empty!(mod.__pattern_cache__)
                          return defs
                      end
                  end
