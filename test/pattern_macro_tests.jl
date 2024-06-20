@@ -66,7 +66,7 @@ end
 
 @pattern t(::A1) = 100
 
-define_pattern_functions()
+finalize_patterns()
 
 @testset "@pattern" begin
     

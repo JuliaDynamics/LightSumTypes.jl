@@ -164,7 +164,7 @@ Since the macro essentially reconstruct the branching version described above, t
 work correctly when using it, do not define functions operating on the main type of some variants without 
 using the `@pattern` macro. 
 
-Also, if you use it in a package you will need to use `define_pattern_functions()` at some point to make sure 
+Also, if you use it in a package you will need to use `finalize_patterns()` at some point to make sure 
 that the functions using the macro are defined, usually you will only need one invocation after all the rest 
 of the code.
 

@@ -54,7 +54,7 @@ macro pattern(f_def)
     if is_first 
         expr_m = quote 
                      const __pattern_cache__ = Dict{Any, Any}()
-                     function define_pattern_functions()
+                     function finalize_patterns()
                          mod = @__MODULE__
                          defs = mod.DynamicSumTypes.generate_defs(mod)
                          for (d, f_default) in defs
@@ -71,7 +71,7 @@ macro pattern(f_def)
     expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        define_pattern_functions()
+                        finalize_patterns()
                         $(f_super_dict[:name])
                     end
                 end

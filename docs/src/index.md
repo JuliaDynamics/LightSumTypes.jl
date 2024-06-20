@@ -4,7 +4,7 @@
 @sum_structs
 @pattern
 kindof
-define_pattern_functions
+finalize_patterns
 allkinds
 kindconstructor
 ```

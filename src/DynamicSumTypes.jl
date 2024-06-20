@@ -72,20 +72,20 @@ A
 function kindconstructor end
 
 """
-    define_pattern_functions()
+    finalize_patterns()
 
 When `@pattern` is used inside a module, it is needed
 to define at some points all the functions it constructed,
-this is done by invoking `define_pattern_functions`.
+this is done by invoking `finalize_patterns`.
 
 If you don't need to call any of them before the functions 
 are imported, you can just put this invocation at the end of
 the module. 
 """
-function define_pattern_functions end
+function finalize_patterns end
 
-include("SumStructsSpeed.jl")
-include("SumStructsMem.jl")
+include("SumStructsOnFields.jl")
+include("SumStructsOnTypes.jl")
 include("Pattern.jl")
 include("precompile.jl")
 
