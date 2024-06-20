@@ -7,6 +7,7 @@ using SumTypes
 
 export @sum_structs
 export @pattern
+export @finalize_patterns
 export kindof
 export allkinds
 export kindconstructor
@@ -70,19 +71,6 @@ A
 ```
 """
 function kindconstructor end
-
-"""
-    finalize_patterns()
-
-When `@pattern` is used inside a module, it is needed
-to define at some points all the functions it constructed,
-this is done by invoking `finalize_patterns`.
-
-If you don't need to call any of them before the functions 
-are imported, you can just put this invocation at the end of
-the module. 
-"""
-function finalize_patterns end
 
 include("SumStructsOnFields.jl")
 include("SumStructsOnTypes.jl")

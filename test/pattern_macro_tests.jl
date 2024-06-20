@@ -64,9 +64,11 @@ end
 @pattern g(a::H1{Float64}, b::G1{Float64}, c::I1{Float64}) = a.a
 @pattern g(a::X, q::Int, c::X{Int}; s = 1) = 12 + s
 
+@finalize_patterns
+
 @pattern t(::A1) = 100
 
-finalize_patterns()
+@finalize_patterns
 
 @testset "@pattern" begin
     
