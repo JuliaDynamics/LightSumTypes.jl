@@ -82,12 +82,18 @@ function _pattern(f_def, vtc, vtwpc)
     f_comps = ExprTools.splitdef(f_def; throw=true)
     f_args = f_comps[:args]
     f_args = [x isa Symbol ? :($x::Any) : x for x in f_args]
-    
+
     f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
-    f_args_n = [a isa Symbol ? a : namify(a) for a in f_args_t]
+    f_args_n = [a isa Symbol || a in keys(vtc) ? a : namify(a) for a in f_args_t]
 
     idxs_mctc = findall(a -> a in values(vtc), f_args_n)
     idxs_mvtc = findall(a -> a in keys(vtc), f_args_n)
+
+    f_args = [i in idxs_mvtc && f_args[i] isa Expr && f_args[i].args[1].head == :. ? 
+              :(::$(f_args[i].args[1].args[2].value)) : f_args[i] 
+              for i in 1:length(f_args)]
+    println(f_args)
+    f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
 
     for k in keys(vtc)
         if any(a -> inexpr(a[2], k) && !(a[1] in idxs_mvtc), enumerate(f_args_t)) 
@@ -99,9 +105,10 @@ function _pattern(f_def, vtc, vtwpc)
         error("Using `@pattern` with signatures containing sum types and variants at the same time is not supported")
     end
 
-    if !any(a -> a in keys(vtc) || a in values(vtc), f_args_n)
+    if isempty(idxs_mvtc)
         return f_def, nothing, nothing
     end
+    println("ok")
 
     new_arg_types = [vtc[f_args_n[i]] for i in idxs_mvtc]
 
@@ -115,7 +122,8 @@ function _pattern(f_def, vtc, vtwpc)
         variant = f_args_n[i]
         type = vtc[variant]
         if f_args_t[i] isa Symbol
-            f_args[i] = MacroTools.postwalk(s -> is_variant_symbol(s, variant) ? type : s, f_args[i])
+            v = variant isa Expr && variant.head == :. ? variant.args[2].value : variant
+            f_args[i] = MacroTools.postwalk(s -> is_variant_symbol(s, v) ? type : s, f_args[i])
         else
             y, y_w = f_args_t[i], [] 
             arg_abstract, type_abstract = vtwpc[f_args_n[i]]

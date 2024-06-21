@@ -30,8 +30,8 @@ julia> a.x
 
 """
 macro sum_structs(new_type, struct_defs)
-    vtc = get!(__variants_types_cache__, __module__, Dict{Symbol, Symbol}())
-    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Symbol, Vector{Any}}())
+    vtc = get!(__variants_types_cache__, __module__, Dict{Any, Any}())
+    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Any, Vector{Any}}())
     return esc(_compact_structs(new_type, struct_defs, vtc, vtwpc))
 end
 
@@ -82,6 +82,10 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     gensym_type = gensym(:(_kind))
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
+    types_each_vis = types_each
+    types_each = [t isa Symbol ? Symbol("##", t, "##") : :($(Symbol("##", t.args[1], "##")){$(t.args[2:end]...)})
+                  for t in types_each]
+
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
     type_name = new_type isa Symbol ? new_type : new_type.args[1]
 
@@ -92,13 +96,13 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     
     expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
                          :(begin 
-                            $(all_fields_transf...)
                             $field_type
+                            $(all_fields_transf...)
                           end))
 
     expr_params_each = []
     expr_functions = []
-    for (struct_t, struct_f, struct_d, is_kw) in zip(types_each, fields_each, default_each, is_kws)
+    for (struct_t, kind_t, struct_f, struct_d, is_kw) in zip(types_each, types_each_vis, fields_each, default_each, is_kws)
         struct_spec_n = retrieve_fields_names(struct_f)
         struct_spec_n_d = [d != "#32872248308323039203329" ? Expr(:kw, n, d) : (:($n)) 
                       for (n, d) in zip(struct_spec_n, struct_d)]
@@ -117,14 +121,14 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
                       for (n, d) in zip(f_params_args_with_T, struct_d)]
         f_params_kwargs_with_T = struct_spec_n2_d
         f_params_kwargs_with_T = Expr(:parameters, f_params_kwargs_with_T...)
-        type = Symbol(string(namify(struct_t)))
+        type = Symbol(string(namify(kind_t)))
         f_inside_args = all_fields_n
 
         conv_maybe = [x isa Symbol ? :() : x.args[2] for x in retrieve_fields_names(all_fields, true)]
         f_inside_args_no_t = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n)
         f_inside_args2_no_t = maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec_n; with_params=true)
-        f_inside_args = [f_inside_args_no_t..., Expr(:quote, type)]
-        f_inside_args2 = [f_inside_args2_no_t..., Expr(:quote, type)]
+        f_inside_args = [Expr(:quote, type), f_inside_args_no_t...]
+        f_inside_args2 = [Expr(:quote, type), f_inside_args2_no_t...]
 
         @capture(struct_t, struct_t_n_{struct_t_p__})
         struct_t_p === nothing && (struct_t_p = [])
@@ -186,21 +190,20 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
         push!(expr_functions, expr_function_args2)
     end
 
-    add_types_to_cache(type_name, types_each, vtc)
-    add_types_params_to_cache(expr_params_each, types_each, vtwpc)
+    add_types_to_cache(type_name, types_each_vis, vtc)
+    add_types_params_to_cache(expr_params_each, types_each_vis, type_name, vtwpc)
 
     expr_kindof = :(DynamicSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
     expr_allkinds = []
-    expr_allkinds1 = :(DynamicSumTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each))))
+    expr_allkinds1 = :(DynamicSumTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each_vis))))
     push!(expr_allkinds, expr_allkinds1)
     if namify(type_no_constr) !== type_no_constr
-        expr_allkinds2 = :(DynamicSumTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each))))
+        expr_allkinds2 = :(DynamicSumTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each_vis))))
         push!(expr_allkinds, expr_allkinds2)
     end
 
-    branching_constructor = generate_branching_types(namify.(types_each), [:(return $v) for v in namify.(types_each)])
-
+    branching_constructor = generate_branching_types(namify.(types_each_vis), [:(return $v) for v in namify.(types_each)])
     expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(new_type)))
                         kind = kindof(a)
 
@@ -241,7 +244,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     end
 
     fields_each_symbol = [:(return $(Tuple(f))) for f in retrieve_fields_names.(fields_each)]
-    branching_propnames = generate_branching_types(namify.(types_each), fields_each_symbol)
+    branching_propnames = generate_branching_types(namify.(types_each_vis), fields_each_symbol)
     expr_propnames = :(function Base.propertynames(a::$(namify(new_type)))
                            kind = kindof(a)
                            $(branching_propnames...)
@@ -252,6 +255,9 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
                       A = typeof(a)
                       return A((getfield(a, x) for x in fieldnames(A))...)
                   end)
+
+    expr_adjoint = :(Base.adjoint(::Type{<:$(namify(new_type))}) =
+            $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(types_each_vis))...))}($(Expr(:tuple, namify.(types_each)...))))
 
     expr = quote 
             $(expr_comp_types...)
@@ -265,6 +271,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
             $(expr_copy)
             $(expr_constructor)
             $(expr_show)
+            $(expr_adjoint)
             nothing
            end
     return expr
@@ -370,13 +377,14 @@ function add_types_to_cache(type, variants, vtc)
     type = namify(type)
     variants = namify.(variants)
     for v in variants
-        vtc[v] = type
+        vtc[:($type'.$v)] = type
     end
 end
 
-function add_types_params_to_cache(params, variants, vtwpc)
+function add_types_params_to_cache(params, variants, type, vtwpc)
+    type = namify(type)
     variants_n = namify.(variants)
     for (v1, v2, p) in zip(variants, variants_n, params)
-        vtwpc[v2] = [v1, p]
+        vtwpc[:($type'.$v2)] = [v1, p]
     end
 end

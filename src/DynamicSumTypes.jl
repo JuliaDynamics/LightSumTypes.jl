@@ -8,13 +8,14 @@ using SumTypes
 export @sum_structs
 export @pattern
 export @finalize_patterns
+export @export_variants
 export kindof
 export allkinds
 export kindconstructor
 
 const __modules_cache__ = Set{Module}()
-const __variants_types_cache__ = Dict{Module, Dict{Symbol, Symbol}}()
-const __variants_types_with_params_cache__ = Dict{Module, Dict{Symbol, Vector{Any}}}()
+const __variants_types_cache__ = Dict{Module, Dict{Any, Any}}()
+const __variants_types_with_params_cache__ = Dict{Module, Dict{Any, Vector{Any}}}()
 
 """
     kindof(instance)
@@ -71,6 +72,41 @@ A
 ```
 """
 function kindconstructor end
+
+"""
+    @export_variants(T)
+
+Export all variants types into the module the
+function it is called into.
+
+## Example
+
+```julia
+julia> @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia> AB'.A(1)
+A(1)::AB
+
+julia> @export_variants(AB)
+
+julia> A(1) # now this also works
+A(1)::AB
+```
+"""
+macro export_variants(T)
+    return esc(quote
+        for V in allkinds($T)
+            DynamicSumTypes.export_variant($__module__, $T, V)
+        end
+    end)
+end
+
+function export_variant(mod, T, V)
+    @eval mod const $V = $T'.$V
+end
 
 include("SumStructsOnFields.jl")
 include("SumStructsOnTypes.jl")

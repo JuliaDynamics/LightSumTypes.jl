@@ -47,6 +47,8 @@ julia>  # default version is :on_fields
            end
        end
 
+julia> @export_variants(A)
+
 julia> b = B(1, 1.5)
 B{Int64}(1, 1.5)::A
 

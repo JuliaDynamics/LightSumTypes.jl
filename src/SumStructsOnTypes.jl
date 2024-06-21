@@ -1,8 +1,8 @@
 
 
 macro sum_structs(version, type, struct_defs)
-    vtc = get!(__variants_types_cache__, __module__, Dict{Symbol, Symbol}())
-    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Symbol, Vector{Any}}())
+    vtc = get!(__variants_types_cache__, __module__, Dict{Any, Any}())
+    vtwpc = get!(__variants_types_with_params_cache__, __module__, Dict{Any, Vector{Any}}())
     if version == QuoteNode(:on_fields)
         return esc(_compact_structs(type, struct_defs, vtc, vtwpc))
     elseif version == QuoteNode(:on_types)
@@ -50,6 +50,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
         c == false && ((t_n, t_p) = (t, []))
         append!(variants_params_unconstr[i], t_p)
         t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in t_p]
+        t_n = Symbol("##", t_n, "##") 
         push!(variants_types, t_p != [] ? :($t_n{$(t_p_no_sup...)}) : t_n)
         push!(variants_types_constrained, t_p != [] ? :($t_n{$(t_p...)}) : t_n)
         h_t = gensym(t_n)
@@ -93,7 +94,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
         end
     end
     add_types_to_cache(type_name, variants_types, vtc)
-    add_types_params_to_cache(each_sum_version, variants_types, vtwpc)
+    add_types_params_to_cache(each_sum_version, variants_types, type_name, vtwpc)
     
     expr_sum_type = :(DynamicSumTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin                        
                           $(variants_defs...)
