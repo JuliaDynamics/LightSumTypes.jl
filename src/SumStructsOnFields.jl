@@ -377,7 +377,7 @@ function add_types_to_cache(type, variants, vtc)
     type = namify(type)
     variants = namify.(variants)
     for v in variants
-        vtc[:($type'.$v)] = type
+        vtc[:(($type)'.$v)] = type
     end
 end
 
@@ -385,6 +385,6 @@ function add_types_params_to_cache(params, variants, type, vtwpc)
     type = namify(type)
     variants_n = namify.(variants)
     for (v1, v2, p) in zip(variants, variants_n, params)
-        vtwpc[:($type'.$v2)] = [v1, p]
+        vtwpc[:(($type)'.$v2)] = [v1, p]
     end
 end
