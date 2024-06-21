@@ -92,9 +92,9 @@ using PrecompileTools
                         end)
 
         f0 = :(f(x::Int, y, z::AA, ::AA) = 3)
-        f1 = :(f(x::Int, y, z::BB, ::CC) = 3)
-        f2 = :(f(x::Int, y, z::DD, ::CC) = 3)
-        f3 = :(f(x::Int, y, z::Hawk{Int, N, J} where N, ::CC; s = 1) where J = 3)
+        f1 = :(f(x::Int, y, z::AA'.BB, ::AA'.CC) = 3)
+        f2 = :(f(x::Int, y, z::AA'.DD, ::AA'.CC) = 3)
+        f3 = :(f(x::Int, y, z::Animal'.Hawk{Int, N, J} where N, ::AA'.CC; s = 1) where J = 3)
 
         _compact_structs(type, struct_defs, vtc, vtwpc)
         _sum_structs(type, struct_defs, vtc, vtwpc)
@@ -104,6 +104,6 @@ using PrecompileTools
         f_sub, f_super_dict, f_cache = _pattern(f3, vtc, vtwpc)
         cache = Dict{Any, Any}()
         cache[:f] = Dict{Any, Any}(f_cache => [f_super_dict])
-        #generate_defs(parentmodule(@__MODULE__), cache)
+        generate_defs(parentmodule(@__MODULE__), cache)
     end
 end
