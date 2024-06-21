@@ -231,7 +231,8 @@ function _pattern(f_def, vtc, vtwpc)
     f_super_dict[:subcall] = :(return $(f_sub_dict[:name])($(g_args_names...)))
     f_sub_name_default = Symbol(Symbol("##"), f_comps[:name], :_, collect(Iterators.flatten(all_types_args1))...)
     f_super_dict[:subcall_default] = :(return $(f_sub_name_default)($(g_args_names...)))
-
+    println()
+    println(f_sub)
     return f_sub, f_super_dict, f_cache
 end
 
