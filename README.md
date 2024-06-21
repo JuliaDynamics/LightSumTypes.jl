@@ -28,7 +28,7 @@ julia> using DynamicSumTypes
 
 julia> abstract type AbstractA{X} end
 
-julia>  # default version is :on_fields
+julia> # default version is :on_fields
         @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::X = 1
@@ -48,11 +48,12 @@ julia>  # default version is :on_fields
        end
 
 julia> b = A'.B(1, 1.5)
-B{Int64}(1, 1.5)::A
+B{Int64}(:B, 1, 1.5)::A
 
 julia> @export_variants(A)
 
 julia> b = B(1, 1.5)
+B{Int64}(:B, 1, 1.5)::A
 
 julia> b.a
 1
@@ -89,6 +90,7 @@ G{Int64}(1, 1.5)::F
 julia> @export_variants(F)
 
 julia> g = G(1, 1.5)
+G{Int64}(1, 1.5)::F
 
 julia> g.a
 1
