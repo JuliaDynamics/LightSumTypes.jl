@@ -84,15 +84,12 @@ function _pattern(f_def, vtc, vtwpc)
     f_args = [x isa Symbol ? :($x::Any) : x for x in f_args]
 
     f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
-    f_args_n = [a isa Symbol || a in keys(vtc) ? a : namify(a) for a in f_args_t]
+    f_args_n = [dotted_arg(a) for a in f_args_t]
 
     idxs_mctc = findall(a -> a in values(vtc), f_args_n)
     idxs_mvtc = findall(a -> a in keys(vtc), f_args_n)
 
-    f_args = [i in idxs_mvtc && f_args[i] isa Expr && f_args[i].args[1].head == :. ? 
-              :(::$(f_args[i].args[1].args[2].value)) : f_args[i] 
-              for i in 1:length(f_args)]
-    println(f_args)
+    f_args = [restructure_arg(f_args[i], i, idxs_mvtc) for i in 1:length(f_args)]
     f_args_t = [is_arg_no_name(a) ? a.args[1] : a.args[2] for a in f_args]
 
     for k in keys(vtc)
@@ -105,14 +102,14 @@ function _pattern(f_def, vtc, vtwpc)
         error("Using `@pattern` with signatures containing sum types and variants at the same time is not supported")
     end
 
-    if isempty(idxs_mvtc)
+    if isempty(idxs_mvtc) && isempty(idxs_mctc)
         return f_def, nothing, nothing
     end
-    println("ok")
 
     new_arg_types = [vtc[f_args_n[i]] for i in idxs_mvtc]
-
+    transform_name(v) = v isa Expr && v.head == :. ? v.args[2].value : v
     is_variant_symbol(s, variant) = s isa Symbol && s == variant
+
     whereparams = []
     if :whereparams in keys(f_comps)
         whereparams = f_comps[:whereparams]
@@ -122,7 +119,7 @@ function _pattern(f_def, vtc, vtwpc)
         variant = f_args_n[i]
         type = vtc[variant]
         if f_args_t[i] isa Symbol
-            v = variant isa Expr && variant.head == :. ? variant.args[2].value : variant
+            v = transform_name(variant)
             f_args[i] = MacroTools.postwalk(s -> is_variant_symbol(s, v) ? type : s, f_args[i])
         else
             y, y_w = f_args_t[i], [] 
@@ -190,7 +187,7 @@ function _pattern(f_def, vtc, vtwpc)
         g_args_names[end] = :($(g_args_names[end])...)
     end
 
-    idx_and_variant0 = collect(zip(idxs_mvtc, map(i -> f_args_n[i], idxs_mvtc)))
+    idx_and_variant0 = collect(zip(idxs_mvtc, map(i -> transform_name(f_args_n[i]), idxs_mvtc)))
     idx_and_type = collect(zip(idxs_mctc, map(i -> f_args_n[i], idxs_mctc)))
 
     all_types_args0 = idx_and_variant0 != [] ? sort(idx_and_variant0) : sort(idx_and_type)
@@ -239,8 +236,20 @@ function _pattern(f_def, vtc, vtwpc)
     f_super_dict[:subcall] = :(return $(f_sub_dict[:name])($(g_args_names...)))
     f_sub_name_default = Symbol(Symbol("##"), f_comps[:name], :_, collect(Iterators.flatten(all_types_args1))...)
     f_super_dict[:subcall_default] = :(return $(f_sub_name_default)($(g_args_names...)))
-
     return f_sub, f_super_dict, f_cache
+end
+
+function dotted_arg(a)
+    while true
+        a isa Symbol && return a
+        a.head == :. && a.args[1] isa Expr && a.args[1].head == Symbol("'") && return a
+        a = a.args[1]
+    end
+end
+
+function restructure_arg(a, i, idxs_mvtc)
+    (!(i in idxs_mvtc) || a isa Symbol) && return a
+    return MacroTools.postwalk(s -> s isa Expr && s.head == :. ? s.args[2].value : s, a)
 end
 
 function sub_vararg_any(s)
