@@ -50,7 +50,6 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
         c == false && ((t_n, t_p) = (t, []))
         append!(variants_params_unconstr[i], t_p)
         t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in t_p]
-        t_n = Symbol("##", t_n, "##") 
         push!(variants_types, t_p != [] ? :($t_n{$(t_p_no_sup...)}) : t_n)
         push!(variants_types_constrained, t_p != [] ? :($t_n{$(t_p...)}) : t_n)
         h_t = gensym(t_n)
@@ -79,7 +78,6 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
     sum_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, type_no_abstract)
     
     each_sum_version = []
-    uninit_val
     for v in variants_types
         if sum_t isa Symbol
             push!(each_sum_version, sum_t)
@@ -182,6 +180,9 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                   end
                   )
 
+    expr_adjoint = :(Base.adjoint(::Type{<:$(namify(type))}) =
+            $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(variants_types_names))...))}($(Expr(:tuple, namify.(variants_types)...)))) 
+
     expr_show_mime = :(Base.show(io::IO, ::MIME"text/plain", a::$(namify(type))) = show(io, a))
 
     expr_constructors = []
@@ -274,6 +275,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                $(expr_constructor)
                $(expr_show)
                $(expr_show_mime)
+               $(expr_adjoint)
                $(expr_constructors...)
                nothing
            end
@@ -306,15 +308,15 @@ end
 
 function remove_redefinitions(e, t, vs, fs)
 
-    redef = [:($(Base).show), :(($Base).getproperty), :(($Base).propertynames)]
+    redef = [:($(Base).show), :(($Base).getproperty), :(($Base).propertynames), :(($Base).adjoint)]
     f = ExprTools.splitdef(e, throw=false)
     f === nothing && return e
 
     if :name in keys(f) && f[:name] in redef
-        if any(x -> x isa Expr && x.head == :(::) && (x.args[1] == t || x.args[2] == t), f[:args])
+        if any(x -> x isa Expr && x.head == :(::) && (MacroTools.inexpr(x.args[1], t) || x.args[2] == t), f[:args])
             return :()
         end
-    elseif :name in keys(f)&& f[:name] in vs
+    elseif :name in keys(f) && f[:name] in vs
         idx = findfirst(v -> f[:name] == v, vs)
         if length(f[:args]) == 1 && length(fs[idx]) == 1
             arg = f[:args][1]

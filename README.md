@@ -47,10 +47,12 @@ julia>  # default version is :on_fields
            end
        end
 
+julia> b = A'.B(1, 1.5)
+B{Int64}(1, 1.5)::A
+
 julia> @export_variants(A)
 
 julia> b = B(1, 1.5)
-B{Int64}(1, 1.5)::A
 
 julia> b.a
 1
@@ -81,8 +83,12 @@ julia> @sum_structs :on_types F{X} <: AbstractF{X} begin
            end
        end
 
-julia> g = G(1, 1.5)
+julia> g = F'.G(1, 1.5)
 G{Int64}(1, 1.5)::F
+
+julia> @export_variants(F)
+
+julia> g = G(1, 1.5)
 
 julia> g.a
 1

@@ -53,11 +53,11 @@ end
 @pattern g(x::X, q::Vararg{Any, N}) where N = 2000
 @pattern g(x::A1, q::Vararg{Any, N}) where N = 2001
 
-#@pattern g(a::E1, b::Int, c::D1) = 0
-#@pattern g(a::E1, b::Int, c::E1) = 1
-#@pattern g(a::E1, b::Int, c::F1) = 2
-#@pattern g(a::D1, b::Int, c::E1) = 3
-#@pattern g(a::E1, b::Int, c::F1) = 4
+@pattern g(a::Y'.E1, b::Int, c::Y'.D1) = 0
+@pattern g(a::Y'.E1, b::Int, c::Y'.E1) = 1
+@pattern g(a::Y'.E1, b::Int, c::Y'.F1) = 2
+@pattern g(a::Y'.D1, b::Int, c::Y'.E1) = 3
+@pattern g(a::Y'.E1, b::Int, c::Y'.F1) = 4
 
 @pattern g(a::B1, b::Int, c::Vector{<:X}) = c
 
@@ -97,12 +97,12 @@ end
     @test g(b1, 1, 1, :b) == 2000
     @test g(c, 1, 1, :c) == 2000
 
-    #d, e1, e2, f = D1(), E1(1, 1), E1(1.0, 1.0), F1(1)
+    d, e1, e2, f = Y'.D1(), Y'.E1(1, 1), Y'.E1(1.0, 1.0), Y'.F1(1)
 
-    #@test g(e1, 1, d) == 0
-    #@test g(e1, 1, e2) == 1
-    #@test g(e1, 1, f) == 4
-    #@test g(d, 1, e1) == 3
+    @test g(e1, 1, d) == 0
+    @test g(e1, 1, e2) == 1
+    @test g(e1, 1, f) == 4
+    @test g(d, 1, e1) == 3
 
     @test g(B1(1,1), 1, [A1()]) == [A1()]
 
