@@ -82,19 +82,21 @@ end
     end
 end
 
+@export_variants(AA)
+
 @testset "@sum_structs :on_fields" begin
     
-    st = ST1()
+    st = SingleT1'.ST1()
     @test propertynames(st) == ()
 
-    f = F((1,1), (1.0, 1.0), :s)
-    g1 = G((1,1), 1, 1, :c)
-    g2 = G(; a = (1,1), d = 1, e = 1, c = :c)
-    h = H((1,1), 1, (im, im), :j)
+    f = E'.F((1,1), (1.0, 1.0), :s)
+    g1 = E'.G((1,1), 1, 1, :c)
+    g2 = E'.G(; a = (1,1), d = 1, e = 1, c = :c)
+    h = E'.H((1,1), 1, (im, im), :j)
 
-    @test_throws "" F((1.0,1.0), (1.0, 1.0), :s)
-    @test_throws "" G((1,1), im, (im, im), :d)
-    @test_throws "" G((im,im), 1, (im, im), :d)
+    @test_throws "" E'.F((1.0,1.0), (1.0, 1.0), :s)
+    @test_throws "" E'.G((1,1), im, (im, im), :d)
+    @test_throws "" E'.G((im,im), 1, (im, im), :d)
 
     @test f.a == (1,1)
     @test f.b == (1.0, 1.0)
@@ -113,15 +115,15 @@ end
     @test kindof(copy_f) == kindof(f)
     @test allkinds(E) == (:F, :G, :H)
     @test allkinds(typeof(f)) == (:F, :G, :H)
-    @test kindconstructor(f) == F
-    @test kindconstructor(h) == H
+    @test kindconstructor(f) == E'.F
+    @test kindconstructor(h) == E'.H
 
-    hawk_1 = Hawk2(1.0, 2.0, 3)
-    hawk_2 = Hawk2(; ground_speed = 2.3, flight_speed = 2)
-    wolf_1 = Wolf2(2.0, 3.0, :black)
-    wolf_2 = Wolf2(; ground_speed = 2.0, fur_color = :white)
-    wolf_3 = Wolf2{Int, Float64}(2.0, 3.0, :black)
-    wolf_4 = Wolf2{Float64, Float64}(; ground_speed = 2.0, fur_color = :white)
+    hawk_1 = Animal2'.Hawk2(1.0, 2.0, 3)
+    hawk_2 = Animal2'.Hawk2(; ground_speed = 2.3, flight_speed = 2)
+    wolf_1 = Animal2'.Wolf2(2.0, 3.0, :black)
+    wolf_2 = Animal2'.Wolf2(; ground_speed = 2.0, fur_color = :white)
+    wolf_3 = Animal2'.Wolf2{Int, Float64}(2.0, 3.0, :black)
+    wolf_4 = Animal2'.Wolf2{Float64, Float64}(; ground_speed = 2.0, fur_color = :white)
 
     @test hawk_1.energy == 1.0
     @test hawk_2.energy == 0.1
@@ -139,8 +141,8 @@ end
     @test allkinds(Animal2) == (:Wolf2, :Hawk2)
     @test allkinds(typeof(wolf_3)) == (:Wolf2, :Hawk2)
 
-    b = SimpleA2(1, 3)
-    c = SimpleB2(2, "a")
+    b = Simple2'.SimpleA2(1, 3)
+    c = Simple2'.SimpleB2(2, "a")
 
     @test b.x == 1 && b.z == 3
     @test c.y == 2 && c.q == "a"
@@ -155,8 +157,8 @@ end
     @test allkinds(Simple2) == (:SimpleA2, :SimpleB2)
     @test allkinds(typeof(b)) == (:SimpleA2, :SimpleB2)
 
-    o1 = TestOrder21("a", 2.0)
-    o2 = TestOrder22(3.0, [1], "b")  
+    o1 = TestOrder2'.TestOrder21("a", 2.0)
+    o2 = TestOrder2'.TestOrder22(3.0, [1], "b")  
 
     @test propertynames(o1) == (:x, :y)
     @test propertynames(o2) == (:y, :z, :x)

@@ -12,6 +12,8 @@ using DynamicSumTypes, Test
     end
 end
 
+@export_variants(X)
+
 @sum_structs :on_types Y{T1, T2, T3} begin
     struct D1 end
     struct E1{T1, T3}
@@ -51,17 +53,18 @@ end
 @pattern g(x::X, q::Vararg{Any, N}) where N = 2000
 @pattern g(x::A1, q::Vararg{Any, N}) where N = 2001
 
-@pattern g(a::E1, b::Int, c::D1) = 0
-@pattern g(a::E1, b::Int, c::E1) = 1
-@pattern g(a::E1, b::Int, c::F1) = 2
-@pattern g(a::D1, b::Int, c::E1) = 3
-@pattern g(a::E1, b::Int, c::F1) = 4
+@pattern g(a::Y'.E1, b::Int, c::Y'.D1) = 0
+@pattern g(a::Y'.E1, b::Int, c::Y'.E1) = 1
+@pattern g(a::Y'.E1, b::Int, c::Y'.F1) = 2
+@pattern g(a::Y'.D1, b::Int, c::Y'.E1) = 3
+@pattern g(a::Y'.E1, b::Int, c::Y'.F1) = 4
 
 @pattern g(a::B1, b::Int, c::Vector{<:X}) = c
 
-@pattern g(a::H1{Int}, b::G1{Int}, c::I1{Int}) = a.a + c.b
-@pattern g(a::G1{Int}, b::G1{Int}, c::I1{Int}) = c.b
-@pattern g(a::H1{Float64}, b::G1{Float64}, c::I1{Float64}) = a.a
+@pattern g(a::Z'.H1{Int}, b::Z'.G1{Int}, c::Z'.I1{Int}) = a.a + c.b
+@pattern g(a::Z'.G1{Int}, b::Z'.G1{Int}, c::Z'.I1{Int}) = c.b
+@pattern g(a::Z'.H1{Float64}, b::Z'.G1{Float64}, c::Z'.I1{Float64}) = a.a
+
 @pattern g(a::X, q::Int, c::X{Int}; s = 1) = 12 + s
 
 @finalize_patterns
@@ -94,7 +97,7 @@ end
     @test g(b1, 1, 1, :b) == 2000
     @test g(c, 1, 1, :c) == 2000
 
-    d, e1, e2, f = D1(), E1(1, 1), E1(1.0, 1.0), F1(1)
+    d, e1, e2, f = Y'.D1(), Y'.E1(1, 1), Y'.E1(1.0, 1.0), Y'.F1(1)
 
     @test g(e1, 1, d) == 0
     @test g(e1, 1, e2) == 1
@@ -103,8 +106,8 @@ end
 
     @test g(B1(1,1), 1, [A1()]) == [A1()]
 
-    g1, h1, i1 = G1{Int, Int, Int}(), H1{Int, Int, Int}(1, 1), I1{Int, Int, Int}(5)
-    g2, h2, i2 = G1{Float64, Float64, Float64}(), H1{Float64, Float64, Float64}(1, 1), I1{Float64, Float64, Float64}(1)
+    g1, h1, i1 = Z'.G1{Int, Int, Int}(), Z'.H1{Int, Int, Int}(1, 1), Z'.I1{Int, Int, Int}(5)
+    g2, h2, i2 = Z'.G1{Float64, Float64, Float64}(), Z'.H1{Float64, Float64, Float64}(1, 1), Z'.I1{Float64, Float64, Float64}(1)
 
     @test g(h1, g1, i1) == 6
     @test g(g1, g1, i1) == 5

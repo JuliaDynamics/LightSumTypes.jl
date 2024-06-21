@@ -24,6 +24,8 @@ abstract type AbstractA{X, Y} end
     end
 end
 
+@export_variants(A)
+
 @sum_structs :on_types Animal{T,N,J} begin
     @kwdef mutable struct Wolf{T,N}
         energy::T = 0.5
@@ -36,6 +38,8 @@ end
         flight_speed::J
     end
 end
+
+@export_variants(Animal)
 
 abstract type AbstractSimple end
 @sum_structs :on_types Simple <: AbstractSimple begin
@@ -63,7 +67,7 @@ end
 
 @testset "@sum_structs :on_types" begin
 
-    st = ST2()
+    st = SingleT2'.ST2()
     @test propertynames(st) == ()
 
     b = B((1,1), (1.0, 1.0), :s)
@@ -118,8 +122,8 @@ end
     @test allkinds(Animal) == (:Wolf, :Hawk)
     @test allkinds(typeof(wolf_2)) == (:Wolf, :Hawk)
 
-    b = SimpleA(1, 3)
-    c = SimpleB(2, "a")
+    b = Simple'.SimpleA(1, 3)
+    c = Simple'.SimpleB(2, "a")
 
     @test b.x == 1 && b.z == 3
     @test c.y == 2 && c.q == "a"
@@ -134,8 +138,8 @@ end
     @test allkinds(Simple) == (:SimpleA, :SimpleB)
     @test allkinds(typeof(b)) == (:SimpleA, :SimpleB)
 
-    o1 = TestOrder11("a", 2.0)
-    o2 = TestOrder12(3.0, [1], "b") 
+    o1 = TestOrder1'.TestOrder11("a", 2.0)
+    o2 = TestOrder1'.TestOrder12(3.0, [1], "b") 
 
     @test propertynames(o1) == (:x, :y)
     @test propertynames(o2) == (:y, :z, :x)

@@ -3,8 +3,8 @@ using PrecompileTools
 
 @setup_workload begin
     @compile_workload let
-        vtc = Dict{Symbol, Symbol}()
-        vtwpc = Dict{Symbol, Vector{Any}}()
+        vtc = Dict{Any, Any}()
+        vtwpc = Dict{Any, Vector{Any}}()
         type = :(E{X<:Real,Y<:Real} <: AbstractE{X,Y})
         struct_defs = :(begin
                             @kwdef mutable struct F{X<:Int}
@@ -104,6 +104,6 @@ using PrecompileTools
         f_sub, f_super_dict, f_cache = _pattern(f3, vtc, vtwpc)
         cache = Dict{Any, Any}()
         cache[:f] = Dict{Any, Any}(f_cache => [f_super_dict])
-        generate_defs(parentmodule(@__MODULE__), cache)
+        #generate_defs(parentmodule(@__MODULE__), cache)
     end
 end
