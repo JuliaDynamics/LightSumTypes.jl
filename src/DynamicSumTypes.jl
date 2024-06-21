@@ -98,9 +98,17 @@ A(1)::AB
 """
 macro export_variants(T)
     return esc(quote
+        vtc = DynamicSumTypes.__variants_types_cache__[$__module__]
+        vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[$__module__]
         for V in allkinds($T)
             DynamicSumTypes.export_variant($__module__, $T, V)
-        end
+            t = Symbol($T)
+            vtc[V] = t
+            for k in collect(keys(vtwpc))
+                b = DynamicSumTypes.MacroTools.inexpr(k, :(($t)'))
+                b == true && (vtwpc[k.args[2].value] = vtwpc[k])
+            end
+        end        
     end)
 end
 
