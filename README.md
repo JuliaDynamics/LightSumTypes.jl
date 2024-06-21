@@ -29,7 +29,7 @@ julia> using DynamicSumTypes
 julia> abstract type AbstractA{X} end
 
 julia> # default version is :on_fields
-        @sum_structs A{X} <: AbstractA{X} begin
+       @sum_structs A{X} <: AbstractA{X} begin
            @kwdef mutable struct B{X}
                a::X = 1
                b::Float64 = 1.0
@@ -174,7 +174,7 @@ Since the macro essentially reconstruct the branching version described above, t
 work correctly when using it, do not define functions operating on the main type of some variants without 
 using the `@pattern` macro. 
 
-Also, if you use it in a module or in a script run from the command line, you will need to use `finalize_patterns()` 
+Also, if you use it in a module or in a script run from the command line, you will need to use `@finalize_patterns` 
 at some point to make sure that the functions using the macro are defined, usually you will only need one 
 invocation after all the rest of the code.
 
