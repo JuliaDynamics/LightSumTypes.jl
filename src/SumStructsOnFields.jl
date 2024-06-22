@@ -1,5 +1,4 @@
 
-
 struct Uninitialized end
 const uninit = Uninitialized()
 
@@ -83,7 +82,8 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     field_type = is_mutable ? Expr(:const, :($(gensym_type)::Symbol)) : (:($(gensym_type)::Symbol))
 
     types_each_vis = types_each
-    types_each = [t isa Symbol ? Symbol("##", t, "##") : :($(Symbol("##", t.args[1], "##")){$(t.args[2:end]...)})
+    types_each = [t isa Symbol ? Symbol("###", namify(new_type), "###", t) : 
+                                 :($(Symbol("###", namify(new_type), "###", t.args[1])){$(t.args[2:end]...)})
                   for t in types_each]
 
     expr_comp_types = [Expr(:struct, false, t, :(begin sdfnsdfsdfak() = 1 end)) for t in types_each]
