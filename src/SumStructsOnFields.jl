@@ -259,10 +259,13 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     expr_adjoint = :(Base.adjoint(::Type{<:$(namify(new_type))}) =
             $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(types_each_vis))...))}($(Expr(:tuple, namify.(types_each)...))))
 
+    fake_prints = [:(Base.show(io::IO, T::Type{<:$(namify(fn))}) = print(io, $(string(namify(v))))) for (fn, v) in zip(types_each, types_each_vis)]
+
     expr_exports = def_export_variants(new_type)
 
     expr = quote 
             $(expr_comp_types...)
+            $(fake_prints...)
             $(Base.@__doc__ expr_new_type)
             $(expr_functions...)
             $(expr_kindof)
