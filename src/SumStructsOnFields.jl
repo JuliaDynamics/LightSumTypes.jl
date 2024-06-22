@@ -399,16 +399,17 @@ function def_export_variants(type)
     t = namify(type)
     return quote
             function DynamicSumTypes.export_variants(T::Type{<:$t})
+                Ts = $(QuoteNode(t))
                 vtc = DynamicSumTypes.__variants_types_cache__[@__MODULE__]
                 vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[@__MODULE__]
                 for V in allkinds(T)
-                    eval(:(const $V = ($(T))'.$V))
+                    eval(:(const $V = ($(Ts))'.$V))
                     for k in collect(keys(vtc))
-                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
+                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($Ts)'))
                         b == true && (vtc[V] = vtc[k])
                     end
                     for k in collect(keys(vtwpc))
-                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
+                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($Ts)'))
                         b == true && (vtwpc[k.args[2].value] = vtwpc[k])
                     end
                 end  
