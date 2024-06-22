@@ -360,7 +360,7 @@ macro finalize_patterns()
             if d in $__module__.__finalized_methods_cache__
                 continue
             else
-                !isdefined($__module__, f_default) && eval(:(function $f_default end))
+                !isdefined($__module__, f_default) && evaluate_func($__module__, :(function $f_default end))
                 push!($__module__.__finalized_methods_cache__, d)
                 $__module__.DynamicSumTypes.evaluate_func($__module__, d)
             end
@@ -371,3 +371,4 @@ end
 function evaluate_func(mod, d)
     @eval mod $d
 end
+
