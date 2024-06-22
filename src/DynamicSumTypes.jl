@@ -57,7 +57,8 @@ function allkinds end
 """
     variant_constructor(instance)
 
-Return the constructor of an instance:
+Return the constructor of an instance in a more
+efficient way than doing `typeof(inst)'.[kindof(inst)]`:
 
 ```julia
 julia> @sum_structs AB begin
@@ -68,8 +69,11 @@ julia> @sum_structs AB begin
 julia> a = AB'.A(1)
 AB'.A(1)
 
-julia> variant_constructor(a)(1)
-AB'.A(1)
+julia> typeof(a)'.[kindof(a)]
+AB'.A
+
+julia> variant_constructor(a)
+AB'.A
 ```
 """
 function variant_constructor end
