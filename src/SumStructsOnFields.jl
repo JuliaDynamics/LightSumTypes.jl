@@ -259,7 +259,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
             $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(types_each_vis))...))}($(Expr(:tuple, namify.(types_each)...))))
 
     fake_prints = [:($Base.show(io::IO, ::MIME"text/plain", T::Type{<:$(namify(fn))}) = print(io, $(string(namify(new_type), "'.", namify(v))))) 
-                   for (fn, v) in zip(fake_names, variants_types_names)]
+                   for (fn, v) in zip(types_each, types_each_vis)]
 
     expr_exports = def_export_variants(new_type)
 
