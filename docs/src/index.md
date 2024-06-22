@@ -4,8 +4,8 @@
 @sum_structs
 @pattern
 @finalize_patterns
-@export_variants
 kindof
 allkinds
+export_variants
 kindconstructor
 ```

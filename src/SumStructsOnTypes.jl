@@ -272,6 +272,8 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                                         expr_sum_type)
 
 
+    expr_exports = def_export_variants(type)
+
     expr = quote 
                $(struct_defs...)
                $(fake_structs...)
@@ -286,6 +288,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                $(expr_show)
                $(expr_show_mime)
                $(expr_adjoint)
+               $(expr_exports)
                $(expr_constructors...)
                nothing
            end

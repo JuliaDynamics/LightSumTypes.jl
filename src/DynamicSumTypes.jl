@@ -8,7 +8,7 @@ using SumTypes
 export @sum_structs
 export @pattern
 export @finalize_patterns
-export @export_variants
+export export_variants
 export kindof
 export allkinds
 export kindconstructor
@@ -75,7 +75,7 @@ A(1)::AB
 function kindconstructor end
 
 """
-    @export_variants(T)
+    export_variants(T)
 
 Export all variants types into the module the
 function it is called into.
@@ -91,31 +91,13 @@ julia> @sum_structs AB begin
 julia> AB'.A(1)
 A(1)::AB
 
-julia> @export_variants(AB)
+julia> export_variants(AB)
 
 julia> A(1) # now this also works
 A(1)::AB
 ```
 """
-macro export_variants(T)
-    return esc(quote
-        vtc = DynamicSumTypes.__variants_types_cache__[$__module__]
-        vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[$__module__]
-        for V in allkinds($T)
-            DynamicSumTypes.export_variant($__module__, $T, V)
-            t = Symbol($T)
-            vtc[V] = t
-            for k in collect(keys(vtwpc))
-                b = DynamicSumTypes.MacroTools.inexpr(k, :(($t)'))
-                b == true && (vtwpc[k.args[2].value] = vtwpc[k])
-            end
-        end        
-    end)
-end
-
-function export_variant(mod, T, V)
-    @eval mod const $V = $T'.$V
-end
+function export_variants end
 
 include("SumStructsOnFields.jl")
 include("SumStructsOnTypes.jl")

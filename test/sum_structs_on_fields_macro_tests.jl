@@ -82,7 +82,7 @@ end
     end
 end
 
-@export_variants(AA)
+export_variants(AA)
 
 @testset "@sum_structs :on_fields" begin
     

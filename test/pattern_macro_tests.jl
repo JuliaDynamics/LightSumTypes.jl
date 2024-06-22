@@ -12,7 +12,7 @@ using DynamicSumTypes, Test
     end
 end
 
-@export_variants(X)
+export_variants(X)
 
 @sum_structs :on_types Y{T1, T2, T3} begin
     struct D1 end

@@ -24,7 +24,7 @@ abstract type AbstractA{X, Y} end
     end
 end
 
-@export_variants(A)
+export_variants(A)
 
 @sum_structs :on_types Animal{T,N,J} begin
     @kwdef mutable struct Wolf{T,N}
@@ -39,7 +39,7 @@ end
     end
 end
 
-@export_variants(Animal)
+export_variants(Animal)
 
 abstract type AbstractSimple end
 @sum_structs :on_types Simple <: AbstractSimple begin

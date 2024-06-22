@@ -259,6 +259,8 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     expr_adjoint = :(Base.adjoint(::Type{<:$(namify(new_type))}) =
             $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(types_each_vis))...))}($(Expr(:tuple, namify.(types_each)...))))
 
+    expr_exports = def_export_variants(new_type)
+
     expr = quote 
             $(expr_comp_types...)
             $(Base.@__doc__ expr_new_type)
@@ -272,6 +274,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
             $(expr_constructor)
             $(expr_show)
             $(expr_adjoint)
+            $(expr_exports)
             nothing
            end
     return expr
@@ -388,3 +391,22 @@ function add_types_params_to_cache(params, variants, type, vtwpc)
         vtwpc[:(($type)'.$v2)] = [v1, p]
     end
 end
+
+function def_export_variants(type)
+    t = namify(type)
+    return quote
+            function DynamicSumTypes.export_variants(T::Type{<:$t})
+                vtc = DynamicSumTypes.__variants_types_cache__[@__MODULE__]
+                vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[@__MODULE__]
+                for V in allkinds(T)
+                    eval(:(const $V = ($(T))'.$V))
+                    vtc[V] = Symbol(T)
+                    for k in collect(keys(vtwpc))
+                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($(Symbol(T)))'))
+                        b == true && (vtwpc[k.args[2].value] = vtwpc[k])
+                    end
+                end  
+            end      
+    end
+end
+
