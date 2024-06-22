@@ -179,10 +179,9 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                       vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = typeof(h_a).parameters
                       if isempty(params)
-                          print(io, string(kindof(a)), "($vals)", "::", $(namify(type)))
+                          print(io, $(namify(type)), "'.", string(kindof(a)), "($vals)")
                       else
-                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)", 
-                                           "::", $(namify(type)))
+                          print(io, $(namify(type)), "'.", string(kindof(a), "{", join(params, ", "), "}"), "($vals)")
                       end
                   end
                   )
