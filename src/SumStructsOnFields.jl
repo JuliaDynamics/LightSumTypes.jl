@@ -405,17 +405,11 @@ function def_export_variants(type)
                     eval(:(const $V = ($(T))'.$V))
                     for k in collect(keys(vtc))
                         b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
-                        if b == true
-                            vtc[V] = vtc[k]
-                            break
-                        end
+                        b == true && (vtc[V] = vtc[k])
                     end
                     for k in collect(keys(vtwpc))
                         b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
-                        if b == true 
-                            vtwpc[k.args[2].value] = vtwpc[k]
-                            break
-                        end
+                        b == true && (vtwpc[k.args[2].value] = vtwpc[k])
                     end
                 end  
             end      
