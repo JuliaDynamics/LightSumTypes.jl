@@ -66,10 +66,10 @@ julia> @sum_structs AB begin
        end
 
 julia> a = AB'.A(1)
-A(1)::AB
+AB'.A(1)
 
 julia> kindconstructor(a)(1)
-A(1)::AB
+AB'.A(1)
 ```
 """
 function kindconstructor end
@@ -89,12 +89,12 @@ julia> @sum_structs AB begin
        end
 
 julia> AB'.A(1)
-A(1)::AB
+AB'.A(1)
 
 julia> export_variants(AB)
 
 julia> A(1) # now this also works
-A(1)::AB
+AB'.A(1)
 ```
 """
 function export_variants end
