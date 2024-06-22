@@ -215,10 +215,9 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
                       vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = [x for x in typeof(a).parameters if x != DynamicSumTypes.Uninitialized] 
                       if isempty(params)
-                          print(io, string(kindof(a)), "($vals)", "::", $(namify(new_type)))
+                          print(io, $(namify(new_type)), "'.", string(kindof(a)), "($vals)")
                       else
-                          print(io, string(kindof(a), "{", join(params, ", "), "}"), "($vals)", 
-                                           "::", $(namify(new_type)))
+                          print(io, $(namify(new_type)), "'.", string(kindof(a), "{", join(params, ", "), "}"), "($vals)")
                       end
                   end
                   )
