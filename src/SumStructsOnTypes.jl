@@ -48,8 +48,8 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
         t = d.args[2]
         c = @capture(t, t_n_{t_p__})
         c == false && ((t_n, t_p) = (t, []))
-        append!(variants_params_unconstr[i], t_p)
         t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in t_p]
+        append!(variants_params_unconstr[i], t_p_no_sup)
         push!(variants_types, t_p != [] ? :($t_n{$(t_p_no_sup...)}) : t_n)
         push!(variants_types_constrained, t_p != [] ? :($t_n{$(t_p...)}) : t_n)
         h_t = gensym(t_n)
@@ -68,6 +68,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
     struct_defs = [:($Base.@kwdef $d) for d in struct_defs]
 
     variants_defs = [:($t(ht::$ht)) for (t, ht) in zip(variants_types_constrained, hidden_struct_types)]
+
 
     abstract_t = type isa Expr && type.head == :(<:) ? type.args[2] : :(Any)
     type_no_abstract = type isa Expr && type.head == :(<:) ? type.args[1] : type
@@ -94,7 +95,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
     add_types_to_cache(type_name, variants_types, vtc)
     add_types_params_to_cache(each_sum_version, variants_types, type_name, vtwpc)
     
-    expr_sum_type = :(DynamicSumTypes.SumTypes.@sum_type $sum_t <: $abstract_t begin                        
+    expr_sum_type = :(DynamicSumTypes.SumTypes.@sum_type $sum_t <: $abstract_t :hidden begin                        
                           $(variants_defs...)
                       end)
     expr_sum_type = macroexpand(DynamicSumTypes, expr_sum_type)
@@ -143,7 +144,11 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
         push!(expr_allkinds, expr_allkinds2)
     end
 
-    branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in variants_types_names])
+    fake_names = [:($(Symbol("###", namify(type), "#", namify(v))){$(p...)}) for (v, p) in zip(variants_types_names, variants_params_unconstr)]
+
+    fake_structs = [:(struct $fn 1+1 end) for fn in fake_names]
+
+    branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in namify.(fake_names)])
     expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(type)))
                             $(extract_data)
                             $(branching_constructor...)
@@ -181,13 +186,14 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                   )
 
     expr_adjoint = :(Base.adjoint(::Type{<:$(namify(type))}) =
-            $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(variants_types_names))...))}($(Expr(:tuple, namify.(variants_types)...)))) 
+            $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(variants_types_names))...))}($(Expr(:tuple, 
+                (x for x in namify.(fake_names))...)))) 
 
     expr_show_mime = :(Base.show(io::IO, ::MIME"text/plain", a::$(namify(type))) = show(io, a))
 
     expr_constructors = []
 
-    for (fs, fd, t, h_t, t_p_u, is_kw) in zip(fields_each, default_each, variants_types, hidden_struct_types, variants_params_unconstr, is_kws)
+    for (fn, fs, fd, t, h_t, t_p_u, is_kw) in zip(fake_names, fields_each, default_each, variants_types, hidden_struct_types, variants_params_unconstr, is_kws)
         f_params_args = retrieve_fields_names(fs, false)
         f_params_args_with_T = retrieve_fields_names(fs, true)
         c = @capture(t, t_n_{t_p__})
@@ -212,15 +218,18 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
                            for p in t_p_u]
         struct_t_p_in_2 = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p_in_2]                
 
+        t_ext_n = Symbol("#", namify(type), "#", namify(t))
+        t_ext = :($t_ext_n{$(t_p_u...)})
+
         if t_p !== nothing
-            c1 = :(function $t($(f_params_args...)) where {$(t_p_u...)}
-                       return $t($h_t($(f_params_args...)))
+            c1 = :(function $fn($(f_params_args...)) where {$(t_p_u...)}
+                       return $t_ext($h_t($(f_params_args...)))
                    end
                   )
             c4 = :()
             if is_kw
-                c4 = :(function $t($(f_params_kwargs)) where {$(t_p_u...)}
-                           return $t($h_t($(f_params_args...)))
+                c4 = :(function $fn($(f_params_kwargs)) where {$(t_p_u...)}
+                           return $t_ext($h_t($(f_params_args...)))
                        end
                       )
             end
@@ -228,25 +237,25 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
             c1 = :()
             c4 = :()
         end
-        c2 = :(function $(namify(t))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
-                       return $(namify(t))($(namify(h_t))($(f_params_args...)))
+        c2 = :(function $(namify(fn))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
+                       return $(t_ext_n)($(namify(h_t))($(f_params_args...)))
                    end
                   )
         if !isempty(struct_t_p_in_2)
-            c2 = :(function $(namify(t))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
-                       return $(namify(t))($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
+            c2 = :(function $(namify(fn))($(f_params_args_with_T...)) where {$(struct_t_p_in...)}
+                       return $(t_ext_n)($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
                    end
                   )
         end
         c3 = :()
         if is_kw
-            c3 = :(function $(namify(t))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
-                       return $(namify(t))($(namify(h_t))($(f_params_args...)))
+            c3 = :(function $(namify(fn))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
+                       return $(t_ext_n)($(namify(h_t))($(f_params_args...)))
                    end
                   )
             if !isempty(struct_t_p_in_2)
-                c3 = :(function $(namify(t))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
-                           return $(namify(t))($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
+                c3 = :(function $(namify(fn))($(f_params_kwargs_with_T)) where {$(struct_t_p_in...)}
+                           return $(t_ext_n)($(namify(h_t)){$(struct_t_p_in_2...)}($(f_params_args...)))
                        end
                       )
             end
@@ -265,6 +274,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
 
     expr = quote 
                $(struct_defs...)
+               $(fake_structs...)
                $(expr_sum_type)
                $(expr_getprop)
                $(expr_setprop)

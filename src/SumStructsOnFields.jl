@@ -21,7 +21,7 @@ julia> @sum_structs AB begin
            struct B y::Int end
        end
 
-julia> a = A(1)
+julia> a = AB'.A(1)
 A(1)::AB
 
 julia> a.x

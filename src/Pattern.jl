@@ -15,23 +15,23 @@ julia> @sum_structs AB begin
            struct B y::Int end
        end
 
-julia> @pattern f(::A) = 1;
+julia> @pattern f(::AB'.A) = 1;
 
-julia> @pattern f(::B) = 2;
+julia> @pattern f(::AB'.B) = 2;
 
 julia> @pattern f(::Vector{AB}) = 3; # this works 
 
-julia> @pattern f(::Vector{B}) = 3; # this doesn't work
+julia> @pattern f(::Vector{AB'.B}) = 3; # this doesn't work
 ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
 ...
 
-julia> f(A(0))
+julia> f(AB'.A(0))
 1
 
-julia> f(B(0))
+julia> f(AB'.B(0))
 2
 
-julia> f([A(0), B(0)])
+julia> f([AB'.A(0), AB'.B(0)])
 3
 ```
 """

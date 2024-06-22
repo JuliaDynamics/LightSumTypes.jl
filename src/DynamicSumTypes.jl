@@ -28,7 +28,7 @@ julia> @sum_structs AB begin
            struct B y::Int end
        end
 
-julia> a = A(1);
+julia> a = AB'.A(1);
 
 julia> kindof(a)
 :A
@@ -65,10 +65,11 @@ julia> @sum_structs AB begin
            struct B y::Int end
        end
 
-julia> a = A(1);
+julia> a = AB'.A(1)
+A(1)::AB
 
-julia> kindconstructor(a)
-A
+julia> kindconstructor(a)(1)
+A(1)::AB
 ```
 """
 function kindconstructor end
