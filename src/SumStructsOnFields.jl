@@ -403,10 +403,19 @@ function def_export_variants(type)
                 vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[@__MODULE__]
                 for V in allkinds(T)
                     eval(:(const $V = ($(T))'.$V))
-                    vtc[V] = Symbol(T)
+                    for k in collect(keys(vtc))
+                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
+                        if b == true
+                            vtc[V] = vtc[k]
+                            break
+                        end
+                    end
                     for k in collect(keys(vtwpc))
-                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($(Symbol(T)))'))
-                        b == true && (vtwpc[k.args[2].value] = vtwpc[k])
+                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($T)'))
+                        if b == true 
+                            vtwpc[k.args[2].value] = vtwpc[k]
+                            break
+                        end
                     end
                 end  
             end      
