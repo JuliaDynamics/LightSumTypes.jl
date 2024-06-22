@@ -7,5 +7,5 @@
 kindof
 allkinds
 export_variants
-kindconstructor
+variant_constructor
 ```

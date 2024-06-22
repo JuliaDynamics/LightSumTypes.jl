@@ -115,8 +115,8 @@ export_variants(AA)
     @test kindof(copy_f) == kindof(f)
     @test allkinds(E) == (:F, :G, :H)
     @test allkinds(typeof(f)) == (:F, :G, :H)
-    @test kindconstructor(f) == E'.F
-    @test kindconstructor(h) == E'.H
+    @test variant_constructor(f) == E'.F
+    @test variant_constructor(h) == E'.H
 
     hawk_1 = Animal2'.Hawk2(1.0, 2.0, 3)
     hawk_2 = Animal2'.Hawk2(; ground_speed = 2.3, flight_speed = 2)
