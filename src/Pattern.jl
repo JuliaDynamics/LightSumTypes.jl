@@ -343,18 +343,15 @@ function generate_defs(mod, cache)
 end
 
 """
-    finalize_patterns()
+    @finalize_patterns
 
-When `@pattern` is used inside a module or a script, it is 
-needed to define at some points all the functions it constructed.
-this can be done by invoking `finalize_patterns()`.
+Calling `@finalize_patterns` is needed to define at some 
+points all the functions `@pattern` constructed in that 
+module.
 
 If you don't need to call any of them before the functions 
-are imported, you can just put this invocation at the end of
+are imported, you can just put a single invocation at the end of
 the module. 
-
-Notice that every `Module` using `@pattern` has its own definition of 
-`finalize_patterns`.
 """
 macro finalize_patterns()
     quote
