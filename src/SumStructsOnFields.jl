@@ -211,7 +211,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
                      end)
 
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
-                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[1:end-1] if getfield(a, x) != DynamicSumTypes.uninit]
+                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[2:end] if getfield(a, x) != DynamicSumTypes.uninit]
                       vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
                       params = [x for x in typeof(a).parameters if x != DynamicSumTypes.Uninitialized] 
                       if isempty(params)
