@@ -148,7 +148,7 @@ function _sum_structs(type, struct_defs, vtc, vtwpc)
 
     fake_structs = [:(struct $fn 1+1 end) for fn in fake_names]
 
-    fake_prints = [:(Base.show(io::IO, T::Type{<:$(namify(fn))}) = print(io, $(string(namify(v))))) for (fn, v) in zip(fake_names, variants_types_names)]
+    fake_prints = [:($Base.show(io::IO, ::MIME"text/plain", T::Type{<:$(namify(fn))}) = print(io, $(string(namify(v))))) for (fn, v) in zip(fake_names, variants_types_names)]
 
     branching_constructor = generate_branching_variants(variants_types_names, [:(return $v) for v in namify.(fake_names)])
     expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(type)))
