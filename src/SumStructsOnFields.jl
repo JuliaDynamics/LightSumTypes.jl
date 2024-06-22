@@ -22,7 +22,7 @@ julia> @sum_structs AB begin
        end
 
 julia> a = AB'.A(1)
-A(1)::AB
+AB'.A(1)
 
 julia> a.x
 1
