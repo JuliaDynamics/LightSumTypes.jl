@@ -11,7 +11,7 @@ export @finalize_patterns
 export export_variants
 export kindof
 export allkinds
-export kindconstructor
+export variant_constructor
 
 const __modules_cache__ = Set{Module}()
 const __variants_types_cache__ = Dict{Module, Dict{Any, Any}}()
@@ -55,9 +55,10 @@ julia> allkinds(AB)
 function allkinds end
 
 """
-    kindconstructor(instance)
+    variant_constructor(instance)
 
-Return the constructor of an instance:
+Return the constructor of an instance in a more
+efficient way than doing `typeof(inst)'[kindof(inst)]`:
 
 ```julia
 julia> @sum_structs AB begin
@@ -68,11 +69,14 @@ julia> @sum_structs AB begin
 julia> a = AB'.A(1)
 AB'.A(1)
 
-julia> kindconstructor(a)(1)
-AB'.A(1)
+julia> typeof(a)'[kindof(a)]
+AB'.A
+
+julia> variant_constructor(a)
+AB'.A
 ```
 """
-function kindconstructor end
+function variant_constructor end
 
 """
     export_variants(T)

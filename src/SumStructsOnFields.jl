@@ -204,7 +204,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     end
 
     branching_constructor = generate_branching_types(namify.(types_each_vis), [:(return $v) for v in namify.(types_each)])
-    expr_constructor = :(function DynamicSumTypes.kindconstructor(a::$(namify(new_type)))
+    expr_constructor = :(function DynamicSumTypes.variant_constructor(a::$(namify(new_type)))
                         kind = kindof(a)
 
                         $(branching_constructor...)
@@ -258,7 +258,8 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     expr_adjoint = :(Base.adjoint(::Type{<:$(namify(new_type))}) =
             $NamedTuple{$(Expr(:tuple, QuoteNode.(namify.(types_each_vis))...))}($(Expr(:tuple, namify.(types_each)...))))
 
-    fake_prints = [:(Base.show(io::IO, ::MIME"text/plain", T::Type{<:$(namify(fn))}) = print(io, $(string(namify(v))))) for (fn, v) in zip(types_each, types_each_vis)]
+    fake_prints = [:($Base.show(io::IO, ::MIME"text/plain", T::Type{<:$(namify(fn))}) = print(io, $(string(namify(new_type), "'.", namify(v))))) 
+                   for (fn, v) in zip(types_each, types_each_vis)]
 
     expr_exports = def_export_variants(new_type)
 
