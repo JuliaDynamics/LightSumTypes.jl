@@ -62,7 +62,7 @@ macro pattern(f_def)
     expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        @finalize_patterns
+                        DynamicSumTypes.@finalize_patterns
                         $(f_super_dict[:name])
                     end
                 end
