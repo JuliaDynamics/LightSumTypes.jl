@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>API · DynamicSumTypes.jl</title><meta name="title" content="API · DynamicSumTypes.jl"/><meta property="og:title" content="API · DynamicSumTypes.jl"/><meta property="twitter:title" content="API · DynamicSumTypes.jl"/><meta name="description" content="Documentation for DynamicSumTypes.jl."/><meta property="og:description" content="Documentation for DynamicSumTypes.jl."/><meta property="twitter:description" content="Documentation for DynamicSumTypes.jl."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>DynamicSumTypes.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>API</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>API</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/main/docs/src/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="API"><a class="docs-heading-anchor" href="#API">API</a><a id="API-1"></a><a class="docs-heading-anchor-permalink" href="#API" title="Permalink"></a></h1><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.@sum_structs" href="#DynamicSumTypes.@sum_structs"><code>DynamicSumTypes.@sum_structs</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@sum_structs [version] type_definition begin
+    structs_definitions
+end</code></pre><p>This macro allows to combine multiple types in a single one.  The default version is <code>:on_fields</code> which has been built to yield  a performance almost identical to having just one type. Using <code>:on_types</code> consumes less memory at the cost of being a bit slower.</p><p><strong>Example</strong></p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; a = AB&#39;.A(1)
+AB&#39;.A(1)
+
+julia&gt; a.x
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/SumStructsOnFields.jl#L5-L30">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.@pattern" href="#DynamicSumTypes.@pattern"><code>DynamicSumTypes.@pattern</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@pattern(function_definition)</code></pre><p>This macro allows to pattern on types created by <a href="#DynamicSumTypes.@sum_structs"><code>@sum_structs</code></a>. </p><p>Notice that this only works when the kinds in the macro are not wrapped  by any type containing them.</p><p><strong>Example</strong></p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; @pattern f(::AB&#39;.A) = 1;
+
+julia&gt; @pattern f(::AB&#39;.B) = 2;
+
+julia&gt; @pattern f(::Vector{AB}) = 3; # this works 
+
+julia&gt; @pattern f(::Vector{AB&#39;.B}) = 3; # this doesn&#39;t work
+ERROR: LoadError: It is not possible to dispatch on a variant wrapped in another type
+...
+
+julia&gt; f(AB&#39;.A(0))
+1
+
+julia&gt; f(AB&#39;.B(0))
+2
+
+julia&gt; f([AB&#39;.A(0), AB&#39;.B(0)])
+3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/Pattern.jl#L2-L37">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.@finalize_patterns" href="#DynamicSumTypes.@finalize_patterns"><code>DynamicSumTypes.@finalize_patterns</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia hljs">@finalize_patterns</code></pre><p>Calling <code>@finalize_patterns</code> is needed to define at some  points all the functions <code>@pattern</code> constructed in that  module.</p><p>If you don&#39;t need to call any of them before the functions  are imported, you can just put a single invocation at the end of the module. </p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/Pattern.jl#L345-L355">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.kindof" href="#DynamicSumTypes.kindof"><code>DynamicSumTypes.kindof</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">kindof(instance)</code></pre><p>Return a symbol representing the conceptual type of an instance:</p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; a = AB&#39;.A(1);
+
+julia&gt; kindof(a)
+:A</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/DynamicSumTypes.jl#L20-L36">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.allkinds" href="#DynamicSumTypes.allkinds"><code>DynamicSumTypes.allkinds</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">allkinds(type)</code></pre><p>Return a <code>Tuple</code> containing all kinds associated with the overarching  type defined with <code>@sum_structs</code></p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; allkinds(AB)
+(:A, :B)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/DynamicSumTypes.jl#L39-L54">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.export_variants" href="#DynamicSumTypes.export_variants"><code>DynamicSumTypes.export_variants</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">export_variants(T)</code></pre><p>Export all variants types into the module the function it is called into.</p><p><strong>Example</strong></p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; AB&#39;.A(1)
+AB&#39;.A(1)
+
+julia&gt; export_variants(AB)
+
+julia&gt; A(1) # now this also works
+AB&#39;.A(1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/DynamicSumTypes.jl#L81-L103">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="DynamicSumTypes.variant_constructor" href="#DynamicSumTypes.variant_constructor"><code>DynamicSumTypes.variant_constructor</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">variant_constructor(instance)</code></pre><p>Return the constructor of an instance in a more efficient way than doing <code>typeof(inst)&#39;[kindof(inst)]</code>:</p><pre><code class="language-julia hljs">julia&gt; @sum_structs AB begin
+           struct A x::Int end
+           struct B y::Int end
+       end
+
+julia&gt; a = AB&#39;.A(1)
+AB&#39;.A(1)
+
+julia&gt; typeof(a)&#39;[kindof(a)]
+AB&#39;.A
+
+julia&gt; variant_constructor(a)
+AB&#39;.A</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/DynamicSumTypes.jl/blob/92c81ec0ead7fef21eddfd85143e7169efbf4a74/src/DynamicSumTypes.jl#L57-L78">source</a></section></article></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Tuesday 25 June 2024 21:40">Tuesday 25 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
