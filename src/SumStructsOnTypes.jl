@@ -307,6 +307,7 @@ function generate_branching_variants(variants_types, res)
     for i in 2:length(variants_types)
         push!(branchs, Expr(:elseif, :(data_a isa (DynamicSumTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res[i]))
     end
+    push!(branchs, :(error("unreacheable")))
     return branchs
 end
 
