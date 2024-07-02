@@ -213,9 +213,12 @@ end
     l::String = "hi"
 end
 
-function foo!(xs)
-    for i in eachindex(xs)
-        @inbounds xs[i] = foo_each(xs[i])
+function foo!(rng, xs)
+    s = length(xs)
+    while s != 0
+        r = rand(rng, 1:length(xs))
+        @inbounds xs[r] = foo_each(xs[r])
+    	s -= 1
     end
 end
 
@@ -224,17 +227,16 @@ foo_each(x::B) = C(x.common_field-1, x.d, isodd(x.c), x.d, x.e)
 foo_each(x::C) = D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye")
 foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
 
-
 using Random
 
 rng = MersenneTwister(42)
-xs = [rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
+xs = Union{A,B,C,D}[rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
 
 using BenchmarkTools
 
 println("Array size: $(Base.summarysize(xs)) bytes\n")
 
-display(@benchmark foo!($xs);)
+display(@benchmark foo!($rng, $xs);)
 
 end;
 ```
@@ -244,15 +246,15 @@ end;
 Array size: 399962 bytes
 
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  237.918 μs …   3.585 ms  ┊ GC (min … max):  0.00% … 88.41%
- Time  (median):     250.622 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   282.875 μs ± 265.652 μs  ┊ GC (mean ± σ):  10.82% ± 10.27%
+ Range (min … max):  316.656 μs …   4.165 ms  ┊ GC (min … max): 0.00% … 85.80%
+ Time  (median):     413.999 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   432.672 μs ± 297.266 μs  ┊ GC (mean ± σ):  7.13% ±  9.08%
 
-  █                                                             ▁
-  █▇▄▁▆▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▇ █
-  238 μs        Histogram: log(frequency) by time       2.49 ms <
+    █                                                            
+  ▇██▃▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂ ▂
+  317 μs           Histogram: frequency by time         3.05 ms <
 
- Memory estimate: 428.33 KiB, allocs estimate: 10000.
+ Memory estimate: 425.50 KiB, allocs estimate: 10000.
 ```
 
 ### Using `@sum_structs :on_fields`
@@ -291,9 +293,12 @@ end
 
 export_variants(AT)
 
-function foo!(xs)
-    for i in eachindex(xs)
-        @inbounds xs[i] = foo_each(xs[i])
+function foo!(rng, xs)
+    s = length(xs)
+    while s != 0
+        r = rand(rng, 1:length(xs))
+        @inbounds xs[r] = foo_each(xs[r])
+    	s -= 1
     end
 end
 
@@ -312,7 +317,7 @@ using BenchmarkTools
 
 println("Array size: $(Base.summarysize(xs)) bytes\n")
 
-display(@benchmark foo!($xs);)
+display(@benchmark foo!($rng, $xs);)
 
 end;
 ```
@@ -322,13 +327,13 @@ end;
 Array size: 1600050 bytes
 
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  114.265 μs … 164.790 μs  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     121.559 μs               ┊ GC (median):    0.00%
- Time  (mean ± σ):   119.503 μs ±   4.064 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+ Range (min … max):  281.450 μs … 712.240 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     288.493 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   289.516 μs ±   7.968 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
 
-    ▃▆██▇▄        ▁▁▂▂▃▂        ▂▄▆▇▇▇▆▄▁        ▁▂▂▂▂▁▁        ▃
-  ▄████████▅▆▆▄▃▆▆███████▆▆▆▂▃▅███████████▅▆▆▆██████████▇▅▆▄▃▆▅ █
-  114 μs        Histogram: log(frequency) by time        129 μs <
+               ▁▆█▇                                              
+  ▁▁▁▁▁▂▂▃▃▄▄▅▆█████▄▂▂▂▂▂▂▂▁▁▁▁▁▁▁▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▂
+  281 μs           Histogram: frequency by time          309 μs <
 
  Memory estimate: 0 bytes, allocs estimate: 0.
 ```
@@ -370,9 +375,12 @@ end
 
 export_variants(AT)
 
-function foo!(xs)
-    for i in eachindex(xs)
-        @inbounds xs[i] = foo_each(xs[i])
+function foo!(rng, xs)
+    s = length(xs)
+    while s != 0
+        r = rand(rng, 1:length(xs))
+        @inbounds xs[r] = foo_each(xs[r])
+    	s -= 1
     end
 end
 
@@ -391,7 +399,7 @@ using BenchmarkTools
 
 println("Array size: $(Base.summarysize(xs)) bytes\n")
 
-display(@benchmark foo!($xs);)
+display(@benchmark foo!($rng, $xs);)
 
 end;
 ```
@@ -401,18 +409,18 @@ end;
 Array size: 120754 bytes
 
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  138.210 μs …   3.678 ms  ┊ GC (min … max):  0.00% … 91.71%
- Time  (median):     148.831 μs               ┊ GC (median):     0.00%
- Time  (mean ± σ):   179.962 μs ± 283.349 μs  ┊ GC (mean ± σ):  16.78% ±  9.99%
+ Range (min … max):  277.863 μs …   4.212 ms  ┊ GC (min … max):  0.00% … 86.77%
+ Time  (median):     289.539 μs               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   328.873 μs ± 317.800 μs  ┊ GC (mean ± σ):  10.20% ±  9.50%
 
-  █                                                              
-  █▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂ ▂
-  138 μs           Histogram: frequency by time         2.73 ms <
+  █▂▂                                                           ▁
+  ███▅▄▃▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▇ █
+  278 μs        Histogram: log(frequency) by time       3.16 ms <
 
- Memory estimate: 428.33 KiB, allocs estimate: 10000.
+ Memory estimate: 425.50 KiB, allocs estimate: 10000.
 ```
 
-In this micro-benchmark, using `@sum_structs :on_fields` is more than 2 times faster than `Union` types, 
+In this micro-benchmark, using `@sum_structs :on_fields` is 1.5 times faster than `Union` types, 
 even if it requires 4 times the memory to store the array. Whereas, using `@sum_structs :on_types` is a bit 
 less time efficient than `:on_fields`, but the memory required to store elements in respect to `Union` types 
 is less than 1/3!
@@ -421,9 +429,9 @@ is less than 1/3!
 
 ## Macro-benchmarks
 
-Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidences on more realistic
+Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
 programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
-and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent` is actually `@sum_structs` under the hood). Speed-up in those cases are sometimes over 10x in respect to `Union` types.
+and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent` is actually `@sum_structs` under the hood). Speed-ups in those cases are sometimes over 10x in respect to `Union` types.
 
 ## Contributing
 
