@@ -417,6 +417,8 @@ even if it requires 4 times the memory to store the array. Whereas, using `@sum_
 less time efficient than `:on_fields`, but the memory required to store elements in respect to `Union` types 
 is less than 1/3!
 
+<sub>*Benchmaks have been run on Julia 1.11*</sub>
+
 ## Macro-benchmarks
 
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidences on more realistic
