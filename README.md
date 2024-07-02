@@ -181,7 +181,7 @@ invocation after all the rest of the code.
 Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
 the available functionalities.
 
-## Micro-Benchmark
+## Micro-benchmarks
 
 ### Using `Union` types
 <details>
@@ -412,11 +412,12 @@ BenchmarkTools.Trial: 10000 samples with 1 evaluation.
  Memory estimate: 428.33 KiB, allocs estimate: 10000.
 ```
 
-In this micro-benchmark, using `@sum_structs :on_fields` is 2 times faster than `Union` types, 
-even if it requires 4 times the memory to store the array. Whereas, using `@sum_structs :on_types` is a bit less time efficient, 
-but the memory required to store elements in respect to `Union` types is less than 1/3!
+In this micro-benchmark, using `@sum_structs :on_fields` is more than 2 times faster than `Union` types, 
+even if it requires 4 times the memory to store the array. Whereas, using `@sum_structs :on_types` is a bit 
+less time efficient than `:on_fields`, but the memory required to store elements in respect to `Union` types 
+is less than 1/3!
 
-## Macro-benchmark
+## Macro-benchmarks
 
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some concrete evidence on more realistic
 programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
