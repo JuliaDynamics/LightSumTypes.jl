@@ -420,7 +420,7 @@ but the memory required to store elements in respect to `Union` types is less th
 
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some concrete evidence on more realistic
 programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
-and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent` is actually @sum_structs under the hood).
+and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent` is actually @sum_structs under the hood). Speed-up in those cases are sometimes over 10x in respect to `Union` types.
 
 ## Contributing
 
