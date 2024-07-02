@@ -21,7 +21,7 @@ Even if there is only a unique type defined by this macro, you can access a symb
 type of an instance with the function `kindof` and use the `@pattern` macro to define functions which 
 can operate differently on each kind.
 
-## Construct mixed types
+## Construct sum types
 
 ```julia
 julia> using DynamicSumTypes
@@ -102,7 +102,7 @@ julia> kindof(g)
 :G
 ```
 
-## Define functions on the mixed types
+## Define functions on sum types
 
 There are currently two ways to define function on the types created 
 with this package:
@@ -181,60 +181,246 @@ invocation after all the rest of the code.
 Consult the [API page](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/) for more information on 
 the available functionalities.
 
-## Benchmark against a `Union` of types
+## Micro-Benchmark
 
-Let's see briefly how the two macros compare performance-wise in respect to a `Union` of types:
+### Using `Union` types
+<details>
+ <summary>Benchmark code</summary>
+       
+```julia
+module UnionTypeTest
+
+@kwdef struct A
+    common_field::Int = 1
+    a::Bool = true
+    b::Int = 10
+end
+@kwdef struct B
+    common_field::Int = 1
+    c::Int = 1
+    d::Float64 = 1.0
+    e::Complex{Float64} = 1.0 + 1.0im
+end
+@kwdef struct C
+    common_field::Int = 1
+    f::Float64 = 2.0
+    g::Bool = false
+    h::Float64 = 3.0
+    i::Complex{Float64} = 1.0 + 2.0im
+end
+@kwdef struct D
+    common_field::Int = 1
+    l::String = "hi"
+end
+
+function foo!(xs)
+    for i in eachindex(xs)
+        @inbounds xs[i] = foo_each(xs[i])
+    end
+end
+
+foo_each(x::A) = B(x.common_field+1, x.a, x.b, x.b)
+foo_each(x::B) = C(x.common_field-1, x.d, isodd(x.c), x.d, x.e)
+foo_each(x::C) = D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye")
+foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
+
+
+using Random
+
+rng = MersenneTwister(42)
+xs = [rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
+
+using BenchmarkTools
+
+println("Array size: $(Base.summarysize(xs)) bytes\n")
+
+display(@benchmark foo!($xs);)
+
+end;
+```
+</details>
 
 ```julia
-julia> @kwdef mutable struct M{X}
-           a::X = 1
-           b::Float64 = 1.0
-       end
+Array size: 399962 bytes
 
-julia> @kwdef mutable struct N{X}
-           a::X = 2
-           c::Bool = true
-       end
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  237.918 μs …   3.585 ms  ┊ GC (min … max):  0.00% … 88.41%
+ Time  (median):     250.622 μs               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   282.875 μs ± 265.652 μs  ┊ GC (mean ± σ):  10.82% ± 10.27%
 
-julia> @kwdef mutable struct O{X}
-           a::X = 3
-           const d::Symbol = :s
-       end
+  █                                                             ▁
+  █▇▄▁▆▇▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▃▇ █
+  238 μs        Histogram: log(frequency) by time       2.49 ms <
 
-julia> @kwdef mutable struct P{X}
-           a::X = 4
-       end
-
-julia> vec_union = Union{M{Int},N{Int},O{Int},P{Int}}[rand((M,N,O,P))() for _ in 1:10^6];
-
-julia> vec_sum_on_types = F{Int}[rand((G,H,I,L))() for _ in 1:10^6];
-
-julia> vec_sum_on_fields = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
-
-julia> Base.summarysize(vec_union)
-22003112
-
-julia> Base.summarysize(vec_sum_on_types)
-30004176
-
-julia> Base.summarysize(vec_sum_on_fields)
-48000040
-
-julia> using BenchmarkTools
-
-julia> @btime sum(x.a for x in $vec_union);
-  26.886 ms (999805 allocations: 15.26 MiB)
-
-julia> @btime sum(x.a for x in $vec_sum_on_types);
-  6.585 ms (0 allocations: 0 bytes)
-
-julia> @btime sum(x.a for x in $vec_sum_on_fields);
-  1.747 ms (0 allocations: 0 bytes)
+ Memory estimate: 428.33 KiB, allocs estimate: 10000.
 ```
 
-In this case, `@sum_structs :on_fields` types are almost 15 times faster than `Union` ones, even if they require more than
-double the memory. Whereas, as expected, `@sum_structs :on_types` types are less time efficient, but the memory increase 
-in respect to `Union` types is smaller.
+### Using `@sum_structs :on_fields`
+<details>
+ <summary>Benchmark code</summary>
+
+```julia
+module SumStructsOnFieldsTest
+
+using DynamicSumTypes
+
+@sum_structs :on_fields AT begin
+    @kwdef struct A
+        common_field::Int = 1
+        a::Bool = true
+        b::Int = 10
+    end
+    @kwdef struct B
+        common_field::Int = 1
+        c::Int = 1
+        d::Float64 = 1.0
+        e::Complex{Float64} = 1.0 + 1.0im
+    end
+    @kwdef struct C
+        common_field::Int = 1
+        f::Float64 = 2.0
+        g::Bool = false
+        h::Float64 = 3.0
+        i::Complex{Float64} = 1.0 + 2.0im
+    end
+    @kwdef struct D
+        common_field::Int = 1
+        l::String = "hi"
+    end
+end
+
+export_variants(AT)
+
+function foo!(xs)
+    for i in eachindex(xs)
+        @inbounds xs[i] = foo_each(xs[i])
+    end
+end
+
+@pattern foo_each(x::A) = B(x.common_field+1, x.a, x.b, x.b)
+@pattern foo_each(x::B) = C(x.common_field-1, x.d, isodd(x.c), x.d, x.e)
+@pattern foo_each(x::C) = D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye")
+@pattern foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
+@finalize_patterns
+
+using Random
+
+rng = MersenneTwister(42)
+xs = [rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
+
+using BenchmarkTools
+
+println("Array size: $(Base.summarysize(xs)) bytes\n")
+
+display(@benchmark foo!($xs);)
+
+end;
+```
+</details>
+
+```julia
+Array size: 1600050 bytes
+
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  114.265 μs … 164.790 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     121.559 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   119.503 μs ±   4.064 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+    ▃▆██▇▄        ▁▁▂▂▃▂        ▂▄▆▇▇▇▆▄▁        ▁▂▂▂▂▁▁        ▃
+  ▄████████▅▆▆▄▃▆▆███████▆▆▆▂▃▅███████████▅▆▆▆██████████▇▅▆▄▃▆▅ █
+  114 μs        Histogram: log(frequency) by time        129 μs <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
+```
+
+### Using `@sum_structs :on_types`
+
+<details>
+ <summary>Benchmark code</summary>
+
+```julia
+module SumStructsOnTypesTest
+
+using DynamicSumTypes
+
+@sum_structs :on_types AT begin
+    @kwdef struct A
+        common_field::Int = 1
+        a::Bool = true
+        b::Int = 10
+    end
+    @kwdef struct B
+        common_field::Int = 1
+        c::Int = 1
+        d::Float64 = 1.0
+        e::Complex{Float64} = 1.0 + 1.0im
+    end
+    @kwdef struct C
+        common_field::Int = 1
+        f::Float64 = 2.0
+        g::Bool = false
+        h::Float64 = 3.0
+        i::Complex{Float64} = 1.0 + 2.0im
+    end
+    @kwdef struct D
+        common_field::Int = 1
+        l::String = "hi"
+    end
+end
+
+export_variants(AT)
+
+function foo!(xs)
+    for i in eachindex(xs)
+        @inbounds xs[i] = foo_each(xs[i])
+    end
+end
+
+@pattern foo_each(x::A) = B(x.common_field+1, x.a, x.b, x.b)
+@pattern foo_each(x::B) = C(x.common_field-1, x.d, isodd(x.c), x.d, x.e)
+@pattern foo_each(x::C) = D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye")
+@pattern foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
+@finalize_patterns
+
+using Random
+
+rng = MersenneTwister(42)
+xs = [rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
+
+using BenchmarkTools
+
+println("Array size: $(Base.summarysize(xs)) bytes\n")
+
+display(@benchmark foo!($xs);)
+
+end;
+```
+</details>
+
+```julia
+Array size: 120754 bytes
+
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  138.210 μs …   3.678 ms  ┊ GC (min … max):  0.00% … 91.71%
+ Time  (median):     148.831 μs               ┊ GC (median):     0.00%
+ Time  (mean ± σ):   179.962 μs ± 283.349 μs  ┊ GC (mean ± σ):  16.78% ±  9.99%
+
+  █                                                              
+  █▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂ ▂
+  138 μs           Histogram: frequency by time         2.73 ms <
+
+ Memory estimate: 428.33 KiB, allocs estimate: 10000.
+```
+
+In this micro-benchmark, using `@sum_structs :on_fields` is 2 times faster than `Union` types, 
+even if it requires 4 times the memory to store the array. Whereas, using `@sum_structs :on_types` is a bit less time efficient, 
+but the memory required to store elements in respect to `Union` types is less than 1/3!
+
+## Macro-benchmark
+
+Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some concrete evidence on more realistic
+programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
+and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent` is actually @sum_structs under the hood).
 
 ## Contributing
 
