@@ -26,80 +26,43 @@ can operate differently on each kind.
 ```julia
 julia> using DynamicSumTypes
 
-julia> abstract type AbstractA{X} end
+julia> abstract type AbstractAT{X} end
 
 julia> # default version is :on_fields
-       @sum_structs A{X} <: AbstractA{X} begin
-           @kwdef mutable struct B{X}
+       @sum_structs AT{X} <: AbstractAT{X} begin
+           @kwdef mutable struct A{X}
                a::X = 1
                b::Float64 = 1.0
+           end
+           @kwdef mutable struct B{X}
+               a::X = 2
+               c::Bool = true
            end
            @kwdef mutable struct C{X}
-               a::X = 2
-               c::Bool = true
+               a::X = 3
+               const d::Symbol = :s
            end
            @kwdef mutable struct D{X}
-               a::X = 3
-               const d::Symbol = :s
-           end
-           @kwdef mutable struct E{X}
                a::X = 4
            end
        end
 
-julia> b = A'.B(1, 1.5)
-A'.B{Int64}(1, 1.5)
+julia> a = AT'.A(1, 1.5)
+AT'.A{Int64}(1, 1.5)
 
-julia> export_variants(A)
+julia> export_variants(AT)
 
-julia> b = B(1, 1.5)
-A'.B{Int64}(1, 1.5)
+julia> a = A(1, 1.5)
+AT'.A{Int64}(1, 1.5)
 
-julia> b.a
-1
+julia> a.b
+1.5
 
-julia> b.a = 3
-3
+julia> a.b = 3.0
+3.0
 
-julia> kindof(b)
-:B
-
-julia> abstract type AbstractF{X} end
-
-julia> @sum_structs :on_types F{X} <: AbstractF{X} begin
-           @kwdef mutable struct G{X}
-               a::X = 1
-               b::Float64 = 1.0
-           end
-           @kwdef mutable struct H{X}
-               a::X = 2
-               c::Bool = true
-           end
-           @kwdef mutable struct I{X}
-               a::X = 3
-               const d::Symbol = :s
-           end
-           @kwdef mutable struct L{X}
-               a::X = 4
-           end
-       end
-
-julia> g = F'.G(1, 1.5)
-F'.G{Int64}(1, 1.5)
-
-julia> export_variants(F)
-
-julia> g = G(1, 1.5)
-F'.G{Int64}(1, 1.5)
-
-julia> g.a
-1
-
-julia> g.a = 3
-3
-
-julia> kindof(g)
-:G
+julia> kindof(a)
+:A
 ```
 
 ## Define functions on sum types
@@ -117,14 +80,14 @@ depending on the kind of each element in a vector:
 julia> function sum1(v) # with manual branching
            s = 0
            for x in v
-               if kindof(x) === :B
+               if kindof(x) === :A
+                   s += value_A(1)
+               elseif kindof(x) === :B
                    s += value_B(1)
                elseif kindof(x) === :C
                    s += value_C(1)
                elseif kindof(x) === :D
                    s += value_D(1)
-               elseif kindof(x) === :E
-                   s += value_E(1)
                else
                    error()
                end
@@ -133,13 +96,13 @@ julia> function sum1(v) # with manual branching
        end
 sum1 (generic function with 1 method)
 
-julia> value_B(k::Int) = k + 1;
+julia> value_A(k::Int) = k + 1;
 
-julia> value_C(k::Int) = k + 2;
+julia> value_B(k::Int) = k + 2;
 
-julia> value_D(k::Int) = k + 3;
+julia> value_C(k::Int) = k + 3;
 
-julia> value_E(k::Int) = k + 4;
+julia> value_D(k::Int) = k + 4;
 
 julia> function sum2(v) # with @pattern macro
            s = 0
@@ -150,15 +113,15 @@ julia> function sum2(v) # with @pattern macro
        end
 sum2 (generic function with 1 method)
 
-julia> @pattern value(k::Int, ::B) = k + 1;
+julia> @pattern value(k::Int, ::A) = k + 1;
 
-julia> @pattern value(k::Int, ::C) = k + 2;
+julia> @pattern value(k::Int, ::B) = k + 2;
 
-julia> @pattern value(k::Int, ::D) = k + 3;
+julia> @pattern value(k::Int, ::C) = k + 3;
 
-julia> @pattern value(k::Int, ::E) = k + 4;
+julia> @pattern value(k::Int, ::D) = k + 4;
 
-julia> v = A{Int}[rand((B,C,D,E))() for _ in 1:10^6];
+julia> v = AT{Int}[rand((A,B,C,D))() for _ in 1:10^6];
 
 julia> sum1(v)
 2499517
