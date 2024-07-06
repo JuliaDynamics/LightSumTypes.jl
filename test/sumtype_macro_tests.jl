@@ -64,7 +64,7 @@ end
     g2 = E(G(; a = (1,1), d = 1, e = 1, c = :c))
     h = E(H((1,1), 1, (im, im), :j))
 
-    @test_throws "" @sumtype Z.E
+    @test_throws "" eval(:(@sumtype Z.E))
     @test_throws "" E(F((1.0,1.0), (1.0, 1.0), :s))
     @test_throws "" E(G((1,1), im, (im, im), :d))
     @test_throws "" E(G((im,im), 1, (im, im), :d))
