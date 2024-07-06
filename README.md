@@ -15,7 +15,10 @@ structs to facilitate its integration within other libraries.
 The `@sumtype` macro takes inspiration from [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl),
 but it offers a much more simple and idiomatic interface. Working with it is almost like working with `Union` types.
 
-## Construction
+## Definition
+
+To define a sum type you can just take an arbitrary number of types and enclose them in it
+like so:
 
 ```julia
 julia> using DynamicSumTypes
@@ -32,11 +35,26 @@ julia> mutable struct B
 
 julia> @sumtype AT(A{Int},B) <: AbstractAT
 AT
+```
 
+## Construction
+
+Then constructing them is just a matter of enclosing the type constructed in the
+predefined sum type:
+
+```julia
 julia> a = AT(A(1))
+AT(A{Int64}(1))
 
 julia> b = AT(B(1.0))
+AT(B(1.0))
+```
 
+## Access and Mutation
+
+This works like if they were normal Julia types:
+
+```julia
 julia> a.x
 1
 
@@ -47,7 +65,7 @@ julia> b.y = 3.0
 ## Dispatch
 
 For this, you can simply destructure the sum type with
-`variant` and then dispatch on it. For example:
+`variant` and then dispatch on it:
 
 ```julia
 julia> f(x::AT) = f(variant(x))
