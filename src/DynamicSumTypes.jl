@@ -57,7 +57,7 @@ macro sumtype(typedef)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return propertynames(v)))...)
             end
-            function Base.show(io::IO, ::MIME"text/plain", sumt::$type)
+            function Base.show(io::IO, sumt::$type)
                 v = DynamicSumTypes.unwrap(sumt)
                 print(string($type), "'.", string(v))                
             end
