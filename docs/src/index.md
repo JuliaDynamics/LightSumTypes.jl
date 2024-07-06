@@ -2,6 +2,6 @@
 
 ```@docs
 @sumtype
-variant
-allvariants
+DynamicSumTypes.variant
+DynamicSumTypes.allvariants
 ```
