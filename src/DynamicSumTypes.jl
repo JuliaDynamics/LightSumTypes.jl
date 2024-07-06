@@ -23,9 +23,7 @@ macro sumtype(typedef)
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
-                function $type(v)
-                    $(branchs(variants, [:(return new(v)) for vw in variants])...)
-                end
+                $type(v) = $(branchs(variants, :(return new(v)))...)
             end
             function variant(sumt::$type)
                 v = DynamicSumTypes.unwrap(sumt)
@@ -43,6 +41,11 @@ macro sumtype(typedef)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return propertynames(v)))...)
             end
+            function Base.show(io::IO, ::MIME"text/plain", sumt::$type)
+                v = DynamicSumTypes.unwrap(sumt)
+                print(string($type), "'.", string(v))                
+            end
+            allvariants(sumt::Type{$type}) = tuple($(variants...))
     end)
 end 
 
