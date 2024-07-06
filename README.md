@@ -63,8 +63,6 @@ julia> f(b)
  <summary>Benchmark code</summary>
        
 ```julia
-module UnionTypeTest
-
 using Random, BenchmarkTools
 
 @kwdef struct A
@@ -107,9 +105,7 @@ foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
 rng = MersenneTwister(42)
 xs = Union{A,B,C,D}[rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
 println("Array size: $(Base.summarysize(xs)) bytes\n")
-display(@benchmark foo!($rng, 10^5);)
-
-end;
+@benchmark foo!($rng, 10^5)
 ```
 </details>
 
@@ -133,8 +129,6 @@ BenchmarkTools.Trial: 319 samples with 1 evaluation.
  <summary>Benchmark code</summary>
 
 ```julia
-module SumTypeTest
-
 using DynamicSumTypes, Random, BenchmarkTools
 
 @kwdef struct A
@@ -179,9 +173,7 @@ foo_each(x::D) = AT(A(x.common_field-1, x.l=="hi", x.common_field))
 rng = MersenneTwister(42)
 xs = [rand(rng, (AT(A()), AT(B()), AT(C()), AT(D()))) for _ in 1:10000]
 println("Array size: $(Base.summarysize(xs)) bytes\n")
-display(@benchmark foo!($rng, 10^5);)
-
-end;
+@benchmark foo!($rng, 10^5)
 ```
 </details>
 
