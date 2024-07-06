@@ -18,15 +18,13 @@ macro sumtype(typedef)
     end
 
     type = type_with_variants.args[1]
-    variants_names = type_with_variants.args[2:end]
-    variants = [:(DynamicSumTypes.Variant{$T}) for T in variants_names]
-    variants = [T for T in variants_names]
+    variants = type_with_variants.args[2:end]
 
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
                 function $type(v)
-                    $(branchs(variants_names, [:(return new(v)) for vw in variants])...)
+                    $(branchs(variants, [:(return new(v)) for vw in variants])...)
                 end
             end
             function variant(sumt::$type)
