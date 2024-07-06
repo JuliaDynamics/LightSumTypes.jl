@@ -1,111 +1,74 @@
 
-module DynamicSumTypes
 
-using ExprTools
-using MacroTools
-using SumTypes
+module TypeWrappers
 
-export @sum_structs
-export @pattern
-export @finalize_patterns
-export export_variants
-export kindof
-export allkinds
-export variant_constructor
+export @sumtype
 
-const __modules_cache__ = Set{Module}()
-const __variants_types_cache__ = Dict{Module, Dict{Any, Any}}()
-const __variants_types_with_params_cache__ = Dict{Module, Dict{Any, Vector{Any}}}()
+struct Variant{T}
+    data::T
+end
 
-"""
-    kindof(instance)
+unwrap(sumt) = getfield(sumt, :variants)
 
-Return a symbol representing the conceptual type of an instance:
+macro sumtype(typedef)
 
-```julia
-julia> @sum_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end
+    if typedef.head === :call
+        abstract_type = :Any
+        type_with_variants = typedef
+    elseif typedef.head === :(<:)
+        abstract_type = typedef.args[2]
+        type_with_variants = typedef.args[1]
+    else
+        error("Invalid syntax")
+    end
 
-julia> a = AB'.A(1);
+    type = type_with_variants.args[1]
+    variants_names = type_with_variants.args[2:end]
+    variants = [:(TypeWrappers.Variant{$T}) for T in variants_names]
 
-julia> kindof(a)
-:A
-```
-"""
-function kindof end
+    #fake_names = [:($(Symbol("###", namify(type), "#", namify(v))){$(p...)}) for (v, p) in zip(variants_types_names, variants_params_unconstr)]
+    #fake_structs = [:(struct $fn 1+1 end) for fn in fake_names]
 
-"""
-    allkinds(type)
+    esc(quote
+            struct $type <: $(abstract_type)
+                variants::Union{$(variants...)}
+                function $type(v)
+                    $(branchs(variants_names, [:(return new($vw(v))) for vw in variants])...)
+                end
+            end
+            function variant(sumt::$type)
+                v = TypeWrappers.unwrap(sumt)
+                $(branchs(variants, :(return v.data))...)
+            end
+            function Base.getproperty(sumt::$type, s::Symbol)
+                v = TypeWrappers.unwrap(sumt)
+                $(branchs(variants, :(return getproperty(v.data, s)))...)
+            end
+            function Base.setproperty!(sumt::$type, s::Symbol, value)
+                v = TypeWrappers.unwrap(sumt)
+                $(branchs(variants, :(return setproperty!(v.data, s, value)))...)
+            end
+            function Base.propertynames(sumt::$type)
+                v = TypeWrappers.unwrap(sumt)
+                $(branchs(variants, :(return propertynames(v.data)))...)
+            end
+            function Base.adjoint(ST::Type{<:$(type)})
+            	$NamedTuple{$(Expr(:tuple, QuoteNode.(variants_names)...))}($(Expr(:tuple, variants_names...)))
+            end
+    end)
+end 
 
-Return a `Tuple` containing all kinds associated with the overarching 
-type defined with `@sum_structs`
-
-```julia
-julia> @sum_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end
-
-julia> allkinds(AB)
-(:A, :B)
-```
-"""
-function allkinds end
-
-"""
-    variant_constructor(instance)
-
-Return the constructor of an instance in a more
-efficient way than doing `typeof(inst)'[kindof(inst)]`:
-
-```julia
-julia> @sum_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end
-
-julia> a = AB'.A(1)
-AB'.A(1)
-
-julia> typeof(a)'[kindof(a)]
-AB'.A
-
-julia> variant_constructor(a)
-AB'.A
-```
-"""
-function variant_constructor end
-
-"""
-    export_variants(T)
-
-Export all variants types into the module the
-function it is called into.
-
-## Example
-
-```julia
-julia> @sum_structs AB begin
-           struct A x::Int end
-           struct B y::Int end
-       end
-
-julia> AB'.A(1)
-AB'.A(1)
-
-julia> export_variants(AB)
-
-julia> A(1) # now this also works
-AB'.A(1)
-```
-"""
-function export_variants end
-
-include("SumStructsOnFields.jl")
-include("SumStructsOnTypes.jl")
-include("Pattern.jl")
-include("precompile.jl")
+function branchs(variants, outputs)
+    if !(outputs isa Vector)
+        outputs = repeat([outputs], length(variants))
+    end
+    branchs = [Expr(:if, :(v isa $(variants[1])), outputs[1])]
+    for i in 2:length(variants)
+        push!(branchs, Expr(:elseif, :(v isa $(variants[i])), outputs[i]))
+    end
+    push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
+    return branchs
+end
 
 end
+
