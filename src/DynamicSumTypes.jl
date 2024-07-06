@@ -1,6 +1,5 @@
 
-
-module TypeWrappers
+module DynamicSumTypes
 
 export @sumtype
 
@@ -24,10 +23,7 @@ macro sumtype(typedef)
 
     type = type_with_variants.args[1]
     variants_names = type_with_variants.args[2:end]
-    variants = [:(TypeWrappers.Variant{$T}) for T in variants_names]
-
-    #fake_names = [:($(Symbol("###", namify(type), "#", namify(v))){$(p...)}) for (v, p) in zip(variants_types_names, variants_params_unconstr)]
-    #fake_structs = [:(struct $fn 1+1 end) for fn in fake_names]
+    variants = [:(DynamicSumTypes.Variant{$T}) for T in variants_names]
 
     esc(quote
             struct $type <: $(abstract_type)
@@ -37,23 +33,20 @@ macro sumtype(typedef)
                 end
             end
             function variant(sumt::$type)
-                v = TypeWrappers.unwrap(sumt)
+                v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return v.data))...)
             end
             function Base.getproperty(sumt::$type, s::Symbol)
-                v = TypeWrappers.unwrap(sumt)
+                v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return getproperty(v.data, s)))...)
             end
             function Base.setproperty!(sumt::$type, s::Symbol, value)
-                v = TypeWrappers.unwrap(sumt)
+                v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return setproperty!(v.data, s, value)))...)
             end
             function Base.propertynames(sumt::$type)
-                v = TypeWrappers.unwrap(sumt)
+                v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return propertynames(v.data)))...)
-            end
-            function Base.adjoint(ST::Type{<:$(type)})
-            	$NamedTuple{$(Expr(:tuple, QuoteNode.(variants_names)...))}($(Expr(:tuple, variants_names...)))
             end
     end)
 end 
