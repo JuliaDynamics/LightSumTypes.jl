@@ -89,7 +89,7 @@ end
 end
 
 function foo!(rng, n)
-    xs = [rand(rng, (A(), B(), C(), D())) for _ in 1:n]
+    xs = Union{A,B,C,D}[rand(rng, (A(), B(), C(), D())) for _ in 1:n]
     while n != 0
         r = rand(rng, 1:length(xs))
         @inbounds xs[r] = foo_each(xs[r])
@@ -112,16 +112,16 @@ println("Array size: $(Base.summarysize(xs)) bytes\n")
 ```julia
 Array size: 399962 bytes
 
-BenchmarkTools.Trial: 319 samples with 1 evaluation.
- Range (min … max):  13.048 ms … 26.947 ms  ┊ GC (min … max):  0.00% … 33.93%
- Time  (median):     15.571 ms              ┊ GC (median):    16.47%
- Time  (mean ± σ):   15.702 ms ±  1.921 ms  ┊ GC (mean ± σ):  13.26% ± 11.37%
+BenchmarkTools.Trial: 506 samples with 1 evaluation.
+ Range (min … max):  8.604 ms …  14.161 ms  ┊ GC (min … max):  0.00% … 25.36%
+ Time  (median):     9.612 ms               ┊ GC (median):    14.07%
+ Time  (mean ± σ):   9.842 ms ± 855.626 μs  ┊ GC (mean ± σ):  11.77% ±  9.12%
 
-      ▂██▇▂                ▁                                   
-  ▃▁▁▅█████▇▄▆▄▄▄▄▅▄█▆▇█████▄▆▆▄▄▅█▄▃▄▃▃▅▃▃▁▃▃▁▃▃▃▃▃▃▃▃▄▃▁▃▁▃ ▄
-  13 ms           Histogram: frequency by time          21 ms <
+       ▁  ▅▄█▂▄▂▂▄                                             
+  ▂▁▁▁▄████████████▇█▆▇▆▃▄▃▃▃▃▂▃▃▁▁▁▃▃▃▃▁▂▁▁▁▃▁▂▁▁▁▂▃▁▂▂▂▃▃▃▃ ▃
+  8.6 ms          Histogram: frequency by time        13.2 ms <
 
- Memory estimate: 29.34 MiB, allocs estimate: 474209.
+ Memory estimate: 22.88 MiB, allocs estimate: 300002.
 ```
 
 ### Using `@sumtype`
@@ -192,10 +192,18 @@ BenchmarkTools.Trial: 1010 samples with 1 evaluation.
  Memory estimate: 8.77 MiB, allocs estimate: 224600.
 ```
 
-In this micro-benchmark, using `@sumtype` is more than 3 times faster and memory efficient 
-than `Union` types!
+In this micro-benchmark, using `@sumtype` is more than 2 times faster and 3 times more
+memory efficient than `Union` types!
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
+
+## Macro-Benchmarks
+
+(The benchmarks need to be updated after integration of the new version of this package, nonetheless, speed-ups are a bit more than `@multiagent :opt_memory`)
+
+Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
+programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
+and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_memory` benchmarks). Speed-ups in those cases are sometimes over 5x in respect to `Union` types.
 
 ## Contributing
 
