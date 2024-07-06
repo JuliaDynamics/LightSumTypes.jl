@@ -110,7 +110,7 @@ end
     b = Simple(SimpleA(1, 3))
     c = Simple(SimpleB(2, "a"))
 
-    @test (@capture_out begin show(b) end) == "Simple'.SimpleA(1, 3)"
+    @test (@capture_out begin show(stdout, MIME("text/plain"), b) end) == "Simple'.SimpleA(1, 3)"
     @test b.x == 1 && b.z == 3
     @test c.y == 2 && c.q == "a"
     @test_throws "" b.y
