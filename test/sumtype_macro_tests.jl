@@ -76,6 +76,8 @@ end
     @test g1.e === g2.e === 1
     @test hasproperty(g1, :e) == true
     @test hasproperty(g1, :w) == false
+    @test is_sumtype(typeof(g1)) == true
+    @test is_sumtype(G) == false
     
     f.a = (3, 3)
     @test f.a == (3, 3)
