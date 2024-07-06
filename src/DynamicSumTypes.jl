@@ -136,6 +136,6 @@ function allvariants end
 Returns true if the type is a sum type otherwise
 returns false.
 """
-function is_sumtype end
+is_sumtype(T) = false
 
 end
