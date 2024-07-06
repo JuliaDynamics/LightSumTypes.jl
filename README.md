@@ -39,7 +39,7 @@ AT
 
 ## Construction
 
-Then constructing them is just a matter of enclosing the type constructed in the
+Then constructing instances is just a matter of enclosing the type constructed in the
 predefined sum type:
 
 ```julia
