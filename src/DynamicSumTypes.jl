@@ -136,6 +136,6 @@ function allvariants end
 Returns true if the type is a sum type otherwise
 returns false.
 """
-is_sumtype(T) = false
+is_sumtype(T<:Type) = false
 
 end
