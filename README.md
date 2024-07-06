@@ -112,14 +112,14 @@ println("Array size: $(Base.summarysize(xs)) bytes\n")
 ```julia
 Array size: 399962 bytes
 
-BenchmarkTools.Trial: 506 samples with 1 evaluation.
- Range (min … max):  8.604 ms …  14.161 ms  ┊ GC (min … max):  0.00% … 25.36%
- Time  (median):     9.612 ms               ┊ GC (median):    14.07%
- Time  (mean ± σ):   9.842 ms ± 855.626 μs  ┊ GC (mean ± σ):  11.77% ±  9.12%
+BenchmarkTools.Trial: 490 samples with 1 evaluation.
+ Range (min … max):   8.325 ms … 20.104 ms  ┊ GC (min … max):  0.00% … 14.68%
+ Time  (median):      9.834 ms              ┊ GC (median):    14.50%
+ Time  (mean ± σ):   10.209 ms ±  1.309 ms  ┊ GC (mean ± σ):  11.74% ± 10.98%
 
-       ▁  ▅▄█▂▄▂▂▄                                             
-  ▂▁▁▁▄████████████▇█▆▇▆▃▄▃▃▃▃▂▃▃▁▁▁▃▃▃▃▁▂▁▁▁▃▁▂▁▁▁▂▃▁▂▂▂▃▃▃▃ ▃
-  8.6 ms          Histogram: frequency by time        13.2 ms <
+          ▄▄  █▅▂▃█   ▂                                        
+  ▂▂▂▁▃▃▄▆███▇███████▇█▅▄▅▃▁▃▃▄▃▃▂▂▂▁▃▃▃▃▁▃▃▃▃▃▂▃▃▃▃▂▃▃▃▄▃▂▂▃ ▃
+  8.32 ms         Histogram: frequency by time          14 ms <
 
  Memory estimate: 22.88 MiB, allocs estimate: 300002.
 ```
@@ -180,16 +180,16 @@ println("Array size: $(Base.summarysize(xs)) bytes\n")
 ```julia
 Array size: 120754 bytes
 
-BenchmarkTools.Trial: 1010 samples with 1 evaluation.
- Range (min … max):  3.730 ms … 11.622 ms  ┊ GC (min … max):  0.00% … 34.82%
- Time  (median):     4.174 ms              ┊ GC (median):     0.00%
- Time  (mean ± σ):   4.925 ms ±  1.680 ms  ┊ GC (mean ± σ):  13.83% ± 16.99%
+BenchmarkTools.Trial: 1115 samples with 1 evaluation.
+ Range (min … max):  3.440 ms … 12.625 ms  ┊ GC (min … max):  0.00% … 53.09%
+ Time  (median):     3.729 ms              ┊ GC (median):     0.00%
+ Time  (mean ± σ):   4.462 ms ±  1.640 ms  ┊ GC (mean ± σ):  13.81% ± 17.13%
 
-  ▂▂▅█▆▆▅▁                                                ▁   
-  ████████▆▄▄▁▄▁▅▁▁▁▁▁▁▁▄▇▆▆▇▆▇▇▇▆▆▆▆▅▇▅▆▆▅▆▅▄▁▆▅▅▁▅▇▇▇▇████ █
-  3.73 ms      Histogram: log(frequency) by time     9.66 ms <
+  ▂▆█▅▅▄▁                                                  ▁  
+  ███████▆▁▁▁▁▁▁▁▁▁▁▄▅▄▁▁▁▄▆▆▇██▇▆▅▅▅▇▆▄▆▅▇▄▁▆▄▅▆▅▅▄▄▇▇█████ █
+  3.44 ms      Histogram: log(frequency) by time      9.1 ms <
 
- Memory estimate: 8.77 MiB, allocs estimate: 224600.
+ Memory estimate: 8.00 MiB, allocs estimate: 200003.
 ```
 
 In this micro-benchmark, using `@sumtype` is more than 2 times faster and 3 times more
