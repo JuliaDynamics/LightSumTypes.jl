@@ -13,7 +13,7 @@ Another aim of this library is to provide a syntax as similar as possible to sta
 structs to facilitate its integration within other libraries. 
 
 The `@sumtype` macro takes inspiration from [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl),
-but it offers a much more simple interface. Working with it is almost like working with `Union` types.
+but it offers a much more simple and idiomatic interface. Working with it is almost like working with `Union` types.
 
 ## Construction
 
@@ -200,10 +200,8 @@ BenchmarkTools.Trial: 1010 samples with 1 evaluation.
  Memory estimate: 8.77 MiB, allocs estimate: 224600.
 ```
 
-In this micro-benchmark, using `@sum_structs :on_fields` is 1.5 times faster than `Union` types, 
-even if it requires 4 times the memory to store the array. Whereas, using `@sum_structs :on_types` is a bit 
-less time efficient than `:on_fields`, but the memory required to store elements in respect to `Union` types 
-is less than 1/3!
+In this micro-benchmark, using `@sumtype` is more than 3 times faster and memory efficient 
+than `Union` types!
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
 
