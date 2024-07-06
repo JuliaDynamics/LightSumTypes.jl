@@ -20,6 +20,7 @@ julia> struct A x::Int end;
 julia> struct B end;
 
 julia> @sumtype AB(A, B)
+```
 """
 macro sumtype(typedef)
 
@@ -97,6 +98,7 @@ AB'.A(0)
 
 julia> variant(a)
 A(0)
+```
 """
 function variant end
 
@@ -118,6 +120,7 @@ julia> @sumtype AB(A, B)
 
 julia> allvariants(AB)
 (A, B)
+```
 """
 function allvariants end
 
