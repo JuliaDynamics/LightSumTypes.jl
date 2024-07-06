@@ -1,5 +1,6 @@
 
 using Test
+using Suppressor
 using DynamicSumTypes
 
 @testset "DynamicSumTypes.jl Tests" begin

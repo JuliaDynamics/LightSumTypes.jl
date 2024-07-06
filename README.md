@@ -199,11 +199,11 @@ memory efficient than `Union` types!
 
 ## Macro-Benchmarks
 
-(The benchmarks need to be updated after integration of the new version of this package, nonetheless, speed-ups are a bit more than `@multiagent :opt_memory`)
+(The benchmarks need to be updated after integration of the new version of this package, nonetheless, speed-ups are similar to `@multiagent :opt_speed`)
 
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
 programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
-and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_memory` benchmarks). Speed-ups in those cases are sometimes over 5x in respect to `Union` types.
+and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_speed` benchmarks). Speed-ups in those cases are sometimes over 10x in respect to `Union` types.
 
 ## Contributing
 
