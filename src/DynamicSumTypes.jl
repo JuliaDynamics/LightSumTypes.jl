@@ -63,6 +63,7 @@ macro sumtype(typedef)
                 print(string($type), "'.", string(v))                
             end
             allvariants(sumt::Type{$type}) = tuple($(variants...))
+            $type
     end)
 end 
 
