@@ -22,19 +22,26 @@ julia> using DynamicSumTypes
 
 julia> abstract type AbstractAT end
 
-julia> struct A
-           x::Int
+julia> struct A{X}
+           x::X
        end
 
-julia> struct B
+julia> mutable struct B
            y::Float64
        end
 
-julia> @sumtype AT(A,B) <: AbstractAT
+julia> @sumtype AT(A{Int},B) <: AbstractAT
+AT
 
 julia> a = AT(A(1))
 
 julia> b = AT(B(1.0))
+
+julia> a.x
+1
+
+julia> b.y = 3.0
+3.0
 ```
 
 ## Dispatch
