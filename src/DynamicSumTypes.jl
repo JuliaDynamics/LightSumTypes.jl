@@ -62,10 +62,6 @@ macro sumtype(typedef)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return hasproperty(v, s)))...)
             end
-            function Base.show(io::IO, ::MIME"text/plain", sumt::$type)
-                v = DynamicSumTypes.unwrap(sumt)
-                print(string($type), "'.", string(v))                
-            end
             DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
             DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
@@ -73,9 +69,7 @@ macro sumtype(typedef)
 end 
 
 function branchs(variants, outputs)
-    if !(outputs isa Vector)
-        outputs = repeat([outputs], length(variants))
-    end
+    !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
     branchs = [Expr(:if, :(v isa $(variants[1])), outputs[1])]
     for i in 2:length(variants)
         push!(branchs, Expr(:elseif, :(v isa $(variants[i])), outputs[i]))
