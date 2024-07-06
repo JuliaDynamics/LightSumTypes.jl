@@ -3,7 +3,6 @@ uuid = "5fcdbb90-de43-509e-b9a6-c4d43f29cf26"
 version = "3.0.0"
 
 [deps]
-PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 
 [compat]
-julia = "1"
+julia = "1.2"
