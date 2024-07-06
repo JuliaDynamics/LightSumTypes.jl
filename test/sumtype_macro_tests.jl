@@ -74,6 +74,8 @@ end
     @test f.c == :s
     @test g1.d === g2.d === 1
     @test g1.e === g2.e === 1
+    @test hasproperty(g1, :e) == true
+    @test hasproperty(g1, :w) == false
     
     f.a = (3, 3)
     @test f.a == (3, 3)
