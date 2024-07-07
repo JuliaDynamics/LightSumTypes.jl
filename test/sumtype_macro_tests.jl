@@ -81,6 +81,7 @@ end
     @test hasproperty(g1, :w) == false
     @test is_sumtype(typeof(g1)) == true
     @test is_sumtype(G) == false
+    @test variantof(g1) == G{Int}
     
     f.a = (3, 3)
     @test f.a == (3, 3)

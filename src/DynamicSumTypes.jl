@@ -1,7 +1,7 @@
 
 module DynamicSumTypes
 
-export @sumtype, variant, allvariants, is_sumtype
+export @sumtype, variant, variantof, allvariants, is_sumtype
 
 unwrap(sumt) = getfield(sumt, :variants)
 
@@ -66,6 +66,7 @@ macro sumtype(typedef)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
+            DynamicSumTypes.variantof(sumt) = typeof(variant(sumt))
             DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
             DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
@@ -127,6 +128,14 @@ julia> allvariants(AB)
 ```
 """
 function allvariants end
+
+"""
+    variantof(inst)
+
+Returns the type of the variant enclosed in
+the sum type.
+"""
+function variantof end
 
 """
     is_sumtype(T)
