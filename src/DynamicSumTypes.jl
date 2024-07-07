@@ -48,19 +48,23 @@ macro sumtype(typedef)
             end
             function Base.getproperty(sumt::$type, s::Symbol)
                 v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return getproperty(v, s)))...)
+                $(branchs(variants, :(return Base.getproperty(v, s)))...)
             end
             function Base.setproperty!(sumt::$type, s::Symbol, value)
                 v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return setproperty!(v, s, value)))...)
+                $(branchs(variants, :(return Base.setproperty!(v, s, value)))...)
             end
             function Base.propertynames(sumt::$type)
                 v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return propertynames(v)))...)
+                $(branchs(variants, :(return Base.propertynames(v)))...)
             end
             function Base.hasproperty(sumt::$type, s::Symbol)
                 v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return hasproperty(v, s)))...)
+                $(branchs(variants, :(return Base.hasproperty(v, s)))...)
+            end
+            function Base.copy(sumt::$type)
+                v = DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
             DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
             DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
