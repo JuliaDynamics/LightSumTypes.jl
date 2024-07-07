@@ -6,10 +6,8 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 This package allows to combine multiple heterogeneous types in a single one. This helps to write 
-type-stable code by avoiding Union-splitting, which has big performance drawbacks when many types are 
-unionized. 
-
-Another aim of this library is to provide a syntax as similar as possible to standard Julia 
+type-stable code by avoiding `Union` performance drawbacks when many types are unionized. Another 
+aim of this library is to provide a syntax as similar as possible to standard Julia 
 structs to facilitate its integration within other libraries. 
 
 The `@sumtype` macro takes inspiration from [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl),
@@ -224,11 +222,9 @@ memory efficient than `Union` types!
 
 ## Macro-Benchmarks
 
-(The benchmarks need to be updated after integration of the new version of this package, nonetheless, speed-ups are similar to `@multiagent :opt_speed`)
-
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
-programs. You can find two of them at [https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl](https://github.com/JuliaDynamics/Agents.jl/blob/main/test/performance/branching_faster_than_dispatch.jl#L173)
-and https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_speed` benchmarks). Speed-ups in those cases are sometimes over 10x in respect to `Union` types.
+programs. You can find some of them at https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_speed` benchmarks). 
+Speed-ups in those cases are sometimes over 5x in respect to `Union` types.
 
 ## Contributing
 
