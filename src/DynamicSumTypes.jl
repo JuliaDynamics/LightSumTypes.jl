@@ -64,7 +64,7 @@ macro sumtype(typedef)
             end
             function Base.copy(sumt::$type)
                 v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return Base.copy(v)))...)
+                $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
             DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
             DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
