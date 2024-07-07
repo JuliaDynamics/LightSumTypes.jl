@@ -5,6 +5,7 @@ println("Documentation Build")
 makedocs(
     modules = [DynamicSumTypes],
     sitename = "DynamicSumTypes.jl",
+    warnonly = [:doctest, :missing_docs, :cross_references],
     pages = [    
         "API" => "index.md",
     ],

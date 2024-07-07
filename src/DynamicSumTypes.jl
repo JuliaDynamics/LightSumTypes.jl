@@ -136,4 +136,6 @@ returns false.
 """
 is_sumtype(T::Type) = false
 
+include("deprecations.jl")
+
 end
