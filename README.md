@@ -223,8 +223,7 @@ memory efficient than `Union` types!
 ## Macro-Benchmarks
 
 Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
-programs. You can find some of them at https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union (consider that `@multiagent :opt_speed` benchmarks). 
-Speed-ups in those cases are sometimes over 5x in respect to `Union` types.
+programs. You can find some of them at [https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union](https://juliadynamics.github.io/Agents.jl/previews/PR1055/performance_tips/#sum_vs_union). Speed-ups in some cases are over 6x in respect to `Union` types.
 
 ## Contributing
 
