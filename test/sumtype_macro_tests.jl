@@ -3,6 +3,8 @@ struct ST1 end
 
 @sumtype SingleT1(ST1)
 
+Base.copy(x::ST1) = ST1()
+
 @kwdef mutable struct F{X<:Int}
     a::Tuple{X, X}
     b::Tuple{Float64, Float64}
@@ -58,6 +60,7 @@ end
     
     st = SingleT1(ST1())
     @test propertynames(st) == ()
+    @test copy(st) == st
 
     f = E(F((1,1), (1.0, 1.0), :s))
     g1 = E(G((1,1), 1, 1, :c))
