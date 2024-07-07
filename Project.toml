@@ -1,6 +1,6 @@
 name = "DynamicSumTypes"
 uuid = "5fcdbb90-de43-509e-b9a6-c4d43f29cf26"
-version = "3.1.1"
+version = "3.2.1"
 
 [deps]
 
