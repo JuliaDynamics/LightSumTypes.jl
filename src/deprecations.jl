@@ -898,18 +898,6 @@ macro sum_structs(version, type, struct_defs)
     return esc(:(DynamicSumTypes.@sum_structs $type $struct_defs))
 end
 
-function generate_branching_variants(variants_types, res)
-    if !(res isa Vector)
-        res = repeat([res], length(variants_types))
-    end
-    branchs = [Expr(:if, :(data_a isa (DynamicSumTypes.SumTypes.Variant){$(Expr(:quote, variants_types[1]))}), res[1])]
-    for i in 2:length(variants_types)
-        push!(branchs, Expr(:elseif, :(data_a isa (DynamicSumTypes.SumTypes.Variant){$(Expr(:quote, variants_types[i]))}), res[i]))
-    end
-    push!(branchs, :(error("unreacheable")))
-    return branchs
-end
-
 function print_transform(x)
     x isa String && return "\"$x\""
     x isa Symbol && return QuoteNode(x)
@@ -921,28 +909,3 @@ function make_union_uninit(s, type_name, uninit_val)
     s.args[2] = :(Union{$(s.args[2]), $uninit_val})
     return s
 end
-
-function remove_redefinitions(e, t, vs, fs)
-
-    redef = [:($(Base).show), :(($Base).getproperty), :(($Base).propertynames), :(($Base).adjoint)]
-    f = ExprTools.splitdef(e, throw=false)
-    f === nothing && return e
-
-    if :name in keys(f) && f[:name] in redef
-        if any(x -> x isa Expr && x.head == :(::) && (MacroTools.inexpr(x.args[1], t) || x.args[2] == t), f[:args])
-            return :()
-        end
-    elseif :name in keys(f) && f[:name] in vs
-        idx = findfirst(v -> f[:name] == v, vs)
-        if length(f[:args]) == 1 && length(fs[idx]) == 1
-            arg = f[:args][1]
-            if arg isa Symbol
-                return :()
-            end
-        end
-    end
-    return e
-end
-
-retrieve_type(::DynamicSumTypes.SumTypes.Variant{T}) where T = T
-retrieve_hidden_type(::DynamicSumTypes.SumTypes.Variant{T,F,HT} where {T,F}) where HT = eltype(HT)
