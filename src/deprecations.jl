@@ -894,3 +894,6 @@ function def_export_variants(type)
     end
 end
 
+macro sum_structs(version, type, struct_defs)
+    return esc(:(DynamicSumTypes.@sum_structs $type $struct_defs))
+end
