@@ -62,8 +62,8 @@ julia> b.y = 3.0
 
 ## Dispatch
 
-For this, you can simply destructure the sum type with
-`variant` and then dispatch on it:
+For this, you can simply access the variant 
+inside the sum type and then dispatch on it:
 
 ```julia
 julia> f(x::AT) = f(variant(x))
@@ -215,7 +215,7 @@ BenchmarkTools.Trial: 1115 samples with 1 evaluation.
  Memory estimate: 8.00 MiB, allocs estimate: 200003.
 ```
 
-In this micro-benchmark, using `@sumtype` is more than 2 times faster and 3 times more
+In this micro-benchmark, using `@sumtype` is more than 2 times faster and 3 times
 memory efficient than `Union` types!
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
