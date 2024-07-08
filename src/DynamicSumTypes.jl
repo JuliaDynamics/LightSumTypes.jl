@@ -42,15 +42,15 @@ macro sumtype(typedef)
                 variants::Union{$(variants...)}
                 $type(v) = $(branchs(variants, :(return new(v)))...)
             end
-            function DynamicSumTypes.variant(sumt::$type)
+            @inline function DynamicSumTypes.variant(sumt::$type)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return v))...)
             end
-            function Base.getproperty(sumt::$type, s::Symbol)
+            @inline function Base.getproperty(sumt::$type, s::Symbol)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return Base.getproperty(v, s)))...)
             end
-            function Base.setproperty!(sumt::$type, s::Symbol, value)
+            @inline function Base.setproperty!(sumt::$type, s::Symbol, value)
                 v = DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return Base.setproperty!(v, s, value)))...)
             end
