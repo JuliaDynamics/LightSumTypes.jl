@@ -220,10 +220,13 @@ memory efficient than `Union` types!
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
 
-## Macro-Benchmarks
+------
 
-Micro-benchmarks are very difficult to design to be robust, so usually it is better to have some evidence on more realistic
-programs. You can find some of them at [https://juliadynamics.github.io/Agents.jl/stable/performance_tips/#multi_vs_union](https://juliadynamics.github.io/Agents.jl/previews/PR1055/performance_tips/#sum_vs_union). Speed-ups in some cases are over 6x in respect to `Union` types.
+See the [Discourse announcement post](https://discourse.julialang.org/t/ann-dynamicsumtypes-jl-v3/116741)
+for more information about the performance advantages of the approach in respect to a `Union`. In summary,
+it is shown that for Julia<1.11, `@sumtype` has a huge performance advantage in realistic programs (often
+around 10x), while for Julia>=1.11, given the improvements in dynamic dispatch issues related to a `Union`,
+the advantage of `@sumtype` is much less, around 1.5-2x faster.
 
 ## Contributing
 
