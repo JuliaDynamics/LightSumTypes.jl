@@ -42,33 +42,33 @@ macro sumtype(typedef)
                 variants::Union{$(variants...)}
                 $type(v) = $(branchs(variants, :(return new(v)))...)
             end
-            @inline function DynamicSumTypes.variant(sumt::$type)
-                v = DynamicSumTypes.unwrap(sumt)
+            @inline function $DynamicSumTypes.variant(sumt::$type)
+                v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return v))...)
             end
-            @inline function Base.getproperty(sumt::$type, s::Symbol)
-                v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return Base.getproperty(v, s)))...)
+            @inline function $Base.getproperty(sumt::$type, s::Symbol)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return $Base.getproperty(v, s)))...)
             end
-            @inline function Base.setproperty!(sumt::$type, s::Symbol, value)
-                v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return Base.setproperty!(v, s, value)))...)
+            @inline function $Base.setproperty!(sumt::$type, s::Symbol, value)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return $Base.setproperty!(v, s, value)))...)
             end
-            function Base.propertynames(sumt::$type)
-                v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return Base.propertynames(v)))...)
+            function $Base.propertynames(sumt::$type)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return $Base.propertynames(v)))...)
             end
-            function Base.hasproperty(sumt::$type, s::Symbol)
-                v = DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return Base.hasproperty(v, s)))...)
+            function $Base.hasproperty(sumt::$type, s::Symbol)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return $Base.hasproperty(v, s)))...)
             end
-            function Base.copy(sumt::$type)
-                v = DynamicSumTypes.unwrap(sumt)
+            function $Base.copy(sumt::$type)
+                v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
-            DynamicSumTypes.variantof(sumt) = typeof(variant(sumt))
-            DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
-            DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
+            $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
+            $DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
+            $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
     end)
 end 
