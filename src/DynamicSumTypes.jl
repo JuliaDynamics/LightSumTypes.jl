@@ -40,7 +40,7 @@ macro sumtype(typedef)
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
-                $type(v) = $(branchs(variants, :(return new(v)), "The enclosed type is not a variant of the sum type")...)
+                $type(v) = $(branchs(variants, :(return new(v)), "The enclosed type is not a variant of the sumtype")...)
             end
             @inline function $DynamicSumTypes.variant(sumt::$type)
                 v = $DynamicSumTypes.unwrap(sumt)
