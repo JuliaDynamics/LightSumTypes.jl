@@ -40,7 +40,7 @@ macro sumtype(typedef)
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
-                $type(v) = $(branchs(variants, :(return new(v)))...)
+                $type(v) = $(branchs(variants, :(return new(v)), "The enclosed type is not a variant of the sumtype")...)
             end
             @inline function $DynamicSumTypes.variant(sumt::$type)
                 v = $DynamicSumTypes.unwrap(sumt)
@@ -73,13 +73,13 @@ macro sumtype(typedef)
     end)
 end 
 
-function branchs(variants, outputs)
+function branchs(variants, outputs, err_str = "THIS_SHOULD_BE_UNREACHABLE")
     !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
     branchs = [Expr(:if, :(v isa $(variants[1])), outputs[1])]
     for i in 2:length(variants)
         push!(branchs, Expr(:elseif, :(v isa $(variants[i])), outputs[i]))
     end
-    push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
+    push!(branchs, :(error($err_str)))
     return branchs
 end
 
