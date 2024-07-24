@@ -130,3 +130,4 @@ end
     @test b isa Simple && c isa Simple
     @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
 end
+
