@@ -37,10 +37,6 @@ macro sumtype(typedef)
     type = type_with_variants.args[1]
     variants = type_with_variants.args[2:end]
 
-    constructors = Expr(:tuple, (:($v = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
-                        for v in variants)...)
-    println(constructors)
-
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
@@ -67,7 +63,8 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
             function $Base.adjoint(SumT::Type{$type})
-                $(constructors)
+                $(Expr(:tuple, (:($v = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                        for v in variants)...))
             end
             @inline function $DynamicSumTypes.variant(sumt::$type)
                 v = $DynamicSumTypes.unwrap(sumt)
@@ -91,8 +88,6 @@ function branchs(variants, outputs, err_str = "THIS_SHOULD_BE_UNREACHABLE")
 end
 
 function constructor(T, V, args::Vararg{Any, N}; kwargs...) where N
-    println(args)
-    println(kwargs)
     isempty(kwargs) ? T(V(args...)) : T(V(; kwargs...))
 end
 
