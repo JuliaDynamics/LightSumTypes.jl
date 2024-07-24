@@ -117,7 +117,7 @@ function variant end
     allvariants(SumType)
 
 Returns all the enclosed variants types in the sum type
-in a tuple.
+in a namedtuple.
   
 ## Example
 ```julia
@@ -130,7 +130,7 @@ julia> struct B end;
 julia> @sumtype AB(A, B)
 
 julia> allvariants(AB)
-(A, B)
+(A = A, B = B)
 ```
 """
 function allvariants end
