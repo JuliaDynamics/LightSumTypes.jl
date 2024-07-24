@@ -71,7 +71,7 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return v))...)
             end
             $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
-            $DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
+            $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($v = $v) for v in variants)...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
     end)
