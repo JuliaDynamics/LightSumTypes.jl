@@ -42,10 +42,6 @@ macro sumtype(typedef)
                 variants::Union{$(variants...)}
                 $type(v) = $(branchs(variants, :(return new(v)), "The enclosed type is not a variant of the sumtype")...)
             end
-            @inline function $DynamicSumTypes.variant(sumt::$type)
-                v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return v))...)
-            end
             @inline function $Base.getproperty(sumt::$type, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return $Base.getproperty(v, s)))...)
@@ -66,6 +62,14 @@ macro sumtype(typedef)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
+            function $Base.adjoint(SumT::Type{$type})
+                $(Expr(:tuple, (:($v = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                        for v in variants)...))
+            end
+            @inline function $DynamicSumTypes.variant(sumt::$type)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, :(return v))...)
+            end
             $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
             $DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
@@ -82,6 +86,8 @@ function branchs(variants, outputs, err_str = "THIS_SHOULD_BE_UNREACHABLE")
     push!(branchs, :(error($err_str)))
     return branchs
 end
+
+constructor(T, V, args::Vararg{Any, N}; kwargs...) where N = T(V(args...; kwargs...))
 
 """
     variant(inst)
