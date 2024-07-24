@@ -87,9 +87,7 @@ function branchs(variants, outputs, err_str = "THIS_SHOULD_BE_UNREACHABLE")
     return branchs
 end
 
-function constructor(T, V, args::Vararg{Any, N}; kwargs...) where N
-    isempty(kwargs) ? T(V(args...)) : T(V(; kwargs...))
-end
+constructor(T, V, args::Vararg{Any, N}; kwargs...) where N = T(V(args...; kwargs...))
 
 """
     variant(inst)
