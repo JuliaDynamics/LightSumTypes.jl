@@ -63,7 +63,7 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
             function $Base.adjoint(SumT::Type{$type})
-                $(Expr(:tuple, (:($v = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                $(Expr(:tuple, (:($(namify(v)) = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
                         for v in variants)...))
             end
             @inline function $DynamicSumTypes.variant(sumt::$type)
@@ -71,7 +71,7 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return v))...)
             end
             $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
-            $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($v = $v) for v in variants)...))
+            $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($(namify(v)) = $v) for v in variants)...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
     end)
