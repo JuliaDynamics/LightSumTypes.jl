@@ -48,6 +48,16 @@ julia> b = AT(B(1.0))
 AT(B(1.0))
 ```
 
+Or an alternative syntax can also be used:
+
+```julia
+julia> a = AT'.A(1)
+AT(A{Int64}(1))
+
+julia> b = AT'.B(1.0)
+AT(B(1.0))
+```
+
 ## Access and Mutation
 
 This works like if they were normal Julia types:

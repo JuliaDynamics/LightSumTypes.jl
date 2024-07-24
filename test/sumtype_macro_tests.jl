@@ -91,8 +91,7 @@ end
     @test variant(f) isa F
     @test propertynames(f) == (:a, :b, :c)
 
-    @test allvariants(E) == (F, G, H)
-    @test allvariants(typeof(f)) == (F, G, H)
+    @test allvariants(E) == allvariants(typeof(f)) == (F = F, G = G, H = H)
 
     hawk_1 = Animal(Hawk(1.0, 2.0, 3))
     hawk_2 = Animal(Hawk(; ground_speed = 2.3, flight_speed = 2))
@@ -114,8 +113,7 @@ end
     @test_throws "" wolf_1.flight_speed
     @test variant(hawk_1) isa Hawk
     @test variant(wolf_1) isa Wolf
-    @test allvariants(Animal) == (Wolf, Hawk)
-    @test allvariants(typeof(wolf_3)) == (Wolf, Hawk)
+    @test allvariants(Animal) == allvariants(typeof(wolf_3)) == (Wolf = Wolf, Hawk = Hawk)
 
     b = Simple(SimpleA(1, 3))
     c = Simple(SimpleB(2, "a"))
@@ -130,6 +128,6 @@ end
     @test variant(c) isa SimpleB
     @test Simple <: AbstractSimple
     @test b isa Simple && c isa Simple
-    @test allvariants(Simple) == (SimpleA, SimpleB)
-    @test allvariants(typeof(b)) == (SimpleA, SimpleB)
+    @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
 end
+

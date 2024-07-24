@@ -63,7 +63,7 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return $type(Base.copy(v))))...)
             end
             function $Base.adjoint(SumT::Type{$type})
-                $(Expr(:tuple, (:($v = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                $(Expr(:tuple, (:($(namify(v)) = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
                         for v in variants)...))
             end
             @inline function $DynamicSumTypes.variant(sumt::$type)
@@ -71,7 +71,7 @@ macro sumtype(typedef)
                 $(branchs(variants, :(return v))...)
             end
             $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
-            $DynamicSumTypes.allvariants(sumt::Type{$type}) = tuple($(variants...))
+            $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($(namify(v)) = $v) for v in variants)...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
             $type
     end)
@@ -117,7 +117,7 @@ function variant end
     allvariants(SumType)
 
 Returns all the enclosed variants types in the sum type
-in a tuple.
+in a namedtuple.
   
 ## Example
 ```julia
@@ -130,7 +130,7 @@ julia> struct B end;
 julia> @sumtype AB(A, B)
 
 julia> allvariants(AB)
-(A, B)
+(A = A, B = B)
 ```
 """
 function allvariants end
