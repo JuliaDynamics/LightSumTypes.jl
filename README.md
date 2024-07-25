@@ -4,6 +4,8 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/)
 [![codecov](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![DOI](https://zenodo.org/badge/745234998.svg)](https://zenodo.org/doi/10.5281/zenodo.12826686)
+
 
 This package allows to combine multiple heterogeneous types in a single one. This helps to write 
 type-stable code by avoiding `Union` performance drawbacks when many types are unionized. Another 
