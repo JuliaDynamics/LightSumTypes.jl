@@ -27,7 +27,7 @@ end
 
 abstract type AbstractE end
 @sumtype E(F,G,H) <: AbstractE
-@sumtype FF(F{Int}, F{Float64})
+@sumtype FF(F{Int32}, F{Int64})
 
 @kwdef mutable struct Wolf{T,N}
     energy::T = 0.5
@@ -71,7 +71,7 @@ end
     h = E(H((1,1), 1, (im, im), :j))
 
     ff1 = FF(F((1,1), (1.0, 1.0), :s))
-    ff2 = FF(F((1.0,1.0), (1.0, 1.0), :s))
+    ff2 = FF(F((Int32(1),Int32(1)), (1.0, 1.0), :s))
     
     @test_throws "" eval(:(@sumtype Z.E))
     @test_throws "" E(F((1.0,1.0), (1.0, 1.0), :s))
@@ -96,7 +96,7 @@ end
     @test propertynames(f) == (:a, :b, :c)
 
     @test allvariants(E) == allvariants(typeof(f)) == (F = F, G = G, H = H)
-    @test allvariants(FF) == (F1 = F{Int}, F2 = F{Float64})
+    @test allvariants(FF) == (F1 = F{Int32}, F2 = F{Int64})
 
     hawk_1 = Animal(Hawk(1.0, 2.0, 3))
     hawk_2 = Animal(Hawk(; ground_speed = 2.3, flight_speed = 2))
