@@ -37,7 +37,7 @@ macro sumtype(typedef)
     type = type_with_variants.args[1]
     variants = type_with_variants.args[2:end]
 
-    variants_names = namify.(variants)
+    variants_names = namify.([v isa Expr && v.head == :call && v.args[1] == :typeof ? v.args[2] : v for v in variants])
     for vname in unique(variants_names)
         inds = findall(==(vname), variants_names)
         length(inds) == 1 && continue
