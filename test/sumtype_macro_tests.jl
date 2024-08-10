@@ -5,7 +5,7 @@ struct ST1 end
 
 Base.copy(x::ST1) = ST1()
 
-@kwdef mutable struct F{X<:Int}
+@kwdef mutable struct F{X<:Integer}
     a::Tuple{X, X}
     b::Tuple{Float64, Float64}
     const c::Symbol
