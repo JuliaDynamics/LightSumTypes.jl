@@ -79,6 +79,10 @@ macro sumtype(typedef)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, :(return v))...)
             end
+            @inline function $DynamicSumTypes.variant_idx(sumt::$type)
+                v = $DynamicSumTypes.unwrap(sumt)
+                $(branchs(variants, [:(return $i) for i in 1:length(variants)])...)
+            end
             $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
             $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($nv = $v) for (nv, v) in zip(variants_names, variants))...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
@@ -86,13 +90,13 @@ macro sumtype(typedef)
     end)
 end
 
-function branchs(variants, outputs, err_str = "THIS_SHOULD_BE_UNREACHABLE")
+function branchs(variants, outputs)
     !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
     branchs = [Expr(:if, :(v isa $(variants[1])), outputs[1])]
     for i in 2:length(variants)
         push!(branchs, Expr(:elseif, :(v isa $(variants[i])), outputs[i]))
     end
-    push!(branchs, :(error($err_str)))
+    push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
     return branchs
 end
 
@@ -159,6 +163,8 @@ Returns true if the type is a sum type otherwise
 returns false.
 """
 is_sumtype(T::Type) = false
+
+function variant_idx end
 
 include("deprecations.jl")
 
