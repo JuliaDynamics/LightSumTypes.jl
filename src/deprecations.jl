@@ -1,6 +1,6 @@
 
-using ExprTools
 using MacroTools
+using ExprTools
 
 export @sum_structs
 export @pattern
