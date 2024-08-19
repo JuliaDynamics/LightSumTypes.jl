@@ -1,6 +1,8 @@
 
 module DynamicSumTypes
 
+using MacroTools
+
 export @sumtype, variant, variantof, allvariants, is_sumtype
 
 unwrap(sumt) = getfield(sumt, :variants)
