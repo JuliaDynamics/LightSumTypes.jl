@@ -1,4 +1,5 @@
 
+using MacroTools
 using ExprTools
 
 export @sum_structs
