@@ -1,7 +1,7 @@
 
 module DynamicSumTypes
 
-using MacroTools
+using MacroTools: namify
 
 export @sumtype, variant, variantof, allvariants, is_sumtype
 
