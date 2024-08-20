@@ -40,14 +40,17 @@ macro sumtype(typedef)
     typename = namify(type)
     typeparams = type isa Symbol ? [] : type.args[2:end]
     variants = type_with_variants.args[2:end]
+    !allunique(variants) && error("Duplicated variants in sumtype")
     variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
 
-    variants_names = namify.([v isa Expr && v.head == :call && v.args[1] == :typeof ? v.args[2] : v for v in variants])
+    check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
+    variants_names = namify.([check_if_typeof(v) ? v.args[2] : v for v in variants])
     for vname in unique(variants_names)
         inds = findall(==(vname), variants_names)
         length(inds) == 1 && continue
         for (k, i) in enumerate(inds)
-            variants_names[i] = Symbol(variants_names[i], k)
+            variant_args = check_if_typeof(variants[i]) ? variants[i].args[2] : variants[i].args
+            variants_names[i] = [i == length(variant_args) ? a : Symbol(a, :_) for (i, a) in enumerate(variant_args)]
         end
     end
 
