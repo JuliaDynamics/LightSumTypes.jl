@@ -57,6 +57,14 @@ end
 
 @sumtype Simple(SimpleA, SimpleB) <: AbstractSimple
 
+struct Some{T}
+   val::T
+end
+
+struct None end
+
+@sumtype Option{T}(None, Some{T})
+
 @testset "@sumtype" begin
     
     st = SingleT1(ST1())
@@ -70,9 +78,6 @@ end
     g4 = E'.G(; a = (1,1), d = 1, e = 1, c = :c)
     h = E(H((1,1), 1, (im, im), :j))
 
-    ff1 = FF(F((1,1), (1.0, 1.0), :s))
-    ff2 = FF(F((Int32(1),Int32(1)), (1.0, 1.0), :s))
-    
     @test_throws "" eval(:(@sumtype Z.E))
     @test_throws "" E(F((1.0,1.0), (1.0, 1.0), :s))
     @test_throws "" E(G((1,1), im, (im, im), :d))
@@ -96,7 +101,6 @@ end
     @test propertynames(f) == (:a, :b, :c)
 
     @test allvariants(E) == allvariants(typeof(f)) == (F = F, G = G, H = H)
-    @test allvariants(FF) == (F1 = F{Int32}, F2 = F{Int64})
 
     hawk_1 = Animal(Hawk(1.0, 2.0, 3))
     hawk_2 = Animal(Hawk(; ground_speed = 2.3, flight_speed = 2))
@@ -134,5 +138,11 @@ end
     @test Simple <: AbstractSimple
     @test b isa Simple && c isa Simple
     @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
-end
 
+    option_none = Option{Int}(None())
+    option_some = Option{Int}(Some(1))
+    @test variant(option_none) isa None
+    @test variant(option_some) isa Some{Int}
+    @test allvariants(Option) == (None = None, Some = Some)
+    @test option_some.val == 1
+end

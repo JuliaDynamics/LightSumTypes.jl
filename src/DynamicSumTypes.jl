@@ -37,7 +37,10 @@ macro sumtype(typedef)
     end
 
     type = type_with_variants.args[1]
+    typename = namify(type)
+    typeparams = type isa Symbol ? [] : type.args[2:end]
     variants = type_with_variants.args[2:end]
+    variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
 
     variants_names = namify.([v isa Expr && v.head == :call && v.args[1] == :typeof ? v.args[2] : v for v in variants])
     for vname in unique(variants_names)
@@ -51,52 +54,54 @@ macro sumtype(typedef)
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
-                @inline $type(v::Union{$(variants...)}) = $(branchs(variants, :(return new(v)))...)
+                @inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
+                    $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...)
             end
-            @inline function $Base.getproperty(sumt::$type, s::Symbol)
+            @inline function $Base.getproperty(sumt::$typename, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $Base.getproperty(v, s)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
             end
-            @inline function $Base.setproperty!(sumt::$type, s::Symbol, value)
+            @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $Base.setproperty!(v, s, value)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
             end
-            function $Base.propertynames(sumt::$type)
+            function $Base.propertynames(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $Base.propertynames(v)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
             end
-            function $Base.hasproperty(sumt::$type, s::Symbol)
+            function $Base.hasproperty(sumt::$typename, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $Base.hasproperty(v, s)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
             end
-            function $Base.copy(sumt::$type)
+            function $Base.copy(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $type(Base.copy(v))))...)
+                $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
             end
-            function $Base.adjoint(SumT::Type{$type})
+            function $Base.adjoint(SumT::Type{$typename})
                 $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
                         for (nv, v) in zip(variants_names, variants))...))
             end
-            @inline function $DynamicSumTypes.variant(sumt::$type)
+            @inline function $DynamicSumTypes.variant(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return v))...)
+                $(branchs(variants, variants_with_P, :(return v))...)
             end
-            @inline function $DynamicSumTypes.variant_idx(sumt::$type)
+            @inline function $DynamicSumTypes.variant_idx(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, [:(return $i) for i in 1:length(variants)])...)
+                $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
             end
-            $DynamicSumTypes.variantof(sumt::$type) = typeof($DynamicSumTypes.variant(sumt))
-            $DynamicSumTypes.allvariants(sumt::Type{$type}) = $(Expr(:tuple, (:($nv = $v) for (nv, v) in zip(variants_names, variants))...))
-            $DynamicSumTypes.is_sumtype(sumt::Type{$type}) = true
-            $type
+            $DynamicSumTypes.variantof(sumt::$typename) = typeof($DynamicSumTypes.variant(sumt))
+            $DynamicSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
+                for (nv, v) in zip(variants_names, variants))...))
+            $DynamicSumTypes.is_sumtype(sumt::Type{$typename}) = true
+            $typename
     end)
 end
 
-function branchs(variants, outputs)
+function branchs(variants, variants_with_P, outputs)
     !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
-    branchs = [Expr(:if, :(v isa $(variants[1])), outputs[1])]
+    branchs = [Expr(:if, :(v isa $(variants[1] in variants_with_P ? namify(variants[1]) : variants[1])), outputs[1])]
     for i in 2:length(variants)
-        push!(branchs, Expr(:elseif, :(v isa $(variants[i])), outputs[i]))
+        push!(branchs, Expr(:elseif, :(v isa $(variants[i] in variants_with_P ? namify(variants[i]) : variants[i])), outputs[i]))
     end
     push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
     return branchs
