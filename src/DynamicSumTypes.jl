@@ -38,7 +38,7 @@ macro sumtype(typedef)
 
     type = type_with_variants.args[1]
     typename = namify(type)
-    typeparams = type.args[2:end]
+    typeparams = type isa Symbol ? [] : type.args[2:end]
     variants = type_with_variants.args[2:end]
     variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
 
