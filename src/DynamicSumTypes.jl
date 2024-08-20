@@ -50,7 +50,7 @@ macro sumtype(typedef)
         length(inds) == 1 && continue
         for (k, i) in enumerate(inds)
             variant_args = check_if_typeof(variants[i]) ? variants[i].args[2] : variants[i].args
-            variants_names[i] = [i == length(variant_args) ? a : Symbol(a, :_) for (i, a) in enumerate(variant_args)]
+            variants_names[i] = Symbol([i == length(variant_args) ? a : Symbol(a, :_) for (i, a) in enumerate(variant_args)]...)
         end
     end
 
