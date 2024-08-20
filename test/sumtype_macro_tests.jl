@@ -101,6 +101,7 @@ struct None end
     @test propertynames(f) == (:a, :b, :c)
 
     @test allvariants(E) == allvariants(typeof(f)) == (F = F, G = G, H = H)
+    @test allvariants(FF) == (F_Int32 = F{Int32}, F_Int64 = F{Int64})
 
     hawk_1 = Animal(Hawk(1.0, 2.0, 3))
     hawk_2 = Animal(Hawk(; ground_speed = 2.3, flight_speed = 2))
