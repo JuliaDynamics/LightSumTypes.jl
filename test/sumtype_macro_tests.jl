@@ -144,10 +144,16 @@ struct None end
     @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
 
     option_none = Option{Int}(None())
+    option_none2 = Option{Int}'.None()
     option_some = Option(Some(1))
     option_some2 = Option{Int}(Some(1))
+    option_some3 = Option{Int}'.Some(1)
+    option_some4 = Option'.Some(1)
     @test variant(option_none) isa None
     @test variant(option_some) isa Some{Int}
+    @test variant(option_some2) isa Some{Int}
+    @test variant(option_some3) isa Some{Int}
+    @test variant(option_some4) isa Some{Int}
     @test allvariants(Option) == (None = None, Some = Some)
     @test option_some.val == 1
 end
