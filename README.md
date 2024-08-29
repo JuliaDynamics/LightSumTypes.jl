@@ -29,11 +29,15 @@ julia> struct A{X}
            x::X
        end
 
-julia> mutable struct B
-           y::Int
+julia> mutable struct B{Y}
+           y::Y
        end
 
-julia> @sumtype S{X}(A{X},B) <: AbstractS
+julia> struct C
+           z::Int
+       end
+
+julia> @sumtype S{X}(A{X},B{Int},C) <: AbstractS
 ```
 
 ## Construction
@@ -47,6 +51,9 @@ S{Int64}(A{Int64}(1))
 
 julia> b = S{Int}(B(1))
 S{Int64}(B(1))
+
+julia> c = S{Int}(C(1))
+S{Int64}(C(1))
 ```
 
 ## Access and Mutation
@@ -73,11 +80,16 @@ julia> f(x::A) = 1
 
 julia> f(x::B) = 2
 
+julia> f(x::C) = 3
+
 julia> f(a)
 1
 
 julia> f(b)
 2
+
+julia> f(c)
+3
 ```
 
 ## Micro-benchmarks
