@@ -23,17 +23,17 @@ like so:
 ```julia
 julia> using DynamicSumTypes
 
-julia> abstract type AbstractAT end
+julia> abstract type AbstractS end
 
 julia> struct A{X}
            x::X
        end
 
 julia> mutable struct B
-           y::Float64
+           y::Int
        end
 
-julia> @sumtype AT{X}(A{X},B) <: AbstractAT
+julia> @sumtype S{X}(A{X},B) <: AbstractS
 ```
 
 ## Construction
@@ -42,21 +42,11 @@ Then constructing instances is just a matter of enclosing the type constructed i
 predefined sum type:
 
 ```julia
-julia> a = AT(A(1))
-AT(A{Int64}(1))
+julia> a = S(A(1))
+S{Int64}(A{Int64}(1))
 
-julia> b = AT(B(1.0))
-AT(B(1.0))
-```
-
-Or an alternative syntax can also be used:
-
-```julia
-julia> a = AT'.A(1)
-AT(A{Int64}(1))
-
-julia> b = AT'.B(1.0)
-AT(B(1.0))
+julia> b = S{Int}(B(1))
+S{Int64}(B(1))
 ```
 
 ## Access and Mutation
@@ -67,8 +57,8 @@ This works like if they were normal Julia types:
 julia> a.x
 1
 
-julia> b.y = 3.0
-3.0
+julia> b.y = 3
+3
 ```
 
 ## Dispatch
@@ -77,7 +67,7 @@ For this, you can simply access the variant
 inside the sum type and then dispatch on it:
 
 ```julia
-julia> f(x::AT) = f(variant(x))
+julia> f(x::S) = f(variant(x))
 
 julia> f(x::A) = 1
 
