@@ -42,6 +42,7 @@ macro sumtype(typedef)
     variants = type_with_variants.args[2:end]
     !allunique(variants) && error("Duplicated variants in sumtype")
     variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
+    variants_bounded = [v in variants_with_P ? namify(v) : v for v in variants]
 
     check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
     variants_names = namify.([check_if_typeof(v) ? v.args[2] : v for v in variants])
@@ -56,13 +57,22 @@ macro sumtype(typedef)
 
     constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
                         $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
-                
+    constructors_extra = [:($Base.adjoint(SumT::Type{$typename}) = $(Expr(:tuple, (:($nv = (args...; kwargs...) -> 
+                                $DynamicSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
+                                zip(variants_names, variants_bounded))...)))]
+
     if type isa Expr
         push!(
             constructors, 
             :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
                 $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))
         )
+        push!(
+            constructors_extra,
+            :($Base.adjoint(SumT::Type{$type}) where {$(typeparams...)} =
+                $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                        for (nv, v) in zip(variants_names, variants))...)))
+            )
     end
                     
     esc(quote
@@ -70,6 +80,7 @@ macro sumtype(typedef)
                 variants::Union{$(variants...)}
                 $(constructors...)
             end
+            $(constructors_extra...)
             @inline function $Base.getproperty(sumt::$typename, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
@@ -90,10 +101,6 @@ macro sumtype(typedef)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
             end
-            function $Base.adjoint(SumT::Type{$typename})
-                $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
-                        for (nv, v) in zip(variants_names, variants))...))
-            end
             @inline function $DynamicSumTypes.variant(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return v))...)
@@ -106,7 +113,7 @@ macro sumtype(typedef)
             $DynamicSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
                 for (nv, v) in zip(variants_names, variants))...))
             $DynamicSumTypes.is_sumtype(sumt::Type{$typename}) = true
-            $typename
+            nothing
     end)
 end
 
