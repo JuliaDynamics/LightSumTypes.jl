@@ -33,8 +33,7 @@ julia> mutable struct B
            y::Float64
        end
 
-julia> @sumtype AT(A{Int},B) <: AbstractAT
-AT
+julia> @sumtype AT{X}(A{X},B) <: AbstractAT
 ```
 
 ## Construction
