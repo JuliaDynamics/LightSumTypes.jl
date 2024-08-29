@@ -50,9 +50,22 @@ julia> a = S(A(1))
 S{Int64}(A{Int64}(1))
 
 julia> b = S{Int}(B(1))
-S{Int64}(B(1))
+S{Int64}(B{Int64}(1))
 
 julia> c = S{Int}(C(1))
+S{Int64}(C(1))
+```
+
+a different syntax is also provided for convenience:
+
+```julia
+julia> a = S'.A(1)
+S{Int64}(A{Int64}(1))
+
+julia> b = S{Int}'.B(1)
+S{Int64}(B{Int64}(1))
+
+julia> c = S{Int}'.C(1)
 S{Int64}(C(1))
 ```
 
