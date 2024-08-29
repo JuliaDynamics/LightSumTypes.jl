@@ -55,7 +55,7 @@ macro sumtype(typedef)
     end
 
     constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) = 
-                        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...)]
+                        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
                 
     if type isa Expr
         push!(
