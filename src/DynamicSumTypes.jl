@@ -59,6 +59,8 @@ macro sumtype(typedef)
                 variants::Union{$(variants...)}
                 @inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
                     $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...)
+                @inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
+                    $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...)
             end
             @inline function $Base.getproperty(sumt::$typename, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
