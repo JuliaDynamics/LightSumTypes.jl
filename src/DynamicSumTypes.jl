@@ -54,11 +54,21 @@ macro sumtype(typedef)
         end
     end
 
+    constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
+                        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
+                
+    if type isa Expr
+        push!(
+            constructors, 
+            :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
+                $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))
+        )
+    end
+                    
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
-                @inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
-                    $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...)
+                $(constructors...)
             end
             @inline function $Base.getproperty(sumt::$typename, s::Symbol)
                 v = $DynamicSumTypes.unwrap(sumt)
