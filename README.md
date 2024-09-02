@@ -107,142 +107,89 @@ julia> f(c)
 
 ## Micro-benchmarks
 
-### Using `Union` types
 <details>
  <summary>Benchmark code</summary>
+
+```julia
+using BenchmarkTools
+using DynamicSumTypes
        
-```julia
-using Random, BenchmarkTools
+struct A end
+struct B end
+struct C end
+struct D end
+struct E end
+struct F end
 
-@kwdef struct A
-    common_field::Int = 1
-    a::Bool = true
-    b::Int = 10
-end
-@kwdef struct B
-    common_field::Int = 1
-    c::Int = 1
-    d::Float64 = 1.0
-    e::Complex{Float64} = 1.0 + 1.0im
-end
-@kwdef struct C
-    common_field::Int = 1
-    f::Float64 = 2.0
-    g::Bool = false
-    h::Float64 = 3.0
-    i::Complex{Float64} = 1.0 + 2.0im
-end
-@kwdef struct D
-    common_field::Int = 1
-    l::String = "hi"
-end
+@sumtype S(A, B, C, D, E, F)
+       
+f(s::S) = f(variant(s));
+f(::A) = 1;
+f(::B) = 2;
+f(::C) = 3;
+f(::D) = 4;
+f(::E) = 5;
+f(::F) = 6;
 
-function foo!(rng, n)
-    xs = Union{A,B,C,D}[rand(rng, (A(), B(), C(), D())) for _ in 1:n]
-    while n != 0
-        r = rand(rng, 1:length(xs))
-        @inbounds xs[r] = foo_each(xs[r])
-    	n -= 1
-    end
-end
+vals = rand((A(), B(), C(), D(), E(), F()), 1000);
 
-foo_each(x::A) = B(x.common_field+1, x.a, x.b, x.b)
-foo_each(x::B) = C(x.common_field-1, x.d, isodd(x.c), x.d, x.e)
-foo_each(x::C) = D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye")
-foo_each(x::D) = A(x.common_field-1, x.l=="hi", x.common_field)
+tuple_manytypes = Tuple(vals);
+vec_manytypes = collect(Union{A, B, C, D, E, F}, vals);
 
-rng = MersenneTwister(42)
-xs = Union{A,B,C,D}[rand(rng, (A(), B(), C(), D())) for _ in 1:10000];
-println("Array size: $(Base.summarysize(xs)) bytes\n")
-@benchmark foo!($rng, 10^5)
+tuple_sumtype = Tuple(S.(vals));
+vec_sumtype = S.(vals);
 ```
 </details>
 
 ```julia
-Array size: 399962 bytes
+julia> @benchmark sum($f, $tuple_manytypes)
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  75.092 μs …  1.176 ms  ┊ GC (min … max): 0.00% … 91.00%
+ Time  (median):     77.736 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   78.613 μs ± 16.373 μs  ┊ GC (mean ± σ):  0.34% ±  1.67%
 
-BenchmarkTools.Trial: 490 samples with 1 evaluation.
- Range (min … max):   8.325 ms … 20.104 ms  ┊ GC (min … max):  0.00% … 14.68%
- Time  (median):      9.834 ms              ┊ GC (median):    14.50%
- Time  (mean ± σ):   10.209 ms ±  1.309 ms  ┊ GC (mean ± σ):  11.74% ± 10.98%
+                ▅█▇▆▁                                          
+  ▂▂▁▂▂▂▂▂▂▂▂▃▄██████▆▃▂▂▂▂▂▂▂▂▃▃▄▄▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
+  75.1 μs         Histogram: frequency by time        84.3 μs <
 
-          ▄▄  █▅▂▃█   ▂                                        
-  ▂▂▂▁▃▃▄▆███▇███████▇█▅▄▅▃▁▃▃▄▃▃▂▂▂▁▃▃▃▃▁▃▃▃▃▃▂▃▃▃▃▂▃▃▃▄▃▂▂▃ ▃
-  8.32 ms         Histogram: frequency by time          14 ms <
+ Memory estimate: 13.34 KiB, allocs estimate: 854.
 
- Memory estimate: 22.88 MiB, allocs estimate: 300002.
+julia> @benchmark sum($f, $tuple_sumtype)
+BenchmarkTools.Trial: 10000 samples with 116 evaluations.
+ Range (min … max):  758.672 ns … 990.836 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     767.828 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   772.407 ns ±  13.168 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  ▄   █    █    ▆          ▄    ▄   ▄▂   ▆    ▁                 ▂
+  █▄▁▁█▇██▇█▇▆▇▇█▃▅▅▄▅▆▇▄▇██▇▆▇██▆▆▇██▆▆▆█▄▄▅▄█▄▄▁▁▄▄▁▃▁▃▆▆▁▄▆▅ █
+  759 ns        Histogram: log(frequency) by time        817 ns <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
+
+julia> @benchmark sum($f, $vec_manytypes)
+BenchmarkTools.Trial: 10000 samples with 211 evaluations.
+ Range (min … max):  355.455 ns … 504.645 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     360.536 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   362.472 ns ±   6.510 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+            ▁█                                                   
+  ▂▅▆▂▂▃▇▆▂▃██▇▂▂▃▅▃▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂▃▃▃▃▂▂▂▃▄▃▂▂▂▂▂▂▂▂▁▁▁▁▂▂▂▂▂▂ ▃
+  355 ns           Histogram: frequency by time          383 ns <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
+
+julia> @benchmark sum($f, $vec_sumtype)
+BenchmarkTools.Trial: 10000 samples with 276 evaluations.
+ Range (min … max):  286.880 ns … 372.297 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     291.453 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   292.996 ns ±   4.673 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+        ▁█   ▅▇   █▄                                             
+  ▂▃▅▄▂▃██▅▃▃██▄▃▅██▃▂▂▂▂▂▂▂▂▂▂▂▃▃▂▂▂▃▃▂▂▃▄▆▅▃▂▂▂▂▂▂▁▂▂▂▂▁▂▂▁▂▂ ▃
+  287 ns           Histogram: frequency by time          309 ns <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
 ```
-
-### Using `@sumtype`
-<details>
- <summary>Benchmark code</summary>
-
-```julia
-using DynamicSumTypes, Random, BenchmarkTools
-
-@kwdef struct A
-    common_field::Int = 1
-    a::Bool = true
-    b::Int = 10
-end
-@kwdef struct B
-    common_field::Int = 1
-    c::Int = 1
-    d::Float64 = 1.0
-    e::Complex{Float64} = 1.0 + 1.0im
-end
-@kwdef struct C
-    common_field::Int = 1
-    f::Float64 = 2.0
-    g::Bool = false
-    h::Float64 = 3.0
-    i::Complex{Float64} = 1.0 + 2.0im
-end
-@kwdef struct D
-    common_field::Int = 1
-    l::String = "hi"
-end
-
-@sumtype AT(A,B,C,D)
-
-function foo!(rng, n)
-    xs = [rand(rng, (AT(A()), AT(B()), AT(C()), AT(D()))) for _ in 1:n]
-    while n != 0
-        r = rand(rng, 1:length(xs))
-        @inbounds xs[r] = foo_each(variant(xs[r]))
-    	n -= 1
-    end
-end
-
-foo_each(x::A) = AT(B(x.common_field+1, x.a, x.b, x.b))
-foo_each(x::B) = AT(C(x.common_field-1, x.d, isodd(x.c), x.d, x.e))
-foo_each(x::C) = AT(D(x.common_field+1, isodd(x.common_field) ? "hi" : "bye"))
-foo_each(x::D) = AT(A(x.common_field-1, x.l=="hi", x.common_field))
-
-rng = MersenneTwister(42)
-xs = [rand(rng, (AT(A()), AT(B()), AT(C()), AT(D()))) for _ in 1:10000]
-println("Array size: $(Base.summarysize(xs)) bytes\n")
-@benchmark foo!($rng, 10^5)
-```
-</details>
-
-```julia
-Array size: 120754 bytes
-
-BenchmarkTools.Trial: 1115 samples with 1 evaluation.
- Range (min … max):  3.440 ms … 12.625 ms  ┊ GC (min … max):  0.00% … 53.09%
- Time  (median):     3.729 ms              ┊ GC (median):     0.00%
- Time  (mean ± σ):   4.462 ms ±  1.640 ms  ┊ GC (mean ± σ):  13.81% ± 17.13%
-
-  ▂▆█▅▅▄▁                                                  ▁  
-  ███████▆▁▁▁▁▁▁▁▁▁▁▄▅▄▁▁▁▄▆▆▇██▇▆▅▅▅▇▆▄▆▅▇▄▁▆▄▅▆▅▅▄▄▇▇█████ █
-  3.44 ms      Histogram: log(frequency) by time      9.1 ms <
-
- Memory estimate: 8.00 MiB, allocs estimate: 200003.
-```
-
-In this micro-benchmark, using `@sumtype` is more than 2 times faster and 3 times
-memory efficient than `Union` types!
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
 
