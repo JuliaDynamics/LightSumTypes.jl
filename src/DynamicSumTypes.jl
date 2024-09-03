@@ -74,7 +74,14 @@ macro sumtype(typedef)
                         for (nv, v) in zip(variants_names, variants))...)))
             )
     end
-                    
+
+    variant_func = VERSION >= v"1.11" ? 
+                       :(@inline function $DynamicSumTypes.variant(sumt::$typename)
+                             v = $DynamicSumTypes.unwrap(sumt)
+                             $(branchs(variants, variants_with_P, :(return v))...)
+                         end) : 
+                        (:(@inline $DynamicSumTypes.variant(sumt::$typename) = $DynamicSumTypes.unwrap(sumt)))
+     
     esc(quote
             struct $type <: $(abstract_type)
                 variants::Union{$(variants...)}
@@ -101,10 +108,7 @@ macro sumtype(typedef)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
             end
-            @inline function $DynamicSumTypes.variant(sumt::$typename)
-                v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return v))...)
-            end
+            $variant_func
             @inline function $DynamicSumTypes.variant_idx(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
