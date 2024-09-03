@@ -138,6 +138,11 @@ vec_manytypes = collect(Union{A, B, C, D, E, F}, vals);
 
 tuple_sumtype = Tuple(S.(vals));
 vec_sumtype = S.(vals);
+
+@benchmark sum($f, $tuple_manytypes)
+@benchmark sum($f, $tuple_sumtype)
+@benchmark sum($f, $vec_manytypes)
+@benchmark sum($f, $vec_sumtype)
 ```
 </details>
 
