@@ -135,76 +135,96 @@ vals = rand((A(), B(), C(), D(), E(), F()), 1000);
 
 tuple_manytypes = Tuple(vals);
 vec_manytypes = collect(Union{A, B, C, D, E, F}, vals);
+iter_manytypes = (x for x in vec_manytypes);
 
 tuple_sumtype = Tuple(S.(vals));
 vec_sumtype = S.(vals);
+iter_sumtype = (x for x in vec_sumtype)
 
 @benchmark sum($f, $tuple_manytypes)
 @benchmark sum($f, $tuple_sumtype)
 @benchmark sum($f, $vec_manytypes)
 @benchmark sum($f, $vec_sumtype)
+@benchmark sum($f, $iter_manytypes)
+@benchmark sum($f, $iter_sumtype)
 ```
 </details>
 
 ```julia
 julia> @benchmark sum($f, $tuple_manytypes)
 BenchmarkTools.Trial: 10000 samples with 1 evaluation.
- Range (min … max):  75.092 μs …  1.176 ms  ┊ GC (min … max): 0.00% … 91.00%
- Time  (median):     77.736 μs              ┊ GC (median):    0.00%
- Time  (mean ± σ):   78.613 μs ± 16.373 μs  ┊ GC (mean ± σ):  0.34% ±  1.67%
+ Range (min … max):  81.092 μs …  1.267 ms  ┊ GC (min … max): 0.00% … 90.49%
+ Time  (median):     85.791 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   87.779 μs ± 18.802 μs  ┊ GC (mean ± σ):  0.35% ±  1.67%
 
-                ▅█▇▆▁                                          
-  ▂▂▁▂▂▂▂▂▂▂▂▃▄██████▆▃▂▂▂▂▂▂▂▂▃▃▄▄▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
-  75.1 μs         Histogram: frequency by time        84.3 μs <
+   ▂ ▃▇█▆▆▅▃▂▂▂▁▁                                             ▂
+  █████████████████▇▇▇▅▆▅▄▅▅▅▄▄▄▄▄▄▅▄▄▄▄▄▄▄▃▄▅▅▄▃▅▄▅▅▅▄▅▅▄▅▅▅ █
+  81.1 μs      Histogram: log(frequency) by time       130 μs <
 
- Memory estimate: 13.34 KiB, allocs estimate: 854.
+ Memory estimate: 13.42 KiB, allocs estimate: 859.
 
 julia> @benchmark sum($f, $tuple_sumtype)
-BenchmarkTools.Trial: 10000 samples with 116 evaluations.
- Range (min … max):  758.672 ns … 990.836 ns  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     767.828 ns               ┊ GC (median):    0.00%
- Time  (mean ± σ):   772.407 ns ±  13.168 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 107 evaluations.
+ Range (min … max):  770.514 ns …  4.624 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     823.514 ns              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   826.188 ns ± 42.968 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
 
-  ▄   █    █    ▆          ▄    ▄   ▄▂   ▆    ▁                 ▂
-  █▄▁▁█▇██▇█▇▆▇▇█▃▅▅▄▅▆▇▄▇██▇▆▇██▆▆▇██▆▆▆█▄▄▅▄█▄▄▁▁▄▄▁▃▁▃▆▆▁▄▆▅ █
-  759 ns        Histogram: log(frequency) by time        817 ns <
+                    █ ▁    ▂  ▂                                 
+  ▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂▂▇▂█▃██▃█▅█▄▂██▂█▅▃▃▂▂▃▂▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
+  771 ns          Histogram: frequency by time          900 ns <
 
  Memory estimate: 0 bytes, allocs estimate: 0.
 
 julia> @benchmark sum($f, $vec_manytypes)
-BenchmarkTools.Trial: 10000 samples with 211 evaluations.
- Range (min … max):  355.455 ns … 504.645 ns  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     360.536 ns               ┊ GC (median):    0.00%
- Time  (mean ± σ):   362.472 ns ±   6.510 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 207 evaluations.
+ Range (min … max):  367.164 ns … 566.816 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     389.280 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   390.919 ns ±   9.984 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
 
-            ▁█                                                   
-  ▂▅▆▂▂▃▇▆▂▃██▇▂▂▃▅▃▂▁▂▂▂▂▂▂▂▂▂▂▂▂▂▃▃▃▃▂▂▂▃▄▃▂▂▂▂▂▂▂▂▁▁▁▁▂▂▂▂▂▂ ▃
-  355 ns           Histogram: frequency by time          383 ns <
+                 ▁ ▇▁ ▃  ▁    █  ▂                               
+  ▂▂▃▂▁▁▂▁▁▂▂▁▂▂▄█▃██▃█▃▄█▂█▇▃█▅▃█▃▃▃▂▃▂▂▃▂▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ ▃
+  367 ns           Histogram: frequency by time          424 ns <
 
  Memory estimate: 0 bytes, allocs estimate: 0.
 
 julia> @benchmark sum($f, $vec_sumtype)
-BenchmarkTools.Trial: 10000 samples with 276 evaluations.
- Range (min … max):  286.880 ns … 372.297 ns  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     291.453 ns               ┊ GC (median):    0.00%
- Time  (mean ± σ):   292.996 ns ±   4.673 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+BenchmarkTools.Trial: 10000 samples with 254 evaluations.
+ Range (min … max):  297.016 ns … 464.575 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     308.811 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   306.702 ns ±   7.518 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
 
-        ▁█   ▅▇   █▄                                             
-  ▂▃▅▄▂▃██▅▃▃██▄▃▅██▃▂▂▂▂▂▂▂▂▂▂▂▃▃▂▂▂▃▃▂▂▃▄▆▅▃▂▂▂▂▂▂▁▂▂▂▂▁▂▂▁▂▂ ▃
-  287 ns           Histogram: frequency by time          309 ns <
+   ▁  ▆█▅                 ▅█▆▁▁▅▄  ▂▂   ▁  ▁▄▄▁ ▂▁              ▂
+  ▇██████▇▅▅▄▅▅▄▄▄▃▄▄▅▅▅▆████████▇▆██▆▅▇██▅███████▇██▇▃▄▅▆▅▅▄▃▅ █
+  297 ns        Histogram: log(frequency) by time        326 ns <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
+
+julia> @benchmark sum($f, $iter_manytypes)
+BenchmarkTools.Trial: 10000 samples with 10 evaluations.
+ Range (min … max):  1.323 μs …  3.407 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     1.390 μs              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   1.389 μs ± 54.987 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+     ▅▄▁▂   ▃█▇▇                                              
+  ▃▄▆████▅▄▇████▆▇▆▅▄▄▃▃▂▂▂▂▂▂▂▂▂▂▂▂▂▂▁▁▂▁▂▂▂▂▁▁▂▂▁▂▂▂▂▂▂▂▂▂ ▃
+  1.32 μs        Histogram: frequency by time        1.67 μs <
+
+ Memory estimate: 0 bytes, allocs estimate: 0.
+
+julia> @benchmark sum($f, $iter_sumtype)
+BenchmarkTools.Trial: 10000 samples with 258 evaluations.
+ Range (min … max):  310.236 ns … 370.112 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     318.971 ns               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   319.347 ns ±   5.859 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+   ▁  ▄▇▆▁▃▆█▃ ▃▆▅  ▄▆▄ ▃▆▇▃▁▄▇▇▃▁▂▅▄▁ ▁▂▁   ▁   ▁▁    ▁        ▃
+  ▅█▂▆████████▇███▅███████████████████▇██████████████████▇▅█▆▇▅ █
+  310 ns        Histogram: log(frequency) by time        338 ns <
 
  Memory estimate: 0 bytes, allocs estimate: 0.
 ```
 
 <sub>*These benchmarks have been run on Julia 1.11*</sub>
-
-------
-
-See the [Discourse announcement post](https://discourse.julialang.org/t/ann-dynamicsumtypes-jl-v3/116741)
-for more information about the performance advantages of the approach in respect to a `Union`. In summary,
-it is shown that for Julia<1.11, `@sumtype` has a huge performance advantage in realistic programs (often
-around 10x), while for Julia>=1.11, given the improvements in dynamic dispatch issues related to a `Union`,
-the advantage of `@sumtype` is much less, around 1.5-2x faster.
 
 ## Contributing
 
