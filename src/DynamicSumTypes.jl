@@ -85,9 +85,11 @@ macro sumtype(typedef)
                 v = $DynamicSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
             end
-            @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
-                v = $DynamicSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
+            if all(ismutabletype(v) for v in [$((variants_bounded)...)])
+                @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
+                    v = $DynamicSumTypes.variant(sumt)
+                    $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
+                end
             end
             function $Base.propertynames(sumt::$typename)
                 v = $DynamicSumTypes.unwrap(sumt)
