@@ -1,6 +1,6 @@
 name = "DynamicSumTypes"
 uuid = "5fcdbb90-de43-509e-b9a6-c4d43f29cf26"
-version = "3.7.3"
+version = "3.7.4"
 
 [deps]
 ExprTools = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
