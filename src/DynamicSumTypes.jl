@@ -1,5 +1,5 @@
 
-module DynamicSumTypes
+module LightSumTypes
 
 using MacroTools: namify
 
@@ -15,7 +15,7 @@ It optionally accept also an abstract supertype.
 
 ## Example
 ```julia
-julia> using DynamicSumTypes
+julia> using LightSumTypes
 
 julia> struct A x::Int end;
 
@@ -58,7 +58,7 @@ macro sumtype(typedef)
     constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
                         $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
     constructors_extra = [:($Base.adjoint(SumT::Type{$typename}) = $(Expr(:tuple, (:($nv = (args...; kwargs...) -> 
-                                $DynamicSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
+                                $LightSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
                                 zip(variants_names, variants_bounded))...)))]
 
     if type isa Expr
@@ -70,7 +70,7 @@ macro sumtype(typedef)
         push!(
             constructors_extra,
             :($Base.adjoint(SumT::Type{$type}) where {$(typeparams...)} =
-                $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $DynamicSumTypes.constructor($type, $v, args...; kwargs...)) 
+                $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $LightSumTypes.constructor($type, $v, args...; kwargs...)) 
                         for (nv, v) in zip(variants_names, variants))...)))
             )
     end
@@ -82,36 +82,36 @@ macro sumtype(typedef)
             end
             $(constructors_extra...)
             @inline function $Base.getproperty(sumt::$typename, s::Symbol)
-                v = $DynamicSumTypes.unwrap(sumt)
+                v = $LightSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
             end
             if any(ismutabletype(v) for v in [$((variants_bounded)...)])
                 @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
-                    v = $DynamicSumTypes.unwrap(sumt)
+                    v = $LightSumTypes.unwrap(sumt)
                     $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
                 end
             end
             function $Base.propertynames(sumt::$typename)
-                v = $DynamicSumTypes.unwrap(sumt)
+                v = $LightSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
             end
             function $Base.hasproperty(sumt::$typename, s::Symbol)
-                v = $DynamicSumTypes.unwrap(sumt)
+                v = $LightSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
             end
             function $Base.copy(sumt::$typename)
-                v = $DynamicSumTypes.unwrap(sumt)
+                v = $LightSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
             end
-            @inline $DynamicSumTypes.variant(sumt::$typename) = $DynamicSumTypes.unwrap(sumt)
-            @inline function $DynamicSumTypes.variant_idx(sumt::$typename)
-                v = $DynamicSumTypes.unwrap(sumt)
+            @inline $LightSumTypes.variant(sumt::$typename) = $LightSumTypes.unwrap(sumt)
+            @inline function $LightSumTypes.variant_idx(sumt::$typename)
+                v = $LightSumTypes.unwrap(sumt)
                 $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
             end
-            $DynamicSumTypes.variantof(sumt::$typename) = typeof($DynamicSumTypes.variant(sumt))
-            $DynamicSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
+            $LightSumTypes.variantof(sumt::$typename) = typeof($LightSumTypes.variant(sumt))
+            $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
                 for (nv, v) in zip(variants_names, variants))...))
-            $DynamicSumTypes.is_sumtype(sumt::Type{$typename}) = true
+            $LightSumTypes.is_sumtype(sumt::Type{$typename}) = true
             nothing
     end)
 end
@@ -135,7 +135,7 @@ Returns the variant enclosed in the sum type.
 
 ## Example
 ```julia
-julia> using DynamicSumTypes
+julia> using LightSumTypes
 
 julia> struct A x::Int end;
 
@@ -160,7 +160,7 @@ in a namedtuple.
   
 ## Example
 ```julia
-julia> using DynamicSumTypes
+julia> using LightSumTypes
 
 julia> struct A x::Int end;
 

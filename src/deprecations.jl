@@ -160,10 +160,10 @@ macro pattern(f_def)
     else
         expr_m = :()
     end
-    expr_d = :(DynamicSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
+    expr_d = :(LightSumTypes.define_f_super($(__module__), $(QuoteNode(f_super_dict)), $(QuoteNode(f_cache))))
     expr_fire = quote 
                     if isinteractive() && (@__MODULE__) == Main
-                        DynamicSumTypes.@finalize_patterns
+                        LightSumTypes.@finalize_patterns
                         $(f_super_dict[:name])
                     end
                 end
@@ -243,8 +243,8 @@ function _pattern(f_def, vtc, vtwpc)
             end
             pos_no_args = [i for i in 1:length(type_abstract_args) 
                            if !(i in pos_args) && (
-                                type_abstract_args[i] != :(DynamicSumTypes.Uninitialized) &&
-                                type_abstract_args[i] != :(DynamicSumTypes.SumTypes.Uninit))]
+                                type_abstract_args[i] != :(LightSumTypes.Uninitialized) &&
+                                type_abstract_args[i] != :(LightSumTypes.SumTypes.Uninit))]
 
             @capture(y, _{t_params__})
             for (p, q) in enumerate(pos_args)
@@ -319,7 +319,7 @@ function _pattern(f_def, vtc, vtwpc)
     f_super_dict[:name] = f_comps[:name]
     f_super_dict[:args] = g_args
 
-    a_cond = [:(DynamicSumTypes.kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
+    a_cond = [:(LightSumTypes.kindof($(g_args[i].args[1])) === $(Expr(:quote, x))) for (i, x) in idx_and_variant0]
     new_cond = nothing
     if length(a_cond) == 1
         new_cond = a_cond[1]
@@ -379,9 +379,9 @@ function define_f_super(mod, f_super_dict, f_cache)
         cache[f_name] = Dict{Any, Any}(f_cache => [f_super_dict])
     else
         never_same = true
-        f_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], f_cache)...))))))
+        f_sig = Base.signature_type(mod.LightSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], f_cache)...))))))
         for sig in keys(cache[f_name])
-            k_sig = Base.signature_type(mod.DynamicSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], sig)...))))))
+            k_sig = Base.signature_type(mod.LightSumTypes.inspect_sig, Tuple(Base.eval(mod, :(tuple($(map(x -> x[1], sig)...))))))
             same_sig = f_sig == k_sig
             if same_sig
                 same_cond = findfirst(f_prev -> f_prev[:condition] == f_super_dict[:condition], cache[f_name][sig])
@@ -432,7 +432,7 @@ function generate_defs(mod, cache)
                 push!(body_prev.args, f_end)
             end
             new_d[:body] = quote $body end
-            new_df = mod.DynamicSumTypes.ExprTools.combinedef(new_d)
+            new_df = mod.LightSumTypes.ExprTools.combinedef(new_d)
             !allequal(d[:macros] for d in ds) && error("Applied macros should be the same for all @pattern methods with same signature")
             for m in ds[end][:macros]
                 new_df = Expr(:macrocall, m, :(), new_df)
@@ -456,14 +456,14 @@ the module.
 """
 macro finalize_patterns()
     quote
-        defs = DynamicSumTypes.generate_defs($__module__)
+        defs = LightSumTypes.generate_defs($__module__)
         for (d, f_default) in defs
             if d in $__module__.__finalized_methods_cache__
                 continue
             else
                 !isdefined($__module__, f_default) && evaluate_func($__module__, :(function $f_default end))
                 push!($__module__.__finalized_methods_cache__, d)
-                $__module__.DynamicSumTypes.evaluate_func($__module__, d)
+                $__module__.LightSumTypes.evaluate_func($__module__, d)
             end
         end
     end
@@ -568,7 +568,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
 
     type_no_constr = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? s.args[1] : s, new_type)
     type_params = new_type isa Symbol ? [] : [x isa Expr && x.head == :(<:) ? x.args[1] : x for x in new_type.args[2:end]]
-    uninit_val = :(DynamicSumTypes.Uninitialized)
+    uninit_val = :(LightSumTypes.Uninitialized)
     compact_t = MacroTools.postwalk(s -> s isa Expr && s.head == :(<:) ? make_union_uninit(s, type_name, uninit_val) : s, new_type)
     
     expr_new_type = Expr(:struct, is_mutable, :($compact_t <: $abstract_type),
@@ -611,7 +611,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
         struct_t_p === nothing && (struct_t_p = [])
         struct_t_p_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p]
         struct_t_arg = struct_t_p_no_sup != [] ? :($struct_t_n{$(struct_t_p_no_sup...)}) : struct_t
-        new_type_p = [t in struct_t_p_no_sup ? t : (:(DynamicSumTypes.Uninitialized)) 
+        new_type_p = [t in struct_t_p_no_sup ? t : (:(LightSumTypes.Uninitialized)) 
                       for t in new_type_p]
 
         expr_function_kwargs = :()
@@ -621,7 +621,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
 
         struct_t_p_in = [p for p in struct_t_p if any(x -> inexpr(x, p isa Expr && p.head == :(<:) ? p.args[1] : p), f_params_args_with_T)]
         struct_t_p_in_no_sup = [p isa Expr && p.head == :(<:) ? p.args[1] : p for p in struct_t_p_in]
-        new_type_p_in = [t in struct_t_p_in_no_sup ? t : (:(DynamicSumTypes.Uninitialized)) 
+        new_type_p_in = [t in struct_t_p_in_no_sup ? t : (:(LightSumTypes.Uninitialized)) 
                          for t in new_type_p]
 
         push!(expr_params_each, :($new_type_n{$(new_type_p...)}))
@@ -670,27 +670,27 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     add_types_to_cache(type_name, types_each_vis, vtc)
     add_types_params_to_cache(expr_params_each, types_each_vis, type_name, vtwpc)
 
-    expr_kindof = :(DynamicSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
+    expr_kindof = :(LightSumTypes.kindof(a::$(namify(new_type))) = getfield(a, $(Expr(:quote, gensym_type))))
 
     expr_allkinds = []
-    expr_allkinds1 = :(DynamicSumTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each_vis))))
+    expr_allkinds1 = :(LightSumTypes.allkinds(a::Type{$(namify(new_type))}) = $(Tuple(namify.(types_each_vis))))
     push!(expr_allkinds, expr_allkinds1)
     if namify(type_no_constr) !== type_no_constr
-        expr_allkinds2 = :(DynamicSumTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each_vis))))
+        expr_allkinds2 = :(LightSumTypes.allkinds(a::Type{$type_no_constr} where {$(type_params...)}) = $(Tuple(namify.(types_each_vis))))
         push!(expr_allkinds, expr_allkinds2)
     end
 
     branching_constructor = generate_branching_types(namify.(types_each_vis), [:(return $v) for v in namify.(types_each)])
-    expr_constructor = :(function DynamicSumTypes.variant_constructor(a::$(namify(new_type)))
+    expr_constructor = :(function LightSumTypes.variant_constructor(a::$(namify(new_type)))
                         kind = kindof(a)
 
                         $(branching_constructor...)
                      end)
 
     expr_show = :(function Base.show(io::IO, a::$(namify(new_type)))
-                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[2:end] if getfield(a, x) != DynamicSumTypes.uninit]
-                      vals = join([DynamicSumTypes.print_transform(x) for x in f_vals], ", ")
-                      params = [x for x in typeof(a).parameters if x != DynamicSumTypes.Uninitialized] 
+                      f_vals = [getfield(a, x) for x in fieldnames(typeof(a))[2:end] if getfield(a, x) != LightSumTypes.uninit]
+                      vals = join([LightSumTypes.print_transform(x) for x in f_vals], ", ")
+                      params = [x for x in typeof(a).parameters if x != LightSumTypes.Uninitialized] 
                       if isempty(params)
                           print(io, $(namify(new_type)), "'.", string(kindof(a)), "($vals)")
                       else
@@ -701,7 +701,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
 
     expr_getprop = :(function Base.getproperty(a::$(namify(new_type)), s::Symbol)
                         f = getfield(a, s)
-                        if f isa DynamicSumTypes.Uninitialized
+                        if f isa LightSumTypes.Uninitialized
                             return error(lazy"type $(kindof(a)) has no field $s")
                         end
                         return f
@@ -710,7 +710,7 @@ function _compact_structs(new_type, struct_defs, vtc, vtwpc)
     if is_mutable
         expr_setprop = :(function Base.setproperty!(a::$(namify(new_type)), s::Symbol, v)
                             f = getfield(a, s)
-                            if f isa DynamicSumTypes.Uninitialized
+                            if f isa LightSumTypes.Uninitialized
                                 return error(lazy"type $(kindof(a)) has no field $s")
                             end
                             setfield!(a, s, v)
@@ -798,7 +798,7 @@ function maybe_convert_fields(conv_maybe, f_inside_args, new_type_p, struct_spec
                 new_f = f
             end
         else
-            new_f = :(DynamicSumTypes.uninit)
+            new_f = :(LightSumTypes.uninit)
         end
         i += 1
         push!(f_inside_args_new, new_f)
@@ -845,7 +845,7 @@ function transform_field(x, noncommon_fields)
     else
         if x in noncommon_fields
             name, T = x_args.args
-            f = :($name::Union{DynamicSumTypes.Uninitialized, $T})
+            f = :($name::Union{LightSumTypes.Uninitialized, $T})
             if const_x
                 f = Expr(:const, f)
             end
@@ -875,18 +875,18 @@ end
 function def_export_variants(type)
     t = namify(type)
     return quote
-            function DynamicSumTypes.export_variants(T::Type{<:$t})
+            function LightSumTypes.export_variants(T::Type{<:$t})
                 Ts = $(QuoteNode(t))
-                vtc = DynamicSumTypes.__variants_types_cache__[@__MODULE__]
-                vtwpc = DynamicSumTypes.__variants_types_with_params_cache__[@__MODULE__]
+                vtc = LightSumTypes.__variants_types_cache__[@__MODULE__]
+                vtwpc = LightSumTypes.__variants_types_with_params_cache__[@__MODULE__]
                 for V in allkinds(T)
                     eval(:(const $V = ($(Ts))'.$V))
                     for k in collect(keys(vtc))
-                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($Ts)'))
+                        b = LightSumTypes.MacroTools.inexpr(k, :(($Ts)'))
                         b == true && (vtc[V] = vtc[k])
                     end
                     for k in collect(keys(vtwpc))
-                        b = DynamicSumTypes.MacroTools.inexpr(k, :(($Ts)'))
+                        b = LightSumTypes.MacroTools.inexpr(k, :(($Ts)'))
                         b == true && (vtwpc[k.args[2].value] = vtwpc[k])
                     end
                 end  
@@ -895,7 +895,7 @@ function def_export_variants(type)
 end
 
 macro sum_structs(version, type, struct_defs)
-    return esc(:(DynamicSumTypes.@sum_structs $type $struct_defs))
+    return esc(:(LightSumTypes.@sum_structs $type $struct_defs))
 end
 
 function print_transform(x)

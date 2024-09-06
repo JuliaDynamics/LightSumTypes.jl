@@ -1,8 +1,10 @@
 # LightSumTypes.jl
 
-[![CI](https://github.com/JuliaDynamics/DynamicSumTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/DynamicSumTypes.jl/actions?query=workflow%3ACI)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/DynamicSumTypes.jl/stable/)
-[![codecov](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/DynamicSumTypes.jl)
+!! The package is in the process to being renamed from DynamicSumTypes to LightSumTypes !!
+
+[![CI](https://github.com/JuliaDynamics/LightSumTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/LightSumTypes.jl/actions?query=workflow%3ACI)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/LightSumTypes.jl/stable/)
+[![codecov](https://codecov.io/gh/JuliaDynamics/LightSumTypes.jl/graph/badge.svg?token=rz9b1WTqCa)](https://codecov.io/gh/JuliaDynamics/LightSumTypes.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![DOI](https://zenodo.org/badge/745234998.svg)](https://zenodo.org/doi/10.5281/zenodo.12826686)
 
@@ -13,7 +15,7 @@ aim of this library is to provide a syntax as similar as possible to standard Ju
 structs to facilitate its integration within other libraries. 
 
 The `@sumtype` macro takes inspiration from [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl),
-but it offers a much more simple and idiomatic interface. Working with it is almost like working with `Union` types.
+but it offers a more idiomatic interface. Working with it is almost like working with `Union` types.
 
 ## Definition
 
@@ -21,7 +23,7 @@ To define a sum type you can just take an arbitrary number of types and enclose 
 like so:
 
 ```julia
-julia> using DynamicSumTypes
+julia> using LightSumTypes
 
 julia> abstract type AbstractS end
 
@@ -112,7 +114,7 @@ julia> f(c)
 
 ```julia
 using BenchmarkTools
-using DynamicSumTypes
+using LightSumTypes
        
 struct A end
 struct B end
