@@ -196,6 +196,7 @@ is_sumtype(T::Type) = false
 
 function variant_idx end
 
+include("precompile.jl")
 include("deprecations.jl")
 
 end
