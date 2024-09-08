@@ -25,7 +25,11 @@ julia> @sumtype AB(A, B)
 ```
 """
 macro sumtype(typedef)
+    expr = sumtype(typedef)
+    return expr
+end
 
+function sumtype(typedef)
     if typedef.head === :call
         abstract_type = :Any
         type_with_variants = typedef
