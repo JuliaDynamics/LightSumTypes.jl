@@ -25,7 +25,11 @@ julia> @sumtype AB(A, B)
 ```
 """
 macro sumtype(typedef)
+    expr = _sumtype(typedef)
+    return expr
+end
 
+function _sumtype(typedef)
     if typedef.head === :call
         abstract_type = :Any
         type_with_variants = typedef
@@ -192,6 +196,7 @@ is_sumtype(T::Type) = false
 
 function variant_idx end
 
+include("precompile.jl")
 include("deprecations.jl")
 
 end
