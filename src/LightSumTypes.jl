@@ -3,14 +3,14 @@ module LightSumTypes
 
 using MacroTools: namify
 
-export @sumtype, variant, variantof, allvariants, is_sumtype
+export @sumtype, sumtype_expr, variant, variantof, allvariants, is_sumtype
 
 unwrap(sumt) = getfield(sumt, :variants)
 
 """
     @sumtype SumTypeName(Types) [<: AbstractType]
 
-The macro creates a sumtypes composed by the given types.
+Creates a sumtype composed by the given types.
 It optionally accept also an abstract supertype.
 
 ## Example
@@ -25,11 +25,15 @@ julia> @sumtype AB(A, B)
 ```
 """
 macro sumtype(typedef)
-    expr = _sumtype(typedef)
-    return expr
+    return esc(sumtype_expr(typedef))
 end
 
-function _sumtype(typedef)
+"""
+    sumtype_expr(:(SumTypeName(Types) [<: AbstractType]))
+
+Returns the expression evaluated by the @sumtype macro.
+"""
+function sumtype_expr(typedef)
     if typedef.head === :call
         abstract_type = :Any
         type_with_variants = typedef
@@ -79,45 +83,45 @@ function _sumtype(typedef)
             )
     end
 
-    esc(quote
-            struct $type <: $(abstract_type)
-                variants::Union{$(variants...)}
-                $(constructors...)
-            end
-            $(constructors_extra...)
-            @inline function $Base.getproperty(sumt::$typename, s::Symbol)
+    quote
+        struct $type <: $(abstract_type)
+            variants::Union{$(variants...)}
+            $(constructors...)
+        end
+        $(constructors_extra...)
+        @inline function $Base.getproperty(sumt::$typename, s::Symbol)
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
+        end
+        if any(ismutabletype(v) for v in [$((variants_bounded)...)])
+            @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
                 v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
             end
-            if any(ismutabletype(v) for v in [$((variants_bounded)...)])
-                @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
-                    v = $LightSumTypes.unwrap(sumt)
-                    $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
-                end
-            end
-            function $Base.propertynames(sumt::$typename)
-                v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
-            end
-            function $Base.hasproperty(sumt::$typename, s::Symbol)
-                v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
-            end
-            function $Base.copy(sumt::$typename)
-                v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
-            end
-            @inline $LightSumTypes.variant(sumt::$typename) = $LightSumTypes.unwrap(sumt)
-            @inline function $LightSumTypes.variant_idx(sumt::$typename)
-                v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
-            end
-            $LightSumTypes.variantof(sumt::$typename) = typeof($LightSumTypes.variant(sumt))
-            $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
-                for (nv, v) in zip(variants_names, variants))...))
-            $LightSumTypes.is_sumtype(sumt::Type{$typename}) = true
-            nothing
-    end)
+        end
+        function $Base.propertynames(sumt::$typename)
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
+        end
+        function $Base.hasproperty(sumt::$typename, s::Symbol)
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
+        end
+        function $Base.copy(sumt::$typename)
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
+        end
+        @inline $LightSumTypes.variant(sumt::$typename) = $LightSumTypes.unwrap(sumt)
+        @inline function $LightSumTypes.variant_idx(sumt::$typename)
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
+        end
+        $LightSumTypes.variantof(sumt::$typename) = typeof($LightSumTypes.variant(sumt))
+        $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
+            for (nv, v) in zip(variants_names, variants))...))
+        $LightSumTypes.is_sumtype(sumt::Type{$typename}) = true
+        nothing
+    end
 end
 
 function branchs(variants, variants_with_P, outputs)
