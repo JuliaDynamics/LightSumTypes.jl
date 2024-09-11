@@ -10,7 +10,7 @@ unwrap(sumt) = getfield(sumt, :variants)
 """
     @sumtype SumTypeName(Types) [<: AbstractType]
 
-The macro creates a sumtypes composed by the given types.
+Creates a sumtype composed by the given types.
 It optionally accept also an abstract supertype.
 
 ## Example
@@ -29,6 +29,11 @@ macro sumtype(typedef)
     return esc(expr)
 end
 
+"""
+    sumtype_expr(:(SumTypeName(Types) [<: AbstractType]))
+
+Returns the expression evaluated by the @sumtype macro.
+"""
 function sumtype_expr(typedef)
     if typedef.head === :call
         abstract_type = :Any
