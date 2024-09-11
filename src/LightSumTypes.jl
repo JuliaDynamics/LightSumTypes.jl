@@ -25,8 +25,7 @@ julia> @sumtype AB(A, B)
 ```
 """
 macro sumtype(typedef)
-    expr = _sumtype(typedef)
-    return esc(expr)
+    return esc(sumtype_expr(typedef))
 end
 
 """
