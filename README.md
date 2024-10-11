@@ -56,16 +56,17 @@ julia> c = S{Int}(C(1))
 S{Int64}(C(1))
 ```
 
-a different syntax is also provided for convenience:
+If you need to decouple the arguments of the sumtype to its
+constructor you can use the composition operator:
 
 ```julia
-julia> a = S'.A(1)
+julia> a = (S∘A)(1)
 S{Int64}(A{Int64}(1))
 
-julia> b = S{Int}'.B(1)
+julia> b = (S{Int}∘B)(1)
 S{Int64}(B{Int64}(1))
 
-julia> c = S{Int}'.C(1)
+julia> c = (S{Int}∘C)(1)
 S{Int64}(C(1))
 ```
 
