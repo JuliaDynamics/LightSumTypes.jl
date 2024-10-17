@@ -65,9 +65,13 @@ function sumtype_expr(typedef)
 
     constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
                         $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
-    constructors_extra = [:($Base.adjoint(SumT::Type{$typename}) = $(Expr(:tuple, (:($nv = (args...; kwargs...) -> 
-                                $LightSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
-                                zip(variants_names, variants_bounded))...)))]
+    constructors_extra = [:(function $Base.adjoint(SumT::Type{$typename})
+                                @warn "Using A'.B syntax is deprecated in favour of the native A∘B syntax; \
+                                       the functionality will be removed in a future release of the package"
+                                return $(Expr(:tuple, (:($nv = (args...; kwargs...) -> 
+                                   $LightSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
+                                   zip(variants_names, variants_bounded))...))
+                            end)]
 
     if type isa Expr
         push!(
@@ -77,9 +81,12 @@ function sumtype_expr(typedef)
         )
         push!(
             constructors_extra,
-            :($Base.adjoint(SumT::Type{$type}) where {$(typeparams...)} =
-                $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $LightSumTypes.constructor($type, $v, args...; kwargs...)) 
-                        for (nv, v) in zip(variants_names, variants))...)))
+            :(function $Base.adjoint(SumT::Type{$type}) where {$(typeparams...)}
+                   @warn "Using A'.B syntax is deprecated in favour of the native A∘B syntax; \
+                          the functionality will be removed in a future release of the package"
+                   return $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $LightSumTypes.constructor($type, $v, args...; kwargs...)) 
+                              for (nv, v) in zip(variants_names, variants))...))
+              end)
             )
     end
 
