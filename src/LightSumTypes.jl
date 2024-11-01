@@ -65,13 +65,6 @@ function sumtype_expr(typedef)
 
     constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
                         $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
-    constructors_extra = [:(function $Base.adjoint(SumT::Type{$typename})
-                                @warn "Using A'.B syntax is deprecated in favour of the native A∘B syntax; \
-                                       the functionality will be removed in a future release of the package"
-                                return $(Expr(:tuple, (:($nv = (args...; kwargs...) -> 
-                                   $LightSumTypes.constructor($typename, $v, args...; kwargs...)) for (nv, v) in 
-                                   zip(variants_names, variants_bounded))...))
-                            end)]
 
     if type isa Expr
         push!(
@@ -79,15 +72,6 @@ function sumtype_expr(typedef)
             :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
                 $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))
         )
-        push!(
-            constructors_extra,
-            :(function $Base.adjoint(SumT::Type{$type}) where {$(typeparams...)}
-                   @warn "Using A'.B syntax is deprecated in favour of the native A∘B syntax; \
-                          the functionality will be removed in a future release of the package"
-                   return $(Expr(:tuple, (:($nv = (args...; kwargs...) -> $LightSumTypes.constructor($type, $v, args...; kwargs...)) 
-                              for (nv, v) in zip(variants_names, variants))...))
-              end)
-            )
     end
 
     quote
@@ -95,7 +79,6 @@ function sumtype_expr(typedef)
             variants::Union{$(variants...)}
             $(constructors...)
         end
-        $(constructors_extra...)
         @inline function $Base.getproperty(sumt::$typename, s::Symbol)
             v = $LightSumTypes.unwrap(sumt)
             $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
@@ -208,6 +191,5 @@ is_sumtype(T::Type) = false
 function variant_idx end
 
 include("precompile.jl")
-include("deprecations.jl")
 
 end
