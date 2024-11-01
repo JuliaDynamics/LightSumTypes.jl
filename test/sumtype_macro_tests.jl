@@ -74,8 +74,8 @@ struct None end
     f = E(F((1,1), (1.0, 1.0), :s))
     g1 = E(G((1,1), 1, 1, :c))
     g2 = E(G(; a = (1,1), d = 1, e = 1, c = :c))
-    g3 = E∘(G((1,1), 1, 1, :c))
-    g4 = E∘(G(; a = (1,1), d = 1, e = 1, c = :c))
+    g3 = (E∘G)((1,1), 1, 1, :c)
+    g4 = (E∘G)(; a = (1,1), d = 1, e = 1, c = :c)
     h = E(H((1,1), 1, (im, im), :j))
 
     @test_throws "" eval(:(@sumtype Z.E))
@@ -144,11 +144,11 @@ struct None end
     @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
 
     option_none = Option{Int}(None())
-    option_none2 = Option{Int}∘(None())
+    option_none2 = (Option{Int}∘None)()
     option_some = Option(Some(1))
     option_some2 = Option{Int}(Some(1))
-    option_some3 = Option{Int}∘(Some(1))
-    option_some4 = Option∘(Some(1))
+    option_some3 = (Option{Int}∘Some)(1)
+    option_some4 = (Option∘Some)(1)
     @test variant(option_none) isa None
     @test variant(option_some) isa Some{Int}
     @test variant(option_some2) isa Some{Int}
