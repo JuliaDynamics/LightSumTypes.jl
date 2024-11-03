@@ -229,5 +229,5 @@ BenchmarkTools.Trial: 10000 samples with 258 evaluations.
 
 ## Contributing
 
-Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
+Contributions are welcomed! If you encounter any issues, have suggestions for improvements, or would like to add new 
 features, feel free to open an issue or submit a pull request.
