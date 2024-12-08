@@ -124,8 +124,6 @@ function branchs(variants, variants_with_P, outputs)
     return branchs
 end
 
-constructor(T, V, args::Vararg{Any, N}; kwargs...) where N = T(V(args...; kwargs...))
-
 """
     variant(inst)
 
