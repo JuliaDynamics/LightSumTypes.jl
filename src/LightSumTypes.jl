@@ -49,10 +49,9 @@ function sumtype_expr(typedef)
     typeparams = type isa Symbol ? [] : type.args[2:end]
     variants = type_with_variants.args[2:end]
     !allunique(variants) && error("Duplicated variants in sumtype")
-    variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
-    variants_bounded = [v in variants_with_P ? namify(v) : v for v in variants]
+    variants_with_P = filter(has_typevars(typeparams), variants)
+    variants_bounded = unique([v in variants_with_P ? namify(v) : v for v in variants])
 
-    check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
     variants_names = namify.([check_if_typeof(v) ? v.args[2] : v for v in variants])
     for vname in unique(variants_names)
         inds = findall(==(vname), variants_names)
@@ -63,14 +62,14 @@ function sumtype_expr(typedef)
         end
     end
 
-    constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
-                        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
+    constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} =
+        $(branchs(variants, :(return new{$(typeparams...)}(v)))))]
 
     if type isa Expr
         push!(
-            constructors, 
-            :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
-                $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))
+            constructors,
+            :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} =
+                $(branchs(variants, :(return new{$(typeparams...)}(v)))))
         )
     end
 
@@ -79,50 +78,58 @@ function sumtype_expr(typedef)
             variants::Union{$(variants...)}
             $(constructors...)
         end
-        @inline function $Base.getproperty(sumt::$typename, s::Symbol)
+        @inline function $Base.getproperty(sumt::$type, s::Symbol) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
+            $(branchs(variants, :(return $Base.getproperty(v, s))))
         end
-        if any(ismutabletype(v) for v in [$((variants_bounded)...)])
-            @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
+        if any(ismutabletype, [$(variants_bounded...)])
+            @inline function $Base.setproperty!(sumt::$type, s::Symbol, value) where {$(typeparams...)}
                 v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
+                $(branchs(variants, :(return $Base.setproperty!(v, s, value))))
             end
         end
-        function $Base.propertynames(sumt::$typename)
+        function $Base.propertynames(sumt::$type) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
+            $(branchs(variants, :(return $Base.propertynames(v))))
         end
-        function $Base.hasproperty(sumt::$typename, s::Symbol)
+        function $Base.hasproperty(sumt::$type, s::Symbol) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
+            $(branchs(variants, :(return $Base.hasproperty(v, s))))
         end
-        function $Base.copy(sumt::$typename)
+        function $Base.copy(sumt::$type) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
+            $(branchs(variants, :(return $type(Base.copy(v)))))
         end
         @inline $LightSumTypes.variant(sumt::$typename) = $LightSumTypes.unwrap(sumt)
-        @inline function $LightSumTypes.variant_idx(sumt::$typename)
+        @inline function $LightSumTypes.variant_idx(sumt::$type) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
+            $(branchs(variants, [:(return $i) for i in 1:length(variants)]))
         end
         $LightSumTypes.variantof(sumt::$typename) = typeof($LightSumTypes.variant(sumt))
-        $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
-            for (nv, v) in zip(variants_names, variants))...))
+        $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v))
+                                                                            for (nv, v) in zip(variants_names, variants))...))
         $LightSumTypes.is_sumtype(sumt::Type{$typename}) = true
         nothing
     end
 end
 
-function branchs(variants, variants_with_P, outputs)
+function branchs(variants, outputs)
     !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
-    branchs = [Expr(:if, :(v isa $(variants[1] in variants_with_P ? namify(variants[1]) : variants[1])), outputs[1])]
-    for i in 2:length(variants)
-        push!(branchs, Expr(:elseif, :(v isa $(variants[i] in variants_with_P ? namify(variants[i]) : variants[i])), outputs[i]))
+    @assert length(variants) == length(outputs)
+    expr = :(error("THIS_SHOULD_BE_UNREACHABLE"))
+    for (variant, output) in zip(reverse(variants), reverse(outputs))
+        condition = :(v isa $variant)
+        expr = Expr(:elseif, condition, output, expr)
     end
-    push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
-    return branchs
+    expr = Expr(:if, expr.args...) # correct first :elseif to :if
+    return expr
 end
+
+has_typevars(expr::Symbol, typevars) = expr in typevars
+has_typevars(expr, typevars) = Meta.isexpr(expr, :curly) && any(e -> has_typevars(e, typevars), expr.args)
+has_typevars(typevars) = Base.Fix2(has_typevars, typevars)
+
+check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
 
 """
     variant(inst)
