@@ -65,6 +65,8 @@ struct None end
 
 @sumtype Option{T}(None, Some{T})
 
+@sumtype Nested{T}(Vector{T}, Vector{Vector{T}})
+
 @testset "@sumtype" begin
     
     st = SingleT1(ST1())
@@ -156,4 +158,9 @@ struct None end
     @test variant(option_some4) isa Some{Int}
     @test allvariants(Option) == (None = None, Some = Some)
     @test option_some.val == 1
+
+    v = Nested([1, 2, 3])
+    v_nested = Nested{Int}([[1, 2], [3, 4]]) # Nested([[1, 2], [3, 4]]) yields Nested{Vector{Int}}
+    @test variant(v) isa Vector{Int}
+    @test variant(v_nested) isa Vector{Vector{Int}}
 end
