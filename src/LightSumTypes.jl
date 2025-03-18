@@ -52,7 +52,6 @@ function sumtype_expr(typedef)
     variants_with_P = filter(has_typevars(typeparams), variants)
     variants_bounded = unique([v in variants_with_P ? namify(v) : v for v in variants])
 
-    check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
     variants_names = namify.([check_if_typeof(v) ? v.args[2] : v for v in variants])
     for vname in unique(variants_names)
         inds = findall(==(vname), variants_names)
@@ -129,6 +128,8 @@ end
 has_typevars(expr::Symbol, typevars) = expr in typevars
 has_typevars(expr, typevars) = Meta.isexpr(expr, :curly) && any(e -> has_typevars(e, typevars), expr.args)
 has_typevars(typevars) = Base.Fix2(has_typevars, typevars)
+
+check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
 
 """
     variant(inst)
