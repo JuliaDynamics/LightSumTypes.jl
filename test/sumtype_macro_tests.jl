@@ -6,27 +6,27 @@ struct ST1 end
 Base.copy(x::ST1) = ST1()
 
 @kwdef mutable struct F{X<:Integer}
-    a::Tuple{X, X}
-    b::Tuple{Float64, Float64}
+    a::Tuple{X,X}
+    b::Tuple{Float64,Float64}
     const c::Symbol
 end
 
 @kwdef mutable struct G{X}
-    a::Tuple{X, X}
+    a::Tuple{X,X}
     d::Int
     e::Int
     const c::Symbol
 end
 
 @kwdef mutable struct H{X,Y<:Real}
-    a::Tuple{X, X}
+    a::Tuple{X,X}
     f::Y
-    g::Tuple{Complex, Complex}
+    g::Tuple{Complex,Complex}
     const c::Symbol
 end
 
 abstract type AbstractE end
-@sumtype E(F,G,H) <: AbstractE
+@sumtype E(F, G, H) <: AbstractE
 @sumtype FF(F{Int32}, F{Int64})
 
 @kwdef mutable struct Wolf{T,N}
@@ -58,7 +58,7 @@ end
 @sumtype Simple(SimpleA, SimpleB) <: AbstractSimple
 
 struct Some{T}
-   val::T
+    val::T
 end
 
 struct None end
@@ -67,25 +67,27 @@ struct None end
 
 @sumtype Nested{T}(Vector{T}, Vector{Vector{T}})
 
+@sumtype Recursive(Symbol, Recursive)
+
 @testset "@sumtype" begin
-    
+
     st = SingleT1(ST1())
     @test propertynames(st) == ()
     @test copy(st) == st
 
-    f = E(F((1,1), (1.0, 1.0), :s))
-    g1 = E(G((1,1), 1, 1, :c))
-    g2 = E(G(; a = (1,1), d = 1, e = 1, c = :c))
-    g3 = (E∘G)((1,1), 1, 1, :c)
-    g4 = (E∘G)(; a = (1,1), d = 1, e = 1, c = :c)
-    h = E(H((1,1), 1, (im, im), :j))
+    f = E(F((1, 1), (1.0, 1.0), :s))
+    g1 = E(G((1, 1), 1, 1, :c))
+    g2 = E(G(; a=(1, 1), d=1, e=1, c=:c))
+    g3 = (E ∘ G)((1, 1), 1, 1, :c)
+    g4 = (E ∘ G)(; a=(1, 1), d=1, e=1, c=:c)
+    h = E(H((1, 1), 1, (im, im), :j))
 
     @test_throws "" eval(:(@sumtype Z.E))
-    @test_throws "" E(F((1.0,1.0), (1.0, 1.0), :s))
-    @test_throws "" E(G((1,1), im, (im, im), :d))
-    @test_throws "" E(G((im,im), 1, (im, im), :d))
+    @test_throws "" E(F((1.0, 1.0), (1.0, 1.0), :s))
+    @test_throws "" E(G((1, 1), im, (im, im), :d))
+    @test_throws "" E(G((im, im), 1, (im, im), :d))
 
-    @test f.a == (1,1)
+    @test f.a == (1, 1)
     @test f.b == (1.0, 1.0)
     @test f.c == :s
     @test g1.d === g2.d === 1
@@ -95,25 +97,25 @@ struct None end
     @test is_sumtype(typeof(g1)) == true
     @test is_sumtype(G) == false
     @test variantof(g1) == G{Int}
-    
+
     f.a = (3, 3)
     @test f.a == (3, 3)
 
     @test variant(f) isa F
     @test propertynames(f) == (:a, :b, :c)
 
-    @test allvariants(E) == allvariants(typeof(f)) == (F = F, G = G, H = H)
+    @test allvariants(E) == allvariants(typeof(f)) == (F=F, G=G, H=H)
 
-    ff1 = FF(F((1,1), (1.0, 1.0), :s))
-    ff2 = FF(F((Int32(1),Int32(1)), (1.0, 1.0), :s))
-    @test allvariants(FF) == (F_Int32 = F{Int32}, F_Int64 = F{Int64})
+    ff1 = FF(F((1, 1), (1.0, 1.0), :s))
+    ff2 = FF(F((Int32(1), Int32(1)), (1.0, 1.0), :s))
+    @test allvariants(FF) == (F_Int32=F{Int32}, F_Int64=F{Int64})
 
     hawk_1 = Animal(Hawk(1.0, 2.0, 3))
-    hawk_2 = Animal(Hawk(; ground_speed = 2.3, flight_speed = 2))
+    hawk_2 = Animal(Hawk(; ground_speed=2.3, flight_speed=2))
     wolf_1 = Animal(Wolf(2.0, 3.0, :black))
-    wolf_2 = Animal(Wolf(; ground_speed = 2.0, fur_color = :white))
-    wolf_3 = Animal(Wolf{Int, Float64}(2.0, 3.0, :black))
-    wolf_4 = Animal(Wolf{Float64, Float64}(; ground_speed = 2.0, fur_color = :white))
+    wolf_2 = Animal(Wolf(; ground_speed=2.0, fur_color=:white))
+    wolf_3 = Animal(Wolf{Int,Float64}(2.0, 3.0, :black))
+    wolf_4 = Animal(Wolf{Float64,Float64}(; ground_speed=2.0, fur_color=:white))
 
     @test hawk_1.energy == 1.0
     @test hawk_2.energy == 0.1
@@ -128,7 +130,7 @@ struct None end
     @test_throws "" wolf_1.flight_speed
     @test variant(hawk_1) isa Hawk
     @test variant(wolf_1) isa Wolf
-    @test allvariants(Animal) == allvariants(typeof(wolf_3)) == (Wolf = Wolf, Hawk = Hawk)
+    @test allvariants(Animal) == allvariants(typeof(wolf_3)) == (Wolf=Wolf, Hawk=Hawk)
 
     b = Simple(SimpleA(1, 3))
     c = Simple(SimpleB(2, "a"))
@@ -143,24 +145,33 @@ struct None end
     @test variant(c) isa SimpleB
     @test Simple <: AbstractSimple
     @test b isa Simple && c isa Simple
-    @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA = SimpleA, SimpleB = SimpleB)
+    @test allvariants(Simple) == allvariants(typeof(b)) == (SimpleA=SimpleA, SimpleB=SimpleB)
 
     option_none = Option{Int}(None())
-    option_none2 = (Option{Int}∘None)()
+    option_none2 = (Option{Int} ∘ None)()
     option_some = Option(Some(1))
     option_some2 = Option{Int}(Some(1))
-    option_some3 = (Option{Int}∘Some)(1)
-    option_some4 = (Option∘Some)(1)
+    option_some3 = (Option{Int} ∘ Some)(1)
+    option_some4 = (Option ∘ Some)(1)
     @test variant(option_none) isa None
     @test variant(option_some) isa Some{Int}
     @test variant(option_some2) isa Some{Int}
     @test variant(option_some3) isa Some{Int}
     @test variant(option_some4) isa Some{Int}
-    @test allvariants(Option) == (None = None, Some = Some)
+    @test allvariants(Option) == (None=None, Some=Some)
     @test option_some.val == 1
 
     v = Nested([1, 2, 3])
     v_nested = Nested{Int}([[1, 2], [3, 4]]) # Nested([[1, 2], [3, 4]]) yields Nested{Vector{Int}}
     @test variant(v) isa Vector{Int}
     @test variant(v_nested) isa Vector{Vector{Int}}
+
+    r = Recursive(:val)
+    r_recursive = Recursive(r)
+    r_rerecursive = Recursive(r_recursive)
+
+    @test variant(r) == :val
+    @test variant(r_recursive) == r
+    @test variant(r_rerecursive) == r_recursive
+
 end
