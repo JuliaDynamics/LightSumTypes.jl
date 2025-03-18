@@ -63,14 +63,14 @@ function sumtype_expr(typedef)
         end
     end
 
-    constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} = 
-                        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))]
+    constructors = [:(@inline $(namify(type))(v::Union{$(variants...)}) where {$(typeparams...)} =
+        $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))))]
 
     if type isa Expr
         push!(
-            constructors, 
-            :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} = 
-                $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))...))
+            constructors,
+            :(@inline $type(v::Union{$(variants...)}) where {$(typeparams...)} =
+                $(branchs(variants, variants_with_P, :(return new{$(typeparams...)}(v)))))
         )
     end
 
@@ -81,34 +81,34 @@ function sumtype_expr(typedef)
         end
         @inline function $Base.getproperty(sumt::$typename, s::Symbol)
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s)))...)
+            $(branchs(variants, variants_with_P, :(return $Base.getproperty(v, s))))
         end
         if any(ismutabletype(v) for v in [$((variants_bounded)...)])
             @inline function $Base.setproperty!(sumt::$typename, s::Symbol, value)
                 v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value)))...)
+                $(branchs(variants, variants_with_P, :(return $Base.setproperty!(v, s, value))))
             end
         end
         function $Base.propertynames(sumt::$typename)
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.propertynames(v)))...)
+            $(branchs(variants, variants_with_P, :(return $Base.propertynames(v))))
         end
         function $Base.hasproperty(sumt::$typename, s::Symbol)
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s)))...)
+            $(branchs(variants, variants_with_P, :(return $Base.hasproperty(v, s))))
         end
         function $Base.copy(sumt::$typename)
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, :(return $type(Base.copy(v))))...)
+            $(branchs(variants, variants_with_P, :(return $type(Base.copy(v)))))
         end
         @inline $LightSumTypes.variant(sumt::$typename) = $LightSumTypes.unwrap(sumt)
         @inline function $LightSumTypes.variant_idx(sumt::$typename)
             v = $LightSumTypes.unwrap(sumt)
-            $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)])...)
+            $(branchs(variants, variants_with_P, [:(return $i) for i in 1:length(variants)]))
         end
         $LightSumTypes.variantof(sumt::$typename) = typeof($LightSumTypes.variant(sumt))
-        $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v)) 
-            for (nv, v) in zip(variants_names, variants))...))
+        $LightSumTypes.allvariants(sumt::Type{$typename}) = $(Expr(:tuple, (:($nv = $(v in variants_with_P ? namify(v) : v))
+                                                                            for (nv, v) in zip(variants_names, variants))...))
         $LightSumTypes.is_sumtype(sumt::Type{$typename}) = true
         nothing
     end
@@ -116,12 +116,13 @@ end
 
 function branchs(variants, variants_with_P, outputs)
     !(outputs isa Vector) && (outputs = repeat([outputs], length(variants)))
-    branchs = [Expr(:if, :(v isa $(variants[1] in variants_with_P ? namify(variants[1]) : variants[1])), outputs[1])]
-    for i in 2:length(variants)
-        push!(branchs, Expr(:elseif, :(v isa $(variants[i] in variants_with_P ? namify(variants[i]) : variants[i])), outputs[i]))
+    expr = :(error("THIS_SHOULD_BE_UNREACHABLE"))
+    for (variant, output) in zip(reverse(variants), reverse(outputs))
+        condition = :(v isa $(variant in variants_with_P ? namify(variant) : variant))
+        expr = Expr(:elseif, condition, output, expr)
     end
-    push!(branchs, :(error("THIS_SHOULD_BE_UNREACHABLE")))
-    return branchs
+    expr = Expr(:if, expr.args...) # correct first :elseif to :if
+    return expr
 end
 
 """
