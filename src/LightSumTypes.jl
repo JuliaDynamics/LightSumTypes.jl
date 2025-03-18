@@ -49,8 +49,8 @@ function sumtype_expr(typedef)
     typeparams = type isa Symbol ? [] : type.args[2:end]
     variants = type_with_variants.args[2:end]
     !allunique(variants) && error("Duplicated variants in sumtype")
-    variants_with_P = [v for v in variants if v isa Expr && !isempty(intersect(typeparams, v.args[2:end]))]
-    variants_bounded = [v in variants_with_P ? namify(v) : v for v in variants]
+    variants_with_P = [v for v in variants if has_typevars(v, typeparams)]
+    variants_bounded = unique([v in variants_with_P ? namify(v) : v for v in variants])
 
     check_if_typeof(v) = v isa Expr && v.head == :call && v.args[1] == :typeof
     variants_names = namify.([check_if_typeof(v) ? v.args[2] : v for v in variants])
@@ -124,6 +124,9 @@ function branchs(variants, variants_with_P, outputs)
     expr = Expr(:if, expr.args...) # correct first :elseif to :if
     return expr
 end
+
+has_typevars(expr::Symbol, typevars) = expr in typevars
+has_typevars(expr, typevars) = Meta.isexpr(expr, :curly) && any(e -> has_typevars(e, typevars), expr.args)
 
 """
     variant(inst)
