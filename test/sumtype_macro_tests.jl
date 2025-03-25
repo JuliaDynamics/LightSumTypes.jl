@@ -1,6 +1,7 @@
 
 struct ST1 end
 
+"dummy docstring"
 @sumtype SingleT1(ST1)
 
 Base.copy(x::ST1) = ST1()
@@ -26,7 +27,9 @@ end
 end
 
 abstract type AbstractE end
+"dummy docstring"
 @sumtype E(F, G, H) <: AbstractE
+"dummy docstring"
 @sumtype FF(F{Int32}, F{Int64})
 
 @kwdef mutable struct Wolf{T,N}
@@ -65,8 +68,10 @@ struct None end
 
 @sumtype Option{T}(None, Some{T})
 
+"dummy docstring"
 @sumtype Nested{T}(Vector{T}, Vector{Vector{T}})
 
+"dummy docstring"
 @sumtype Recursive(Symbol, Recursive)
 
 @testset "@sumtype" begin
@@ -174,4 +179,10 @@ struct None end
     @test variant(r_recursive) == r
     @test variant(r_rerecursive) == r_recursive
 
+    # test docstrings
+    @test "$(@doc(SingleT1))" == "dummy docstring\n"
+    @test "$(@doc(E))" == "dummy docstring\n"
+    @test "$(@doc(FF))" == "dummy docstring\n"
+    @test "$(@doc(Nested))" == "dummy docstring\n"
+    @test "$(@doc(Recursive))" == "dummy docstring\n"
 end
