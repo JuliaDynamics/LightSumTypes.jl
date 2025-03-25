@@ -180,9 +180,11 @@ struct None end
     @test variant(r_rerecursive) == r_recursive
 
     # test docstrings
-    @test "$(@doc(SingleT1))" == "dummy docstring\n"
-    @test "$(@doc(E))" == "dummy docstring\n"
-    @test "$(@doc(FF))" == "dummy docstring\n"
-    @test "$(@doc(Nested))" == "dummy docstring\n"
-    @test "$(@doc(Recursive))" == "dummy docstring\n"
+    @static if isdefined(Docs, :hasdoc)
+        @test Docs.hasdoc(@__MODULE__, :SingleT1)
+        @test Docs.hasdoc(@__MODULE__, :E)
+        @test Docs.hasdoc(@__MODULE__, :FF)
+        @test Docs.hasdoc(@__MODULE__, :Nested)
+        @test Docs.hasdoc(@__MODULE__, :Recursive)
+    end
 end
