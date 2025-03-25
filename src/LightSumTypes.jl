@@ -78,6 +78,7 @@ function sumtype_expr(typedef)
             variants::Union{$(variants...)}
             $(constructors...)
         end
+        $Core.@__doc__ $typename
         @inline function $Base.getproperty(sumt::$type, s::Symbol) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
             $(branchs(variants, :(return $Base.getproperty(v, s))))
