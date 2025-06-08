@@ -83,11 +83,9 @@ function sumtype_expr(typedef)
             v = $LightSumTypes.unwrap(sumt)
             $(branchs(variants, :(return $Base.getproperty(v, s))))
         end
-        if any(ismutabletype, [$(variants_bounded...)])
-            @inline function $Base.setproperty!(sumt::$type, s::Symbol, value) where {$(typeparams...)}
-                v = $LightSumTypes.unwrap(sumt)
-                $(branchs(variants, :(return $Base.setproperty!(v, s, value))))
-            end
+        @inline function $Base.setproperty!(sumt::$type, s::Symbol, value) where {$(typeparams...)}
+            v = $LightSumTypes.unwrap(sumt)
+            $(branchs(variants, :(return $Base.setproperty!(v, s, value))))
         end
         function $Base.propertynames(sumt::$type) where {$(typeparams...)}
             v = $LightSumTypes.unwrap(sumt)
