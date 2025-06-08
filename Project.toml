@@ -1,6 +1,6 @@
 name = "LightSumTypes"
 uuid = "f56206fc-af4c-5561-a72a-43fe2ca5a923"
-version = "5.2.0"
+version = "5.2.1"
 
 [deps]
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
