@@ -3,7 +3,7 @@ module LightSumTypes
 
 using MacroTools: namify
 
-export @sumtype, sumtype_expr, variant, variantof, allvariants, is_sumtype
+export @sumtype, sumtype_expr, variant, variantof, allvariants, is_sumtype, apply
 
 unwrap(sumt) = getfield(sumt, :variants)
 
@@ -194,7 +194,7 @@ is_sumtype(T::Type) = false
 
 function variant_idx end
 
-                    function _is_sumtype_structurally(T)
+function _is_sumtype_structurally(T)
     return T isa DataType && fieldcount(T) == 1 && fieldname(T, 1) === :variants && fieldtype(T, 1) isa Union
 end
 
