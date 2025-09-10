@@ -200,9 +200,6 @@ end
 
 function _get_variant_types(T_sum)
     field_T = fieldtype(T_sum, 1)
-        
-    !(field_T isa Union) && return [field_T]
-
     types = []
     curr = field_T
     while curr isa Union
