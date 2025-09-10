@@ -211,14 +211,9 @@ function _get_variant_types(T_sum)
 end
 
 @generated function apply(f::F, args::Tuple) where {F}
-    
 
     args = fieldtypes(args)
     sumtype_args = [(i, T) for (i, T) in enumerate(args) if _is_sumtype_structurally(T)]
-
-    if isempty(sumtype_args)
-        return :(f(args...))
-    end
 
     final_args = Any[:(args[$i]) for i in 1:length(args)]
     for (idx, T) in sumtype_args
