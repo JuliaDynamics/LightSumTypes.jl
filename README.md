@@ -1,3 +1,4 @@
+
 # LightSumTypes.jl
 
 [![CI](https://github.com/JuliaDynamics/LightSumTypes.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/LightSumTypes.jl/actions?query=workflow%3ACI)
@@ -6,7 +7,6 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![DOI](https://zenodo.org/badge/745234998.svg)](https://zenodo.org/doi/10.5281/zenodo.12826686)
 
-
 This package allows to combine multiple heterogeneous types in a single one. This helps to write 
 type-stable code by avoiding `Union` performance drawbacks when many types are unionized. Another 
 aim of this library is to provide a syntax as similar as possible to standard Julia 
@@ -14,6 +14,9 @@ structs to facilitate its integration within other libraries.
 
 The `@sumtype` macro takes inspiration from [SumTypes.jl](https://github.com/MasonProtter/SumTypes.jl),
 but it offers a more idiomatic interface. Working with it is almost like working with `Union` types.
+
+**Important Note**: Consider using [WrappedUnions.jl](https://github.com/Tortar/WrappedUnions.jl) instead since it offers a better interface and performance
+than LightSumTypes.jl.
 
 ## Definition
 
